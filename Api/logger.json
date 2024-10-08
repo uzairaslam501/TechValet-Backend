@@ -1,0 +1,3613 @@
+[{
+  "ActionName": "ITValet.Controllers.UserController.GetUserListAsync (ITValet)",
+  "StartTime": "2024-02-06T13:30:41.2829044Z",
+  "EndTime": "2024-02-06T13:30:41.3111551Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetAllCompletedOrders (ITValet)",
+  "StartTime": "2024-02-21T10:22:37.0244425Z",
+  "EndTime": "2024-02-21T10:22:37.5133699Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetEarnings (ITValet)",
+  "StartTime": "2024-02-21T10:22:38.8622547Z",
+  "EndTime": "2024-02-21T10:22:50.8693529Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetAllCompletedOrders (ITValet)",
+  "StartTime": "2024-02-21T10:22:51.1654608Z",
+  "EndTime": "2024-02-21T10:22:51.4597561Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetAllCompletedOrders (ITValet)",
+  "StartTime": "2024-02-21T10:23:15.4254738Z",
+  "EndTime": "2024-02-21T10:23:15.7244115Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetEarnings (ITValet)",
+  "StartTime": "2024-02-21T10:27:26.5610845Z",
+  "EndTime": "2024-02-21T10:27:38.1564292Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetAllCompletedOrders (ITValet)",
+  "StartTime": "2024-02-21T10:27:39.1748415Z",
+  "EndTime": "2024-02-21T10:27:39.5431477Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetEarnings (ITValet)",
+  "StartTime": "2024-02-21T10:30:41.3536056Z",
+  "EndTime": "2024-02-21T10:30:46.5338258Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetAllCompletedOrders (ITValet)",
+  "StartTime": "2024-02-21T10:30:47.2931752Z",
+  "EndTime": "2024-02-21T10:30:47.3842495Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetHighRankedKeys (ITValet)",
+  "StartTime": "2024-02-21T10:30:53.3674653Z",
+  "EndTime": "2024-02-21T10:30:53.3837289Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserListAsync (ITValet)",
+  "StartTime": "2024-02-21T10:30:53.4027163Z",
+  "EndTime": "2024-02-21T10:30:53.4428402Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetSearchedValetRecord (ITValet)",
+  "StartTime": "2024-02-21T10:30:56.9109419Z",
+  "EndTime": "2024-02-21T10:30:57.3156706Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetSearchedValetRecord (ITValet)",
+  "StartTime": "2024-02-21T10:31:01.0539345Z",
+  "EndTime": "2024-02-21T10:31:01.0846897Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-02-21T10:31:02.6401542Z",
+  "EndTime": "2024-02-21T10:31:02.6709114Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetValetRatingRecord (ITValet)",
+  "StartTime": "2024-02-21T10:31:02.6927618Z",
+  "EndTime": "2024-02-21T10:31:02.8232212Z",
+  "Status": "False",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetBookedAvailabilitySlot (ITValet)",
+  "StartTime": "2024-02-21T10:31:03.0372768Z",
+  "EndTime": "2024-02-21T10:31:03.1788173Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetOrderEventsOfValet (ITValet)",
+  "StartTime": "2024-02-21T10:31:03.2415712Z",
+  "EndTime": "2024-02-21T10:31:03.3078961Z",
+  "Status": "False",
+  "StatusCode": "400"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetOrderById (ITValet)",
+  "StartTime": "2024-02-21T10:31:51.4212095Z",
+  "EndTime": "2024-02-21T10:31:51.4877955Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetEarnings (ITValet)",
+  "StartTime": "2024-02-21T10:51:18.9911138Z",
+  "EndTime": "2024-02-21T10:51:22.3347831Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetAllCompletedOrders (ITValet)",
+  "StartTime": "2024-02-21T10:51:23.4146016Z",
+  "EndTime": "2024-02-21T10:51:23.6155791Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetOrdersDatatableByUserId (ITValet)",
+  "StartTime": "2024-02-21T10:51:26.5583806Z",
+  "EndTime": "2024-02-21T10:51:26.5822443Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetOrderById (ITValet)",
+  "StartTime": "2024-02-21T10:52:36.0818266Z",
+  "EndTime": "2024-02-21T10:52:36.1347655Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetOrderById (ITValet)",
+  "StartTime": "2024-02-21T10:54:27.238885Z",
+  "EndTime": "2024-02-21T10:54:27.3312136Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetHighRankedKeys (ITValet)",
+  "StartTime": "2024-02-21T10:59:13.1776233Z",
+  "EndTime": "2024-02-21T10:59:13.1949247Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserListAsync (ITValet)",
+  "StartTime": "2024-02-21T10:59:13.7486899Z",
+  "EndTime": "2024-02-21T10:59:13.8395502Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetEarnings (ITValet)",
+  "StartTime": "2024-02-21T10:59:18.4837683Z",
+  "EndTime": "2024-02-21T10:59:21.8104065Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetAllCompletedOrders (ITValet)",
+  "StartTime": "2024-02-21T10:59:22.376132Z",
+  "EndTime": "2024-02-21T10:59:22.4289238Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetOrderEventsByUserId (ITValet)",
+  "StartTime": "2024-02-21T11:06:00.3268317Z",
+  "EndTime": "2024-02-21T11:06:00.6233916Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetRequestServicesDatatableByUserId (ITValet)",
+  "StartTime": "2024-02-21T11:06:01.6085127Z",
+  "EndTime": "2024-02-21T11:06:01.651169Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetOrdersDatatableByUserId (ITValet)",
+  "StartTime": "2024-02-21T11:06:01.7293446Z",
+  "EndTime": "2024-02-21T11:06:02.0570948Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetOrderById (ITValet)",
+  "StartTime": "2024-02-21T11:06:20.188122Z",
+  "EndTime": "2024-02-21T11:06:20.5560538Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetOrderById (ITValet)",
+  "StartTime": "2024-02-21T11:06:45.1440316Z",
+  "EndTime": "2024-02-21T11:06:45.2033422Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetEarnings (ITValet)",
+  "StartTime": "2024-02-21T11:06:54.7303161Z",
+  "EndTime": "2024-02-21T11:06:59.4575178Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetAllCompletedOrders (ITValet)",
+  "StartTime": "2024-02-21T11:07:00.4879623Z",
+  "EndTime": "2024-02-21T11:07:00.5326534Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetHighRankedKeys (ITValet)",
+  "StartTime": "2024-02-21T11:12:57.7318569Z",
+  "EndTime": "2024-02-21T11:12:57.7581269Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserListAsync (ITValet)",
+  "StartTime": "2024-02-21T11:12:57.7855614Z",
+  "EndTime": "2024-02-21T11:12:57.8926459Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetRequestServicesDatatableByUserId (ITValet)",
+  "StartTime": "2024-02-21T11:13:02.5017417Z",
+  "EndTime": "2024-02-21T11:13:02.5617176Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetOrdersDatatableByUserId (ITValet)",
+  "StartTime": "2024-02-21T11:13:02.6181624Z",
+  "EndTime": "2024-02-21T11:13:02.6425563Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetOrderEventsByUserId (ITValet)",
+  "StartTime": "2024-02-21T11:13:03.9350771Z",
+  "EndTime": "2024-02-21T11:13:04.0117739Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetSearchedValetRecord (ITValet)",
+  "StartTime": "2024-02-21T11:13:07.4725479Z",
+  "EndTime": "2024-02-21T11:13:07.6719866Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-02-21T11:13:09.3097195Z",
+  "EndTime": "2024-02-21T11:13:09.3741283Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetValetRatingRecord (ITValet)",
+  "StartTime": "2024-02-21T11:13:09.4338927Z",
+  "EndTime": "2024-02-21T11:13:09.6721637Z",
+  "Status": "False",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetBookedAvailabilitySlot (ITValet)",
+  "StartTime": "2024-02-21T11:13:10.0762523Z",
+  "EndTime": "2024-02-21T11:13:10.2764171Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetOrderEventsOfValet (ITValet)",
+  "StartTime": "2024-02-21T11:13:10.3300309Z",
+  "EndTime": "2024-02-21T11:13:10.4393287Z",
+  "Status": "False",
+  "StatusCode": "400"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetOrderById (ITValet)",
+  "StartTime": "2024-02-21T11:14:06.0397973Z",
+  "EndTime": "2024-02-21T11:14:06.1418306Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetOrderById (ITValet)",
+  "StartTime": "2024-02-21T11:14:42.7994521Z",
+  "EndTime": "2024-02-21T11:14:42.8496774Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetOrderEventsOfValet (ITValet)",
+  "StartTime": "2024-02-21T11:19:37.1211466Z",
+  "EndTime": "2024-02-21T11:19:37.1877906Z",
+  "Status": "False",
+  "StatusCode": "400"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetOrderById (ITValet)",
+  "StartTime": "2024-02-21T11:20:05.2927997Z",
+  "EndTime": "2024-02-21T11:20:05.3368821Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetEarnings (ITValet)",
+  "StartTime": "2024-02-21T11:29:58.6031294Z",
+  "EndTime": "2024-02-21T11:30:04.5744897Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetAllCompletedOrders (ITValet)",
+  "StartTime": "2024-02-21T11:30:05.0652029Z",
+  "EndTime": "2024-02-21T11:30:05.0825302Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetEarnings (ITValet)",
+  "StartTime": "2024-02-21T11:32:43.7388969Z",
+  "EndTime": "2024-02-21T11:32:49.0823134Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetAllCompletedOrders (ITValet)",
+  "StartTime": "2024-02-21T11:32:50.0615402Z",
+  "EndTime": "2024-02-21T11:32:50.1372789Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetEarnings (ITValet)",
+  "StartTime": "2024-02-21T11:33:16.6553272Z",
+  "EndTime": "2024-02-21T11:33:21.1265323Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetAllCompletedOrders (ITValet)",
+  "StartTime": "2024-02-21T11:33:22.4842538Z",
+  "EndTime": "2024-02-21T11:33:22.512523Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetOrderById (ITValet)",
+  "StartTime": "2024-02-21T11:35:30.2427582Z",
+  "EndTime": "2024-02-21T11:35:30.2903581Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetOrderById (ITValet)",
+  "StartTime": "2024-02-21T11:35:39.2088942Z",
+  "EndTime": "2024-02-21T11:35:39.244899Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetHighRankedKeys (ITValet)",
+  "StartTime": "2024-02-21T11:35:43.9473949Z",
+  "EndTime": "2024-02-21T11:35:43.9568702Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserListAsync (ITValet)",
+  "StartTime": "2024-02-21T11:35:43.9709611Z",
+  "EndTime": "2024-02-21T11:35:43.9981127Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetEarnings (ITValet)",
+  "StartTime": "2024-02-21T11:35:46.7042263Z",
+  "EndTime": "2024-02-21T11:35:49.1782701Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetAllCompletedOrders (ITValet)",
+  "StartTime": "2024-02-21T11:35:49.8586032Z",
+  "EndTime": "2024-02-21T11:35:50.0800414Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetEarnings (ITValet)",
+  "StartTime": "2024-02-21T11:40:34.9755665Z",
+  "EndTime": "2024-02-21T11:43:25.1176318Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetEarnings (ITValet)",
+  "StartTime": "2024-02-21T11:43:26.2569826Z",
+  "EndTime": "2024-02-21T11:43:29.076642Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetAllCompletedOrders (ITValet)",
+  "StartTime": "2024-02-21T11:43:29.7310868Z",
+  "EndTime": "2024-02-21T11:43:29.7673248Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetEarnings (ITValet)",
+  "StartTime": "2024-02-21T11:43:59.0562335Z",
+  "EndTime": "2024-02-21T11:44:03.4293666Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetAllCompletedOrders (ITValet)",
+  "StartTime": "2024-02-21T11:44:04.088873Z",
+  "EndTime": "2024-02-21T11:44:04.1375209Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetEarnings (ITValet)",
+  "StartTime": "2024-02-21T11:50:37.2709048Z",
+  "EndTime": "2024-02-21T11:52:21.655938Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetEarnings (ITValet)",
+  "StartTime": "2024-02-21T11:52:28.6011334Z",
+  "EndTime": "2024-02-21T11:53:05.641608Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetAllCompletedOrders (ITValet)",
+  "StartTime": "2024-02-21T11:53:07.9350396Z",
+  "EndTime": "2024-02-21T11:53:07.9450329Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetSearchedValetRecord (ITValet)",
+  "StartTime": "2024-02-21T12:04:34.6748431Z",
+  "EndTime": "2024-02-21T12:04:34.7821609Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-02-21T12:04:36.2528069Z",
+  "EndTime": "2024-02-21T12:04:36.2715858Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetValetRatingRecord (ITValet)",
+  "StartTime": "2024-02-21T12:04:36.2963987Z",
+  "EndTime": "2024-02-21T12:04:36.4566466Z",
+  "Status": "False",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetBookedAvailabilitySlot (ITValet)",
+  "StartTime": "2024-02-21T12:04:36.9224559Z",
+  "EndTime": "2024-02-21T12:04:37.2290623Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetOrderEventsOfValet (ITValet)",
+  "StartTime": "2024-02-21T12:04:37.2618847Z",
+  "EndTime": "2024-02-21T12:04:37.3646304Z",
+  "Status": "False",
+  "StatusCode": "400"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetOrderById (ITValet)",
+  "StartTime": "2024-02-21T12:05:14.1983123Z",
+  "EndTime": "2024-02-21T12:05:14.2920902Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetEarnings (ITValet)",
+  "StartTime": "2024-02-21T12:05:18.460218Z",
+  "EndTime": "2024-02-21T12:05:25.7425944Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetAllCompletedOrders (ITValet)",
+  "StartTime": "2024-02-21T12:05:28.6000383Z",
+  "EndTime": "2024-02-21T12:05:28.6118004Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetOrderById (ITValet)",
+  "StartTime": "2024-02-21T12:05:35.4433299Z",
+  "EndTime": "2024-02-21T12:05:35.5086669Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetOrdersDatatableByUserId (ITValet)",
+  "StartTime": "2024-02-21T12:05:39.6734632Z",
+  "EndTime": "2024-02-21T12:05:39.6971376Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetOrderById (ITValet)",
+  "StartTime": "2024-02-21T12:05:40.7912054Z",
+  "EndTime": "2024-02-21T12:05:40.9204721Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetHighRankedKeys (ITValet)",
+  "StartTime": "2024-02-21T12:51:10.9692723Z",
+  "EndTime": "2024-02-21T12:51:10.9877286Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserListAsync (ITValet)",
+  "StartTime": "2024-02-21T12:51:11.4355025Z",
+  "EndTime": "2024-02-21T12:51:11.4850132Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-08-21T05:47:10.7303863Z",
+  "EndTime": "2024-08-21T05:47:10.8238714Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-08-21T05:47:11.1721615Z",
+  "EndTime": "2024-08-21T05:47:11.208502Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-08-21T05:47:11.4630467Z",
+  "EndTime": "2024-08-21T05:47:11.5160954Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.CreateAccount (ITValet)",
+  "StartTime": "2024-08-21T05:48:24.0019342Z",
+  "EndTime": "2024-08-21T05:48:30.5619442Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-08-21T05:48:34.07889Z",
+  "EndTime": "2024-08-21T05:48:34.0947677Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-08-21T05:48:34.128776Z",
+  "EndTime": "2024-08-21T05:48:34.1373812Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-08-21T05:48:34.1521026Z",
+  "EndTime": "2024-08-21T05:48:34.1605314Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-08-21T05:50:53.9098493Z",
+  "EndTime": "2024-08-21T05:50:53.9268611Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.PostAddUserAvailableSlots (ITValet)",
+  "StartTime": "2024-08-21T05:50:55.6985868Z",
+  "EndTime": "2024-08-21T05:51:01.7135275Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-08-21T05:51:01.7390533Z",
+  "EndTime": "2024-08-21T05:51:01.751985Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-08-21T05:51:07.3431262Z",
+  "EndTime": "2024-08-21T05:51:07.351094Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.PostUpdateUserAvailableSlot (ITValet)",
+  "StartTime": "2024-08-21T05:51:08.7064123Z",
+  "EndTime": "2024-08-21T05:51:08.7965302Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-08-21T05:51:08.8074555Z",
+  "EndTime": "2024-08-21T05:51:08.816106Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.PostUpdateUserAvailableSlot (ITValet)",
+  "StartTime": "2024-08-21T05:51:09.9249086Z",
+  "EndTime": "2024-08-21T05:51:09.9398948Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-08-21T05:51:09.9518049Z",
+  "EndTime": "2024-08-21T05:51:09.9630163Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.PostUpdateUserAvailableSlot (ITValet)",
+  "StartTime": "2024-08-21T05:51:10.8410473Z",
+  "EndTime": "2024-08-21T05:51:10.8577171Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-08-21T05:51:10.8681626Z",
+  "EndTime": "2024-08-21T05:51:10.8780986Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.PostUpdateUserAvailableSlot (ITValet)",
+  "StartTime": "2024-08-21T05:51:11.6437635Z",
+  "EndTime": "2024-08-21T05:51:11.6597948Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-08-21T05:51:11.6711227Z",
+  "EndTime": "2024-08-21T05:51:11.6785781Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.PostUpdateUserAvailableSlot (ITValet)",
+  "StartTime": "2024-08-21T05:51:12.4236355Z",
+  "EndTime": "2024-08-21T05:51:12.4564592Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-08-21T05:51:12.4719919Z",
+  "EndTime": "2024-08-21T05:51:12.4808016Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.PostUpdateUserAvailableSlot (ITValet)",
+  "StartTime": "2024-08-21T05:51:12.9724502Z",
+  "EndTime": "2024-08-21T05:51:13.0079809Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-08-21T05:51:13.0194059Z",
+  "EndTime": "2024-08-21T05:51:13.0274611Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.PostUpdateUserAvailableSlot (ITValet)",
+  "StartTime": "2024-08-21T05:51:13.9380166Z",
+  "EndTime": "2024-08-21T05:51:13.972884Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-08-21T05:51:13.9841757Z",
+  "EndTime": "2024-08-21T05:51:13.9929853Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.PostUpdateUserAvailableSlot (ITValet)",
+  "StartTime": "2024-08-21T05:51:14.5401831Z",
+  "EndTime": "2024-08-21T05:51:14.5551709Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-08-21T05:51:14.5675161Z",
+  "EndTime": "2024-08-21T05:51:14.5767074Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.PostUpdateUserAvailableSlot (ITValet)",
+  "StartTime": "2024-08-21T05:51:15.3084738Z",
+  "EndTime": "2024-08-21T05:51:15.3244248Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-08-21T05:51:15.3352603Z",
+  "EndTime": "2024-08-21T05:51:15.3441026Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.PostUpdateUserAvailableSlot (ITValet)",
+  "StartTime": "2024-08-21T05:51:16.0108654Z",
+  "EndTime": "2024-08-21T05:51:16.0435787Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-08-21T05:51:16.0539559Z",
+  "EndTime": "2024-08-21T05:51:16.0631811Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.PostUpdateUserAvailableSlot (ITValet)",
+  "StartTime": "2024-08-21T05:51:16.8851393Z",
+  "EndTime": "2024-08-21T05:51:16.9213402Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-08-21T05:51:16.9348808Z",
+  "EndTime": "2024-08-21T05:51:16.9424047Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.PostUpdateUserAvailableSlot (ITValet)",
+  "StartTime": "2024-08-21T05:51:17.365616Z",
+  "EndTime": "2024-08-21T05:51:17.401091Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-08-21T05:51:17.4146609Z",
+  "EndTime": "2024-08-21T05:51:17.4245195Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.PostUpdateUserAvailableSlot (ITValet)",
+  "StartTime": "2024-08-21T05:51:18.1211537Z",
+  "EndTime": "2024-08-21T05:51:18.1559171Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-08-21T05:51:18.1725895Z",
+  "EndTime": "2024-08-21T05:51:18.1809412Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.PostUpdateUserAvailableSlot (ITValet)",
+  "StartTime": "2024-08-21T05:51:18.5019234Z",
+  "EndTime": "2024-08-21T05:51:18.5152489Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-08-21T05:51:18.5250348Z",
+  "EndTime": "2024-08-21T05:51:18.5357838Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.PostUpdateUserAvailableSlot (ITValet)",
+  "StartTime": "2024-08-21T05:51:19.2743007Z",
+  "EndTime": "2024-08-21T05:51:19.2909973Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-08-21T05:51:19.3020286Z",
+  "EndTime": "2024-08-21T05:51:19.3111917Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.PostUpdateUserAvailableSlot (ITValet)",
+  "StartTime": "2024-08-21T05:51:19.9684667Z",
+  "EndTime": "2024-08-21T05:51:19.986465Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-08-21T05:51:19.9989298Z",
+  "EndTime": "2024-08-21T05:51:20.0068227Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.PostUpdateUserAvailableSlot (ITValet)",
+  "StartTime": "2024-08-21T05:51:20.6035832Z",
+  "EndTime": "2024-08-21T05:51:20.6222302Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-08-21T05:51:20.6341447Z",
+  "EndTime": "2024-08-21T05:51:20.6455306Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.PostUpdateUserAvailableSlot (ITValet)",
+  "StartTime": "2024-08-21T05:51:21.0444139Z",
+  "EndTime": "2024-08-21T05:51:21.0570449Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-08-21T05:51:21.0677168Z",
+  "EndTime": "2024-08-21T05:51:21.0792982Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.PostUpdateUserAvailableSlot (ITValet)",
+  "StartTime": "2024-08-21T05:51:21.5876094Z",
+  "EndTime": "2024-08-21T05:51:21.6014324Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-08-21T05:51:21.61626Z",
+  "EndTime": "2024-08-21T05:51:21.625241Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.PostUpdateUserAvailableSlot (ITValet)",
+  "StartTime": "2024-08-21T05:51:22.7096771Z",
+  "EndTime": "2024-08-21T05:51:22.7219858Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-08-21T05:51:22.7480902Z",
+  "EndTime": "2024-08-21T05:51:22.7577915Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.PostUpdateUserAvailableSlot (ITValet)",
+  "StartTime": "2024-08-21T05:51:23.2664934Z",
+  "EndTime": "2024-08-21T05:51:23.2811752Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-08-21T05:51:23.3077898Z",
+  "EndTime": "2024-08-21T05:51:23.3179856Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.PostUpdateUserAvailableSlot (ITValet)",
+  "StartTime": "2024-08-21T05:51:24.0780146Z",
+  "EndTime": "2024-08-21T05:51:24.0918253Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-08-21T05:51:24.1019141Z",
+  "EndTime": "2024-08-21T05:51:24.1190248Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.PostUpdateUserAvailableSlot (ITValet)",
+  "StartTime": "2024-08-21T05:51:24.6076952Z",
+  "EndTime": "2024-08-21T05:51:24.6208222Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-08-21T05:51:24.6296637Z",
+  "EndTime": "2024-08-21T05:51:24.6418606Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.PostUpdateUserAvailableSlot (ITValet)",
+  "StartTime": "2024-08-21T05:51:25.2995624Z",
+  "EndTime": "2024-08-21T05:51:25.3154288Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-08-21T05:51:25.3311733Z",
+  "EndTime": "2024-08-21T05:51:25.3399205Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.PostUpdateUserAvailableSlot (ITValet)",
+  "StartTime": "2024-08-21T05:51:25.7928845Z",
+  "EndTime": "2024-08-21T05:51:25.8070252Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-08-21T05:51:25.8180218Z",
+  "EndTime": "2024-08-21T05:51:25.8323407Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.PostUpdateUserAvailableSlot (ITValet)",
+  "StartTime": "2024-08-21T05:51:26.4783569Z",
+  "EndTime": "2024-08-21T05:51:26.4908518Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-08-21T05:51:26.4996508Z",
+  "EndTime": "2024-08-21T05:51:26.5100119Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.PostUpdateUserAvailableSlot (ITValet)",
+  "StartTime": "2024-08-21T05:51:27.1878503Z",
+  "EndTime": "2024-08-21T05:51:27.2001134Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-08-21T05:51:27.2131296Z",
+  "EndTime": "2024-08-21T05:51:27.2225193Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.PostUpdateUserAvailableSlot (ITValet)",
+  "StartTime": "2024-08-21T05:51:27.9606688Z",
+  "EndTime": "2024-08-21T05:51:27.9759654Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-08-21T05:51:27.985565Z",
+  "EndTime": "2024-08-21T05:51:27.9937806Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-08-21T05:51:47.8483535Z",
+  "EndTime": "2024-08-21T05:51:47.8611823Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-08-21T05:51:47.9851577Z",
+  "EndTime": "2024-08-21T05:51:47.9944296Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-08-21T05:51:48.4591623Z",
+  "EndTime": "2024-08-21T05:51:48.4984164Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.PostAddUserEducation (ITValet)",
+  "StartTime": "2024-08-21T05:52:01.6727576Z",
+  "EndTime": "2024-08-21T05:52:01.7118792Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-08-21T05:52:01.7454411Z",
+  "EndTime": "2024-08-21T05:52:01.76881Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-08-21T05:52:01.7924057Z",
+  "EndTime": "2024-08-21T05:52:01.8093444Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-08-21T05:52:04.6717046Z",
+  "EndTime": "2024-08-21T05:52:04.6793408Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-08-21T05:52:04.8484482Z",
+  "EndTime": "2024-08-21T05:52:04.8589099Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-08-21T05:52:04.903809Z",
+  "EndTime": "2024-08-21T05:52:04.9120856Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.PostAddUserExperience (ITValet)",
+  "StartTime": "2024-08-21T05:52:12.8636451Z",
+  "EndTime": "2024-08-21T05:52:12.899228Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-08-21T05:52:12.9311181Z",
+  "EndTime": "2024-08-21T05:52:12.9482933Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-08-21T05:52:16.9863857Z",
+  "EndTime": "2024-08-21T05:52:16.9958441Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-08-21T05:52:17.0431689Z",
+  "EndTime": "2024-08-21T05:52:17.0508175Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-08-21T05:52:17.146477Z",
+  "EndTime": "2024-08-21T05:52:17.1536905Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.PostAddUserSkill (ITValet)",
+  "StartTime": "2024-08-21T05:52:33.3109612Z",
+  "EndTime": "2024-08-21T05:52:33.3513569Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-08-21T05:52:35.7771951Z",
+  "EndTime": "2024-08-21T05:52:35.7991528Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-08-21T05:52:35.9902014Z",
+  "EndTime": "2024-08-21T05:52:35.9979005Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-08-21T05:52:36.0400745Z",
+  "EndTime": "2024-08-21T05:52:36.047352Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.PostUpdateUser (ITValet)",
+  "StartTime": "2024-08-21T05:53:02.3246619Z",
+  "EndTime": "2024-08-21T05:53:02.3577636Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-08-21T05:53:03.9414748Z",
+  "EndTime": "2024-08-21T05:53:03.9575163Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-08-21T05:53:04.0643349Z",
+  "EndTime": "2024-08-21T05:53:04.073095Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-08-21T05:53:04.2195332Z",
+  "EndTime": "2024-08-21T05:53:04.230042Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetOrderEventsByUserId (ITValet)",
+  "StartTime": "2024-08-21T05:53:25.5875542Z",
+  "EndTime": "2024-08-21T05:53:25.7576108Z",
+  "Status": "False",
+  "StatusCode": "400"
+},{
+  "ActionName": "ITValet.Controllers.UserController.PostUpdateUser (ITValet)",
+  "StartTime": "2024-08-21T05:53:40.4178973Z",
+  "EndTime": "2024-08-21T05:53:40.4332849Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-08-21T05:53:42.0194207Z",
+  "EndTime": "2024-08-21T05:53:42.0323782Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-08-21T05:53:42.0970795Z",
+  "EndTime": "2024-08-21T05:53:42.1039815Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-08-21T05:53:42.1960897Z",
+  "EndTime": "2024-08-21T05:53:42.2040097Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-08-21T05:53:52.1108406Z",
+  "EndTime": "2024-08-21T05:53:52.1205632Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-08-21T05:53:52.2137902Z",
+  "EndTime": "2024-08-21T05:53:52.2240411Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-08-21T05:53:52.3261892Z",
+  "EndTime": "2024-08-21T05:53:52.3347763Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetRequestServiceById (ITValet)",
+  "StartTime": "2024-08-21T05:56:54.9860662Z",
+  "EndTime": "2024-08-21T05:56:55.0343448Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetItValetsByRequestSkills (ITValet)",
+  "StartTime": "2024-08-21T05:56:55.4746063Z",
+  "EndTime": "2024-08-21T05:56:56.1085094Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetSearchedValetRecord (ITValet)",
+  "StartTime": "2024-08-21T05:57:33.2058719Z",
+  "EndTime": "2024-08-21T05:57:33.340789Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-08-21T05:57:43.0102651Z",
+  "EndTime": "2024-08-21T05:57:43.0180978Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetValetRatingRecord (ITValet)",
+  "StartTime": "2024-08-21T05:57:43.0422279Z",
+  "EndTime": "2024-08-21T05:57:43.0573005Z",
+  "Status": "False",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetBookedAvailabilitySlot (ITValet)",
+  "StartTime": "2024-08-21T05:57:43.375664Z",
+  "EndTime": "2024-08-21T05:57:43.443996Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetOrderEventsOfValet (ITValet)",
+  "StartTime": "2024-08-21T05:57:43.4821898Z",
+  "EndTime": "2024-08-21T05:57:43.504273Z",
+  "Status": "False",
+  "StatusCode": "400"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetOrderById (ITValet)",
+  "StartTime": "2024-08-21T05:59:37.1784978Z",
+  "EndTime": "2024-08-21T05:59:37.2893041Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-08-21T06:00:04.3226758Z",
+  "EndTime": "2024-08-21T06:00:04.331812Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-08-21T06:00:04.3554234Z",
+  "EndTime": "2024-08-21T06:00:04.3634258Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-08-21T06:00:04.3810171Z",
+  "EndTime": "2024-08-21T06:00:04.3923349Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetSearchedValetRecord (ITValet)",
+  "StartTime": "2024-08-21T06:00:45.8657308Z",
+  "EndTime": "2024-08-21T06:00:45.9172454Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-08-21T06:00:47.4610402Z",
+  "EndTime": "2024-08-21T06:00:47.4698312Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetValetRatingRecord (ITValet)",
+  "StartTime": "2024-08-21T06:00:47.4837399Z",
+  "EndTime": "2024-08-21T06:00:47.4902551Z",
+  "Status": "False",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetBookedAvailabilitySlot (ITValet)",
+  "StartTime": "2024-08-21T06:00:47.7041455Z",
+  "EndTime": "2024-08-21T06:00:47.7426398Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetOrderEventsOfValet (ITValet)",
+  "StartTime": "2024-08-21T06:00:47.759445Z",
+  "EndTime": "2024-08-21T06:00:47.7815182Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetHighRankedKeys (ITValet)",
+  "StartTime": "2024-10-01T07:57:07.256901Z",
+  "EndTime": "2024-10-01T07:57:07.4071161Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserListAsync (ITValet)",
+  "StartTime": "2024-10-01T07:57:07.7753952Z",
+  "EndTime": "2024-10-01T07:57:08.1994905Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:07:18.4984474Z",
+  "EndTime": "2024-10-01T08:07:19.6762434Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:07:19.7991238Z",
+  "EndTime": "2024-10-01T08:07:20.0064114Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:07:20.159912Z",
+  "EndTime": "2024-10-01T08:07:20.3736882Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:07:26.0157337Z",
+  "EndTime": "2024-10-01T08:07:26.1204833Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:17:29.7959782Z",
+  "EndTime": "2024-10-01T08:17:29.9652736Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:17:32.0047749Z",
+  "EndTime": "2024-10-01T08:17:32.158541Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:17:32.2894082Z",
+  "EndTime": "2024-10-01T08:17:32.4110613Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:17:35.3405802Z",
+  "EndTime": "2024-10-01T08:17:35.4423284Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetOrdersDatatableByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:17:43.3819085Z",
+  "EndTime": "2024-10-01T08:17:43.8216491Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetSearchedValetRecord (ITValet)",
+  "StartTime": "2024-10-01T08:18:08.1054729Z",
+  "EndTime": "2024-10-01T08:18:08.9727629Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetHighRankedKeys (ITValet)",
+  "StartTime": "2024-10-01T08:18:13.1738148Z",
+  "EndTime": "2024-10-01T08:18:13.2751566Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserListAsync (ITValet)",
+  "StartTime": "2024-10-01T08:18:13.2901575Z",
+  "EndTime": "2024-10-01T08:18:13.5964781Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetSearchedValetRecord (ITValet)",
+  "StartTime": "2024-10-01T08:18:16.040421Z",
+  "EndTime": "2024-10-01T08:18:16.7440518Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:18:23.5386799Z",
+  "EndTime": "2024-10-01T08:18:23.6387444Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetValetRatingRecord (ITValet)",
+  "StartTime": "2024-10-01T08:18:23.6641478Z",
+  "EndTime": "2024-10-01T08:18:23.7738903Z",
+  "Status": "False",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetBookedAvailabilitySlot (ITValet)",
+  "StartTime": "2024-10-01T08:18:24.0029536Z",
+  "EndTime": "2024-10-01T08:18:25.0790732Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetOrderEventsOfValet (ITValet)",
+  "StartTime": "2024-10-01T08:18:25.1121735Z",
+  "EndTime": "2024-10-01T08:18:25.2344921Z",
+  "Status": "False",
+  "StatusCode": "400"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:18:26.9933396Z",
+  "EndTime": "2024-10-01T08:18:27.1036985Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetOrderById (ITValet)",
+  "StartTime": "2024-10-01T08:20:04.8055095Z",
+  "EndTime": "2024-10-01T08:20:05.4250648Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetHighRankedKeys (ITValet)",
+  "StartTime": "2024-10-01T08:26:41.1481529Z",
+  "EndTime": "2024-10-01T08:26:41.2503482Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserListAsync (ITValet)",
+  "StartTime": "2024-10-01T08:26:41.263412Z",
+  "EndTime": "2024-10-01T08:26:41.5702976Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetHighRankedKeys (ITValet)",
+  "StartTime": "2024-10-01T08:38:00.1907513Z",
+  "EndTime": "2024-10-01T08:38:00.4971738Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserListAsync (ITValet)",
+  "StartTime": "2024-10-01T08:38:00.8916444Z",
+  "EndTime": "2024-10-01T08:38:01.2207888Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:38:28.8293185Z",
+  "EndTime": "2024-10-01T08:38:28.9617212Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:38:29.4338555Z",
+  "EndTime": "2024-10-01T08:38:29.5703684Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:38:29.5950342Z",
+  "EndTime": "2024-10-01T08:38:29.7073113Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:38:38.2911621Z",
+  "EndTime": "2024-10-01T08:38:38.3902653Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:39:00.6219003Z",
+  "EndTime": "2024-10-01T08:39:01.3695486Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:39:02.3451568Z",
+  "EndTime": "2024-10-01T08:39:02.577185Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:39:02.6550227Z",
+  "EndTime": "2024-10-01T08:39:02.7640529Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:39:34.1941174Z",
+  "EndTime": "2024-10-01T08:39:34.3106897Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:39:34.3591122Z",
+  "EndTime": "2024-10-01T08:39:34.481753Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:39:34.5940445Z",
+  "EndTime": "2024-10-01T08:39:34.7135777Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetHighRankedKeys (ITValet)",
+  "StartTime": "2024-10-01T08:42:49.2512681Z",
+  "EndTime": "2024-10-01T08:42:49.3745747Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserListAsync (ITValet)",
+  "StartTime": "2024-10-01T08:42:49.5882571Z",
+  "EndTime": "2024-10-01T08:42:49.894753Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetHighRankedKeys (ITValet)",
+  "StartTime": "2024-10-01T08:45:14.2382452Z",
+  "EndTime": "2024-10-01T08:45:14.3490955Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserListAsync (ITValet)",
+  "StartTime": "2024-10-01T08:45:14.8084067Z",
+  "EndTime": "2024-10-01T08:45:15.1337537Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:45:56.7584328Z",
+  "EndTime": "2024-10-01T08:45:56.8617564Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:45:57.062371Z",
+  "EndTime": "2024-10-01T08:45:57.1746355Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:45:57.2291542Z",
+  "EndTime": "2024-10-01T08:45:57.3321545Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:46:13.3446576Z",
+  "EndTime": "2024-10-01T08:46:13.5174803Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:46:13.6794815Z",
+  "EndTime": "2024-10-01T08:46:13.7912775Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:46:14.197655Z",
+  "EndTime": "2024-10-01T08:46:14.3116454Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:48:28.916558Z",
+  "EndTime": "2024-10-01T08:48:29.0280933Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:48:29.0396383Z",
+  "EndTime": "2024-10-01T08:48:29.1510726Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:48:29.1840718Z",
+  "EndTime": "2024-10-01T08:48:29.2905146Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:48:37.0307551Z",
+  "EndTime": "2024-10-01T08:48:37.1672317Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:48:37.2002318Z",
+  "EndTime": "2024-10-01T08:48:37.3062111Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:48:37.3149691Z",
+  "EndTime": "2024-10-01T08:48:37.4131383Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetHighRankedKeys (ITValet)",
+  "StartTime": "2024-10-01T08:48:42.5293583Z",
+  "EndTime": "2024-10-01T08:48:42.6313544Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserListAsync (ITValet)",
+  "StartTime": "2024-10-01T08:48:42.6434596Z",
+  "EndTime": "2024-10-01T08:48:42.9408691Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetOrdersDatatableByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:48:44.9274955Z",
+  "EndTime": "2024-10-01T08:48:45.0693796Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetEarnings (ITValet)",
+  "StartTime": "2024-10-01T08:48:46.954235Z",
+  "EndTime": "2024-10-01T08:48:53.574148Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetAllCompletedOrders (ITValet)",
+  "StartTime": "2024-10-01T08:48:55.615198Z",
+  "EndTime": "2024-10-01T08:48:55.8196237Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetSearchedValetRecord (ITValet)",
+  "StartTime": "2024-10-01T08:49:09.6736635Z",
+  "EndTime": "2024-10-01T08:49:10.4034236Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:49:12.4130425Z",
+  "EndTime": "2024-10-01T08:49:12.8404797Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetValetRatingRecord (ITValet)",
+  "StartTime": "2024-10-01T08:49:12.8798956Z",
+  "EndTime": "2024-10-01T08:49:13.1705898Z",
+  "Status": "False",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetBookedAvailabilitySlot (ITValet)",
+  "StartTime": "2024-10-01T08:49:13.7291938Z",
+  "EndTime": "2024-10-01T08:49:13.9348741Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetOrderEventsOfValet (ITValet)",
+  "StartTime": "2024-10-01T08:49:14.2899969Z",
+  "EndTime": "2024-10-01T08:49:14.4291384Z",
+  "Status": "False",
+  "StatusCode": "400"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:53:09.4933119Z",
+  "EndTime": "2024-10-01T08:53:09.6238352Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:53:09.6331369Z",
+  "EndTime": "2024-10-01T08:53:09.7421073Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:53:09.754985Z",
+  "EndTime": "2024-10-01T08:53:09.8565705Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:53:34.335105Z",
+  "EndTime": "2024-10-01T08:53:34.44137Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:53:34.4895582Z",
+  "EndTime": "2024-10-01T08:53:34.5967712Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:53:34.6057652Z",
+  "EndTime": "2024-10-01T08:53:34.7059253Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:53:48.2337583Z",
+  "EndTime": "2024-10-01T08:53:48.3423019Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:55:17.6538283Z",
+  "EndTime": "2024-10-01T08:55:17.7600746Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:55:17.7852516Z",
+  "EndTime": "2024-10-01T08:55:17.88737Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:55:17.8967418Z",
+  "EndTime": "2024-10-01T08:55:18.0088833Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:55:36.0259007Z",
+  "EndTime": "2024-10-01T08:55:36.1453943Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:55:36.1616998Z",
+  "EndTime": "2024-10-01T08:55:36.269879Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:55:36.2834047Z",
+  "EndTime": "2024-10-01T08:55:36.3853656Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.PostAddUserSkill (ITValet)",
+  "StartTime": "2024-10-01T08:56:21.8968047Z",
+  "EndTime": "2024-10-01T08:56:22.3244698Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:56:23.1883242Z",
+  "EndTime": "2024-10-01T08:56:23.3047429Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:56:23.3345072Z",
+  "EndTime": "2024-10-01T08:56:23.4403962Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:56:23.4574894Z",
+  "EndTime": "2024-10-01T08:56:23.5560189Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.PostUpdateUser (ITValet)",
+  "StartTime": "2024-10-01T08:57:01.2978883Z",
+  "EndTime": "2024-10-01T08:57:01.6986376Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:57:02.6365989Z",
+  "EndTime": "2024-10-01T08:57:02.7474499Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:57:02.7815005Z",
+  "EndTime": "2024-10-01T08:57:02.8922166Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:57:02.9051432Z",
+  "EndTime": "2024-10-01T08:57:03.005596Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.CreateAccount (ITValet)",
+  "StartTime": "2024-10-01T08:57:19.9578374Z",
+  "EndTime": "2024-10-01T08:57:27.6360649Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:57:28.2282749Z",
+  "EndTime": "2024-10-01T08:57:28.3391307Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:57:28.3801381Z",
+  "EndTime": "2024-10-01T08:57:28.6659353Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:57:28.7450929Z",
+  "EndTime": "2024-10-01T08:57:28.8500444Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetVerified (ITValet)",
+  "StartTime": "2024-10-01T08:58:33.4863164Z",
+  "EndTime": "2024-10-01T08:58:33.9160955Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:58:45.2686937Z",
+  "EndTime": "2024-10-01T08:58:45.460143Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:58:45.9339877Z",
+  "EndTime": "2024-10-01T08:58:46.0399536Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:58:46.0483986Z",
+  "EndTime": "2024-10-01T08:58:46.1512133Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.PostAddUserEducation (ITValet)",
+  "StartTime": "2024-10-01T08:58:59.44256Z",
+  "EndTime": "2024-10-01T08:58:59.7718533Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:58:59.7966441Z",
+  "EndTime": "2024-10-01T08:58:59.8981692Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:58:59.9167332Z",
+  "EndTime": "2024-10-01T08:59:00.0314433Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:59:00.2830452Z",
+  "EndTime": "2024-10-01T08:59:00.4713627Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:59:00.4855523Z",
+  "EndTime": "2024-10-01T08:59:00.5947659Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:59:00.6009449Z",
+  "EndTime": "2024-10-01T08:59:00.7008663Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.PostAddUserExperience (ITValet)",
+  "StartTime": "2024-10-01T08:59:03.4771237Z",
+  "EndTime": "2024-10-01T08:59:03.7910467Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:59:03.79794Z",
+  "EndTime": "2024-10-01T08:59:03.9092807Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:59:04.2403798Z",
+  "EndTime": "2024-10-01T08:59:04.358381Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:59:04.4026096Z",
+  "EndTime": "2024-10-01T08:59:04.5110727Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:59:04.5284936Z",
+  "EndTime": "2024-10-01T08:59:04.6336762Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:59:06.5126199Z",
+  "EndTime": "2024-10-01T08:59:06.6183515Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.PostAddUserAvailableSlots (ITValet)",
+  "StartTime": "2024-10-01T08:59:08.1860471Z",
+  "EndTime": "2024-10-01T08:59:21.0452938Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:59:21.0641028Z",
+  "EndTime": "2024-10-01T08:59:21.1663883Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.PostUpdateUserAvailableSlot (ITValet)",
+  "StartTime": "2024-10-01T08:59:23.6419313Z",
+  "EndTime": "2024-10-01T08:59:24.0450552Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:59:24.0570081Z",
+  "EndTime": "2024-10-01T08:59:24.1721732Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.PostUpdateUserAvailableSlot (ITValet)",
+  "StartTime": "2024-10-01T08:59:24.9881093Z",
+  "EndTime": "2024-10-01T08:59:25.3776388Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:59:25.3916724Z",
+  "EndTime": "2024-10-01T08:59:25.4917867Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.PostUpdateUserAvailableSlot (ITValet)",
+  "StartTime": "2024-10-01T08:59:26.1219744Z",
+  "EndTime": "2024-10-01T08:59:26.5428703Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:59:26.5543966Z",
+  "EndTime": "2024-10-01T08:59:26.6811474Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.PostUpdateUserAvailableSlot (ITValet)",
+  "StartTime": "2024-10-01T08:59:27.3060113Z",
+  "EndTime": "2024-10-01T08:59:27.7255974Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:59:27.7335789Z",
+  "EndTime": "2024-10-01T08:59:27.836497Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.PostUpdateUserAvailableSlot (ITValet)",
+  "StartTime": "2024-10-01T08:59:28.5388308Z",
+  "EndTime": "2024-10-01T08:59:29.0519827Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:59:29.0607553Z",
+  "EndTime": "2024-10-01T08:59:29.3426584Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.PostUpdateUserAvailableSlot (ITValet)",
+  "StartTime": "2024-10-01T08:59:29.8594299Z",
+  "EndTime": "2024-10-01T08:59:30.2577548Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:59:30.2687875Z",
+  "EndTime": "2024-10-01T08:59:30.386029Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.PostUpdateUserAvailableSlot (ITValet)",
+  "StartTime": "2024-10-01T08:59:31.2499414Z",
+  "EndTime": "2024-10-01T08:59:31.6408867Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:59:31.6510179Z",
+  "EndTime": "2024-10-01T08:59:31.7520089Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.PostUpdateUserAvailableSlot (ITValet)",
+  "StartTime": "2024-10-01T08:59:32.655802Z",
+  "EndTime": "2024-10-01T08:59:33.0659127Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:59:33.085248Z",
+  "EndTime": "2024-10-01T08:59:33.1912946Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.PostUpdateUserAvailableSlot (ITValet)",
+  "StartTime": "2024-10-01T08:59:34.5514335Z",
+  "EndTime": "2024-10-01T08:59:34.9468564Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:59:34.9563137Z",
+  "EndTime": "2024-10-01T08:59:35.061269Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.PostUpdateUserAvailableSlot (ITValet)",
+  "StartTime": "2024-10-01T08:59:35.7804809Z",
+  "EndTime": "2024-10-01T08:59:36.1836248Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:59:36.1927765Z",
+  "EndTime": "2024-10-01T08:59:36.2991315Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.PostUpdateUserAvailableSlot (ITValet)",
+  "StartTime": "2024-10-01T08:59:36.9796347Z",
+  "EndTime": "2024-10-01T08:59:37.3876804Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:59:37.3985984Z",
+  "EndTime": "2024-10-01T08:59:37.5010779Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.PostUpdateUserAvailableSlot (ITValet)",
+  "StartTime": "2024-10-01T08:59:37.9656655Z",
+  "EndTime": "2024-10-01T08:59:38.3797259Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:59:38.3856402Z",
+  "EndTime": "2024-10-01T08:59:38.4903574Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.PostUpdateUserAvailableSlot (ITValet)",
+  "StartTime": "2024-10-01T08:59:39.5196505Z",
+  "EndTime": "2024-10-01T08:59:39.9500582Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:59:39.9615716Z",
+  "EndTime": "2024-10-01T08:59:40.0659426Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.PostUpdateUserAvailableSlot (ITValet)",
+  "StartTime": "2024-10-01T08:59:40.4650875Z",
+  "EndTime": "2024-10-01T08:59:40.9619955Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:59:40.9720126Z",
+  "EndTime": "2024-10-01T08:59:41.0780453Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.PostUpdateUserAvailableSlot (ITValet)",
+  "StartTime": "2024-10-01T08:59:42.015055Z",
+  "EndTime": "2024-10-01T08:59:42.4312811Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:59:42.4430545Z",
+  "EndTime": "2024-10-01T08:59:42.5444577Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.PostUpdateUserAvailableSlot (ITValet)",
+  "StartTime": "2024-10-01T08:59:43.6915164Z",
+  "EndTime": "2024-10-01T08:59:44.1163439Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:59:44.1231614Z",
+  "EndTime": "2024-10-01T08:59:44.2245829Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.PostUpdateUserAvailableSlot (ITValet)",
+  "StartTime": "2024-10-01T08:59:44.7595005Z",
+  "EndTime": "2024-10-01T08:59:45.1476701Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:59:45.1569049Z",
+  "EndTime": "2024-10-01T08:59:45.2592631Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.PostUpdateUserAvailableSlot (ITValet)",
+  "StartTime": "2024-10-01T08:59:46.0797885Z",
+  "EndTime": "2024-10-01T08:59:46.4952761Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:59:46.5040979Z",
+  "EndTime": "2024-10-01T08:59:46.605463Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.PostUpdateUserAvailableSlot (ITValet)",
+  "StartTime": "2024-10-01T08:59:47.3943473Z",
+  "EndTime": "2024-10-01T08:59:47.7955572Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:59:47.8050443Z",
+  "EndTime": "2024-10-01T08:59:47.9068595Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.PostUpdateUserAvailableSlot (ITValet)",
+  "StartTime": "2024-10-01T08:59:48.4726806Z",
+  "EndTime": "2024-10-01T08:59:48.8730058Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:59:48.8807155Z",
+  "EndTime": "2024-10-01T08:59:48.9844636Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.PostUpdateUserAvailableSlot (ITValet)",
+  "StartTime": "2024-10-01T08:59:49.4576304Z",
+  "EndTime": "2024-10-01T08:59:49.8550975Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:59:49.8709951Z",
+  "EndTime": "2024-10-01T08:59:50.277901Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.PostUpdateUserAvailableSlot (ITValet)",
+  "StartTime": "2024-10-01T08:59:50.7367502Z",
+  "EndTime": "2024-10-01T08:59:51.1255365Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:59:51.1346295Z",
+  "EndTime": "2024-10-01T08:59:51.2395521Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.PostUpdateUserAvailableSlot (ITValet)",
+  "StartTime": "2024-10-01T08:59:51.9444462Z",
+  "EndTime": "2024-10-01T08:59:52.3547661Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-10-01T08:59:52.36364Z",
+  "EndTime": "2024-10-01T08:59:52.7826609Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-01T09:00:03.8837469Z",
+  "EndTime": "2024-10-01T09:00:03.9934511Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-01T09:00:04.0065142Z",
+  "EndTime": "2024-10-01T09:00:04.1095261Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-01T09:00:04.1245227Z",
+  "EndTime": "2024-10-01T09:00:04.2240884Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-01T09:00:17.0197151Z",
+  "EndTime": "2024-10-01T09:00:17.1479829Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-01T09:00:17.2496039Z",
+  "EndTime": "2024-10-01T09:00:17.3577105Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-01T09:00:17.3693987Z",
+  "EndTime": "2024-10-01T09:00:17.476463Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-01T09:01:16.4532496Z",
+  "EndTime": "2024-10-01T09:01:16.5584725Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-01T09:01:16.6980597Z",
+  "EndTime": "2024-10-01T09:01:16.8027702Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-01T09:01:16.8148654Z",
+  "EndTime": "2024-10-01T09:01:16.9206937Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.UpdateUserAccountActivityStatus (ITValet)",
+  "StartTime": "2024-10-01T09:01:21.4174398Z",
+  "EndTime": "2024-10-01T09:01:21.809628Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.UpdateUserAccountAvailabilityStatus (ITValet)",
+  "StartTime": "2024-10-01T09:01:22.5240885Z",
+  "EndTime": "2024-10-01T09:01:22.9310046Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-01T09:01:29.4966068Z",
+  "EndTime": "2024-10-01T09:01:29.6768037Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-01T09:01:29.7429548Z",
+  "EndTime": "2024-10-01T09:01:29.8428491Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-01T09:01:29.8556672Z",
+  "EndTime": "2024-10-01T09:01:29.960352Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-01T09:01:54.4007844Z",
+  "EndTime": "2024-10-01T09:01:54.5286693Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-01T09:01:54.538806Z",
+  "EndTime": "2024-10-01T09:01:54.6471839Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-01T09:01:54.6557665Z",
+  "EndTime": "2024-10-01T09:01:54.7669091Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-10-01T09:02:07.6736777Z",
+  "EndTime": "2024-10-01T09:02:07.7815333Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetVerified (ITValet)",
+  "StartTime": "2024-10-01T09:02:16.0815717Z",
+  "EndTime": "2024-10-01T09:02:16.7826098Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-01T09:08:44.0728108Z",
+  "EndTime": "2024-10-01T09:08:44.2022187Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-01T09:08:44.2130397Z",
+  "EndTime": "2024-10-01T09:08:44.3145235Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-01T09:08:44.3250985Z",
+  "EndTime": "2024-10-01T09:08:44.4430312Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-01T09:08:49.1829027Z",
+  "EndTime": "2024-10-01T09:08:49.3877877Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-01T09:08:49.4598084Z",
+  "EndTime": "2024-10-01T09:08:49.5682119Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-01T09:08:49.5988834Z",
+  "EndTime": "2024-10-01T09:08:49.7142444Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-01T09:09:49.0373364Z",
+  "EndTime": "2024-10-01T09:09:49.1463573Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-01T09:09:49.1892572Z",
+  "EndTime": "2024-10-01T09:09:49.2947057Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-01T09:09:49.3131077Z",
+  "EndTime": "2024-10-01T09:09:49.4251576Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-01T09:15:08.824748Z",
+  "EndTime": "2024-10-01T09:15:09.2631045Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-01T09:15:09.2749747Z",
+  "EndTime": "2024-10-01T09:15:09.3923552Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-01T09:15:09.4036733Z",
+  "EndTime": "2024-10-01T09:15:09.505994Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetSearchedValetRecord (ITValet)",
+  "StartTime": "2024-10-01T09:58:20.6990117Z",
+  "EndTime": "2024-10-01T10:00:47.8060322Z",
+  "Status": "False",
+  "StatusCode": "400"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetSearchedValetRecord (ITValet)",
+  "StartTime": "2024-10-01T10:00:51.5588077Z",
+  "EndTime": "2024-10-01T10:00:53.4120329Z",
+  "Status": "False",
+  "StatusCode": "400"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetSearchedValetRecord (ITValet)",
+  "StartTime": "2024-10-01T10:01:06.7056179Z",
+  "EndTime": "2024-10-01T10:01:21.1922261Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetSearchedValetRecord (ITValet)",
+  "StartTime": "2024-10-01T10:01:27.7396354Z",
+  "EndTime": "2024-10-01T10:01:41.6409128Z",
+  "Status": "False",
+  "StatusCode": "400"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-01T10:02:54.8514247Z",
+  "EndTime": "2024-10-01T10:02:55.6010573Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-01T10:02:55.6177782Z",
+  "EndTime": "2024-10-01T10:02:55.7330199Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-01T10:02:55.7573095Z",
+  "EndTime": "2024-10-01T10:02:55.8754525Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-01T10:09:23.1471678Z",
+  "EndTime": "2024-10-01T10:09:24.2668493Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-01T10:09:24.2804846Z",
+  "EndTime": "2024-10-01T10:09:24.4158956Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-01T10:09:24.4331035Z",
+  "EndTime": "2024-10-01T10:09:24.5642428Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetVerified (ITValet)",
+  "StartTime": "2024-10-01T10:09:26.6654432Z",
+  "EndTime": "2024-10-01T10:09:27.4211132Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.postUpdateUserRecord (ITValet)",
+  "StartTime": "2024-10-01T10:10:19.4085184Z",
+  "EndTime": "2024-10-01T10:10:19.9125468Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-01T10:10:27.5659253Z",
+  "EndTime": "2024-10-01T10:10:27.678623Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-01T10:10:27.7545872Z",
+  "EndTime": "2024-10-01T10:10:27.8815782Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-01T10:10:27.8994499Z",
+  "EndTime": "2024-10-01T10:10:28.022201Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-01T10:10:33.4418727Z",
+  "EndTime": "2024-10-01T10:10:33.5526245Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-01T10:10:33.6220941Z",
+  "EndTime": "2024-10-01T10:10:33.7502145Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-01T10:10:33.7886088Z",
+  "EndTime": "2024-10-01T10:10:33.9077879Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-01T10:10:54.0248342Z",
+  "EndTime": "2024-10-01T10:10:54.1560776Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-01T10:10:54.18473Z",
+  "EndTime": "2024-10-01T10:10:54.309669Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-01T10:10:54.3208958Z",
+  "EndTime": "2024-10-01T10:10:54.4392871Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.AddExternalBankAccountToStripe (ITValet)",
+  "StartTime": "2024-10-01T10:11:09.0074104Z",
+  "EndTime": "2024-10-01T10:11:10.5891147Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-01T10:11:13.7116989Z",
+  "EndTime": "2024-10-01T10:11:13.8979429Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-01T10:11:13.939724Z",
+  "EndTime": "2024-10-01T10:11:14.0693868Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-01T10:11:14.082533Z",
+  "EndTime": "2024-10-01T10:11:14.2060414Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-01T10:12:45.2629191Z",
+  "EndTime": "2024-10-01T10:12:45.4049128Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-01T10:12:45.4428092Z",
+  "EndTime": "2024-10-01T10:12:45.5769486Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-01T10:12:45.5898086Z",
+  "EndTime": "2024-10-01T10:12:45.7175774Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetVerified (ITValet)",
+  "StartTime": "2024-10-01T10:12:49.1949979Z",
+  "EndTime": "2024-10-01T10:12:49.9457977Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.postUpdateUserRecord (ITValet)",
+  "StartTime": "2024-10-01T10:14:33.1076097Z",
+  "EndTime": "2024-10-01T10:14:33.5754181Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-01T10:14:33.9949695Z",
+  "EndTime": "2024-10-01T10:14:34.1216223Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-01T10:14:34.4072954Z",
+  "EndTime": "2024-10-01T10:14:34.5172685Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-01T10:14:34.5863297Z",
+  "EndTime": "2024-10-01T10:14:34.6953569Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.AddExternalBankAccountToStripe (ITValet)",
+  "StartTime": "2024-10-01T10:14:43.8380224Z",
+  "EndTime": "2024-10-01T10:14:46.7950475Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.UserController.AddExternalBankAccountToStripe (ITValet)",
+  "StartTime": "2024-10-01T10:14:52.2189192Z",
+  "EndTime": "2024-10-01T10:14:53.8508929Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.UserController.AddExternalBankAccountToStripe (ITValet)",
+  "StartTime": "2024-10-01T10:15:03.6300675Z",
+  "EndTime": "2024-10-01T10:15:05.2518518Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.UserController.AddExternalBankAccountToStripe (ITValet)",
+  "StartTime": "2024-10-01T10:15:13.1952585Z",
+  "EndTime": "2024-10-01T10:15:15.0812949Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.UserController.AddExternalBankAccountToStripe (ITValet)",
+  "StartTime": "2024-10-01T10:15:13.7760299Z",
+  "EndTime": "2024-10-01T10:15:15.4953997Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.UserController.AddExternalBankAccountToStripe (ITValet)",
+  "StartTime": "2024-10-01T10:15:13.600416Z",
+  "EndTime": "2024-10-01T10:15:15.9791702Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.UserController.AddExternalBankAccountToStripe (ITValet)",
+  "StartTime": "2024-10-01T10:15:13.9706578Z",
+  "EndTime": "2024-10-01T10:15:17.1006813Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-01T10:15:18.7183312Z",
+  "EndTime": "2024-10-01T10:15:18.8231258Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-01T10:15:18.8663351Z",
+  "EndTime": "2024-10-01T10:15:18.9865174Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-01T10:15:19.0014325Z",
+  "EndTime": "2024-10-01T10:15:19.1211787Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-01T10:15:29.1327709Z",
+  "EndTime": "2024-10-01T10:15:29.2484171Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-01T10:15:29.3239175Z",
+  "EndTime": "2024-10-01T10:15:29.4947518Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-01T10:15:29.516352Z",
+  "EndTime": "2024-10-01T10:15:29.6385331Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetHighRankedKeys (ITValet)",
+  "StartTime": "2024-10-01T10:16:27.4449425Z",
+  "EndTime": "2024-10-01T10:16:27.5681409Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserListAsync (ITValet)",
+  "StartTime": "2024-10-01T10:16:27.5878132Z",
+  "EndTime": "2024-10-01T10:16:27.9599451Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetSearchedValetRecord (ITValet)",
+  "StartTime": "2024-10-01T11:20:03.4153394Z",
+  "EndTime": "2024-10-01T11:20:10.3891695Z",
+  "Status": "False",
+  "StatusCode": "400"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetSearchedValetRecord (ITValet)",
+  "StartTime": "2024-10-01T11:20:16.843899Z",
+  "EndTime": "2024-10-01T11:20:20.3179476Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetSearchedValetRecord (ITValet)",
+  "StartTime": "2024-10-01T11:20:27.8657422Z",
+  "EndTime": "2024-10-01T11:20:33.3516263Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetHighRankedKeys (ITValet)",
+  "StartTime": "2024-10-01T11:20:43.0395975Z",
+  "EndTime": "2024-10-01T11:20:43.7633686Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserListAsync (ITValet)",
+  "StartTime": "2024-10-01T11:20:43.777135Z",
+  "EndTime": "2024-10-01T11:20:46.1248974Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetHighRankedKeys (ITValet)",
+  "StartTime": "2024-10-01T11:21:59.1964504Z",
+  "EndTime": "2024-10-01T11:22:00.1751209Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserListAsync (ITValet)",
+  "StartTime": "2024-10-01T11:22:00.1980111Z",
+  "EndTime": "2024-10-01T11:22:04.5676401Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-01T11:25:08.7052512Z",
+  "EndTime": "2024-10-01T11:25:09.0834706Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-01T11:25:09.1299933Z",
+  "EndTime": "2024-10-01T11:25:09.9189493Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-01T11:25:09.9493274Z",
+  "EndTime": "2024-10-01T11:25:10.4080535Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-01T11:25:38.9593394Z",
+  "EndTime": "2024-10-01T11:25:39.6068675Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-01T11:25:39.6226994Z",
+  "EndTime": "2024-10-01T11:25:39.9094133Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-01T11:25:39.9208573Z",
+  "EndTime": "2024-10-01T11:25:40.3199718Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-01T12:24:56.3806977Z",
+  "EndTime": "2024-10-01T12:24:56.6556134Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-01T12:24:56.7191406Z",
+  "EndTime": "2024-10-01T12:24:56.8804214Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-01T12:24:56.9323002Z",
+  "EndTime": "2024-10-01T12:24:57.0532897Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-10-01T12:25:03.3538772Z",
+  "EndTime": "2024-10-01T12:25:03.4630377Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetEarnings (ITValet)",
+  "StartTime": "2024-10-01T12:26:17.0075825Z",
+  "EndTime": "2024-10-01T12:26:23.0396115Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetAllCompletedOrders (ITValet)",
+  "StartTime": "2024-10-01T12:26:24.8501541Z",
+  "EndTime": "2024-10-01T12:26:24.971498Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-01T12:26:50.1122718Z",
+  "EndTime": "2024-10-01T12:26:50.3561377Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-01T12:26:50.3915193Z",
+  "EndTime": "2024-10-01T12:26:50.5274583Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-01T12:26:50.5414114Z",
+  "EndTime": "2024-10-01T12:26:50.6505931Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-10-01T12:26:52.8098205Z",
+  "EndTime": "2024-10-01T12:26:52.9251438Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-01T12:27:05.40046Z",
+  "EndTime": "2024-10-01T12:27:05.6918299Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-01T12:27:05.7369557Z",
+  "EndTime": "2024-10-01T12:27:05.8554151Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-01T12:27:05.9337342Z",
+  "EndTime": "2024-10-01T12:27:06.0934034Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-10-01T12:27:55.5390967Z",
+  "EndTime": "2024-10-01T12:27:55.6604187Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-01T12:29:48.3284319Z",
+  "EndTime": "2024-10-01T12:29:48.4681055Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-01T12:29:50.0905008Z",
+  "EndTime": "2024-10-01T12:29:50.3032195Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-01T12:29:50.4644099Z",
+  "EndTime": "2024-10-01T12:29:50.6440581Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-10-01T12:29:51.2158741Z",
+  "EndTime": "2024-10-01T12:30:19.9946147Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-01T12:31:02.0710504Z",
+  "EndTime": "2024-10-01T12:31:02.1895797Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-01T12:31:02.2003164Z",
+  "EndTime": "2024-10-01T12:31:02.3156925Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-01T12:31:02.3339769Z",
+  "EndTime": "2024-10-01T12:31:02.4377663Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-10-01T12:31:04.8962701Z",
+  "EndTime": "2024-10-01T12:31:16.9683157Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-01T12:39:30.7920891Z",
+  "EndTime": "2024-10-01T12:39:31.252248Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-01T12:39:31.331585Z",
+  "EndTime": "2024-10-01T12:39:31.4911737Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-01T12:39:31.572902Z",
+  "EndTime": "2024-10-01T12:39:31.7042323Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-10-01T12:40:12.478032Z",
+  "EndTime": "2024-10-01T12:40:16.2977775Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.PostAddUserSkill (ITValet)",
+  "StartTime": "2024-10-01T12:45:49.0574241Z",
+  "EndTime": "2024-10-01T12:45:49.8649689Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-01T12:45:51.9751387Z",
+  "EndTime": "2024-10-01T12:45:52.2124773Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-01T12:45:52.2640687Z",
+  "EndTime": "2024-10-01T12:45:52.4028801Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-01T12:45:52.4305608Z",
+  "EndTime": "2024-10-01T12:45:52.5688566Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.PostUpdateUser (ITValet)",
+  "StartTime": "2024-10-01T12:47:54.6652588Z",
+  "EndTime": "2024-10-01T12:47:55.1877035Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-01T12:47:56.2528003Z",
+  "EndTime": "2024-10-01T12:47:56.3823971Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-01T12:47:56.4835775Z",
+  "EndTime": "2024-10-01T12:47:56.6080118Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-01T12:47:56.6186252Z",
+  "EndTime": "2024-10-01T12:47:56.726695Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-01T12:48:05.7094993Z",
+  "EndTime": "2024-10-01T12:48:05.9544575Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-01T12:48:05.9989283Z",
+  "EndTime": "2024-10-01T12:48:06.1231408Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-01T12:48:06.140331Z",
+  "EndTime": "2024-10-01T12:48:06.2526044Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.CreateAccount (ITValet)",
+  "StartTime": "2024-10-01T12:48:42.0876463Z",
+  "EndTime": "2024-10-01T12:48:53.3731998Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-01T12:48:54.0041681Z",
+  "EndTime": "2024-10-01T12:48:54.1701958Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-01T12:48:54.2053789Z",
+  "EndTime": "2024-10-01T12:48:54.326177Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-01T12:48:54.366825Z",
+  "EndTime": "2024-10-01T12:48:54.4861285Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.postUpdateUserRecord (ITValet)",
+  "StartTime": "2024-10-01T12:50:22.2405941Z",
+  "EndTime": "2024-10-01T12:50:22.6573156Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-01T12:50:23.2966213Z",
+  "EndTime": "2024-10-01T12:50:23.4265647Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-01T12:50:23.5645896Z",
+  "EndTime": "2024-10-01T12:50:23.686242Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-01T12:50:23.7091434Z",
+  "EndTime": "2024-10-01T12:50:23.8352244Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.PostAddUserEducation (ITValet)",
+  "StartTime": "2024-10-01T12:50:34.6701634Z",
+  "EndTime": "2024-10-01T12:50:35.0279963Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-01T12:50:35.0525192Z",
+  "EndTime": "2024-10-01T12:50:35.1731312Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-01T12:50:35.185642Z",
+  "EndTime": "2024-10-01T12:50:35.2964009Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-01T12:50:36.0950941Z",
+  "EndTime": "2024-10-01T12:50:36.2308255Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-01T12:50:36.2524104Z",
+  "EndTime": "2024-10-01T12:50:36.375127Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-01T12:50:36.3820347Z",
+  "EndTime": "2024-10-01T12:50:36.4980718Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.PostAddUserExperience (ITValet)",
+  "StartTime": "2024-10-01T12:50:39.5094392Z",
+  "EndTime": "2024-10-01T12:50:39.8762287Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-01T12:50:39.883048Z",
+  "EndTime": "2024-10-01T12:50:40.0035839Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-01T12:50:40.8298524Z",
+  "EndTime": "2024-10-01T12:50:40.9669125Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-01T12:50:41.0149916Z",
+  "EndTime": "2024-10-01T12:50:41.1298143Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-01T12:50:41.140437Z",
+  "EndTime": "2024-10-01T12:50:41.2571511Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.UpdateUserAccountActivityStatus (ITValet)",
+  "StartTime": "2024-10-01T12:50:52.7910359Z",
+  "EndTime": "2024-10-01T12:50:53.2600701Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.UpdateUserAccountAvailabilityStatus (ITValet)",
+  "StartTime": "2024-10-01T12:50:53.9834491Z",
+  "EndTime": "2024-10-01T12:50:54.4397968Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-01T12:51:01.1090842Z",
+  "EndTime": "2024-10-01T12:51:01.2389177Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-01T12:51:01.2598315Z",
+  "EndTime": "2024-10-01T12:51:01.3771671Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-01T12:51:01.3908367Z",
+  "EndTime": "2024-10-01T12:51:01.4980507Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetHighRankedKeys (ITValet)",
+  "StartTime": "2024-10-01T12:51:49.9097437Z",
+  "EndTime": "2024-10-01T12:51:50.0368132Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserListAsync (ITValet)",
+  "StartTime": "2024-10-01T12:51:50.052869Z",
+  "EndTime": "2024-10-01T12:51:50.5970848Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-01T12:52:21.829029Z",
+  "EndTime": "2024-10-01T12:52:21.9537537Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-01T12:52:21.9699046Z",
+  "EndTime": "2024-10-01T12:52:22.0769838Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-01T12:52:22.0851492Z",
+  "EndTime": "2024-10-01T12:52:22.1872289Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-10-01T12:52:22.7540938Z",
+  "EndTime": "2024-10-01T12:52:24.2576136Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-01T12:55:33.9753103Z",
+  "EndTime": "2024-10-01T12:55:34.0868189Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-01T12:55:34.239876Z",
+  "EndTime": "2024-10-01T12:55:34.3842031Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-01T12:55:34.4250693Z",
+  "EndTime": "2024-10-01T12:55:34.5436193Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-01T12:55:49.3093834Z",
+  "EndTime": "2024-10-01T12:55:49.4807802Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-01T12:55:49.611054Z",
+  "EndTime": "2024-10-01T12:55:49.816921Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-01T12:55:50.0909105Z",
+  "EndTime": "2024-10-01T12:55:50.2999705Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-01T12:55:57.1103568Z",
+  "EndTime": "2024-10-01T12:55:57.2225581Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-01T12:55:57.2988264Z",
+  "EndTime": "2024-10-01T12:55:57.4127479Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-01T12:55:57.5143548Z",
+  "EndTime": "2024-10-01T12:55:57.6342065Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-01T12:57:49.5491413Z",
+  "EndTime": "2024-10-01T12:57:49.6706526Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-01T12:57:49.7179153Z",
+  "EndTime": "2024-10-01T12:57:49.8412662Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-01T12:57:49.8637233Z",
+  "EndTime": "2024-10-01T12:57:49.9808098Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetHighRankedKeys (ITValet)",
+  "StartTime": "2024-10-01T13:45:53.3285356Z",
+  "EndTime": "2024-10-01T13:45:53.4449446Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserListAsync (ITValet)",
+  "StartTime": "2024-10-01T13:45:53.4818855Z",
+  "EndTime": "2024-10-01T13:45:53.9952205Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-07T11:06:23.3206134Z",
+  "EndTime": "2024-10-07T11:06:25.0808619Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-07T11:06:25.8441342Z",
+  "EndTime": "2024-10-07T11:06:26.0513887Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-07T11:06:26.0845142Z",
+  "EndTime": "2024-10-07T11:06:26.3290345Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-10-07T11:06:39.4054762Z",
+  "EndTime": "2024-10-07T11:06:42.1591728Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetHighRankedKeys (ITValet)",
+  "StartTime": "2024-10-08T06:33:57.3537014Z",
+  "EndTime": "2024-10-08T06:33:57.5955646Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserListAsync (ITValet)",
+  "StartTime": "2024-10-08T06:33:59.4115954Z",
+  "EndTime": "2024-10-08T06:34:00.2636067Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetHighRankedKeys (ITValet)",
+  "StartTime": "2024-10-08T06:46:30.2110871Z",
+  "EndTime": "2024-10-08T06:46:30.8793882Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetHighRankedKeys (ITValet)",
+  "StartTime": "2024-10-08T06:46:32.6464092Z",
+  "EndTime": "2024-10-08T06:46:32.7576084Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserListAsync (ITValet)",
+  "StartTime": "2024-10-08T06:46:31.7873139Z",
+  "EndTime": "2024-10-08T06:46:32.8773522Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserListAsync (ITValet)",
+  "StartTime": "2024-10-08T06:46:32.7905693Z",
+  "EndTime": "2024-10-08T06:46:33.4551941Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-08T07:14:25.3577756Z",
+  "EndTime": "2024-10-08T07:14:25.5909107Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-08T07:14:25.6697864Z",
+  "EndTime": "2024-10-08T07:14:25.9144434Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-08T07:14:25.9867725Z",
+  "EndTime": "2024-10-08T07:14:26.1817202Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-10-08T07:14:26.1316896Z",
+  "EndTime": "2024-10-08T07:14:26.262764Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-10-08T07:14:37.978148Z",
+  "EndTime": "2024-10-08T07:14:38.0922251Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-08T07:15:10.6185918Z",
+  "EndTime": "2024-10-08T07:15:10.7289585Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-08T07:15:10.7607182Z",
+  "EndTime": "2024-10-08T07:15:11.1143533Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-08T07:15:11.5958861Z",
+  "EndTime": "2024-10-08T07:15:11.7143437Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-10-08T07:15:17.528206Z",
+  "EndTime": "2024-10-08T07:15:17.64935Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-08T07:16:24.9750845Z",
+  "EndTime": "2024-10-08T07:16:25.0893611Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-08T07:16:25.1040242Z",
+  "EndTime": "2024-10-08T07:16:25.214159Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-08T07:16:25.2275989Z",
+  "EndTime": "2024-10-08T07:16:25.334062Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.PostUpdateUser (ITValet)",
+  "StartTime": "2024-10-08T07:16:49.7036268Z",
+  "EndTime": "2024-10-08T07:16:50.1841989Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-08T07:16:50.9714073Z",
+  "EndTime": "2024-10-08T07:16:51.0883217Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-08T07:16:51.1894596Z",
+  "EndTime": "2024-10-08T07:16:51.3014543Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-08T07:16:51.3178217Z",
+  "EndTime": "2024-10-08T07:16:51.4236919Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.UpdateUserAccountActivityStatus (ITValet)",
+  "StartTime": "2024-10-08T07:16:53.0709446Z",
+  "EndTime": "2024-10-08T07:16:53.475703Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.UpdateUserAccountAvailabilityStatus (ITValet)",
+  "StartTime": "2024-10-08T07:16:53.8450001Z",
+  "EndTime": "2024-10-08T07:16:54.2463293Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.PostAddUserSkill (ITValet)",
+  "StartTime": "2024-10-08T07:17:08.2921773Z",
+  "EndTime": "2024-10-08T07:17:08.7743221Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-08T07:17:09.6817608Z",
+  "EndTime": "2024-10-08T07:17:09.8012942Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-08T07:17:09.8689768Z",
+  "EndTime": "2024-10-08T07:17:09.9780201Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-08T07:17:09.9888797Z",
+  "EndTime": "2024-10-08T07:17:10.0970409Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.CreateAccount (ITValet)",
+  "StartTime": "2024-10-08T07:17:20.1887762Z",
+  "EndTime": "2024-10-08T07:17:25.9118595Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-08T07:17:26.4783395Z",
+  "EndTime": "2024-10-08T07:17:26.5855152Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-08T07:17:26.6184186Z",
+  "EndTime": "2024-10-08T07:17:26.7343439Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-08T07:17:26.7694221Z",
+  "EndTime": "2024-10-08T07:17:26.9460731Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.postUpdateUserRecord (ITValet)",
+  "StartTime": "2024-10-08T07:18:23.586712Z",
+  "EndTime": "2024-10-08T07:18:24.007352Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-08T07:18:24.4783516Z",
+  "EndTime": "2024-10-08T07:18:24.5804271Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-08T07:18:24.6441518Z",
+  "EndTime": "2024-10-08T07:18:24.7586882Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-08T07:18:24.7738528Z",
+  "EndTime": "2024-10-08T07:18:24.882293Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-08T07:18:40.936626Z",
+  "EndTime": "2024-10-08T07:18:41.0617996Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-08T07:18:41.162584Z",
+  "EndTime": "2024-10-08T07:18:41.26958Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-08T07:18:41.3100518Z",
+  "EndTime": "2024-10-08T07:18:41.4179191Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.PostAddUserEducation (ITValet)",
+  "StartTime": "2024-10-08T07:18:52.3016928Z",
+  "EndTime": "2024-10-08T07:18:52.6298769Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-08T07:18:52.6558332Z",
+  "EndTime": "2024-10-08T07:18:52.7765786Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-08T07:18:52.800359Z",
+  "EndTime": "2024-10-08T07:18:52.9143892Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-08T07:18:53.9421911Z",
+  "EndTime": "2024-10-08T07:18:54.0668223Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-08T07:18:54.0762707Z",
+  "EndTime": "2024-10-08T07:18:54.1779722Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-08T07:18:54.1873573Z",
+  "EndTime": "2024-10-08T07:18:54.2864877Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.PostAddUserExperience (ITValet)",
+  "StartTime": "2024-10-08T07:18:56.7163143Z",
+  "EndTime": "2024-10-08T07:18:57.0201473Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-08T07:18:57.0418661Z",
+  "EndTime": "2024-10-08T07:18:57.1586402Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-08T07:18:58.0076695Z",
+  "EndTime": "2024-10-08T07:18:58.118348Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-08T07:18:58.1802901Z",
+  "EndTime": "2024-10-08T07:18:58.286585Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-08T07:18:58.298471Z",
+  "EndTime": "2024-10-08T07:18:58.3985605Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-08T07:19:15.4617394Z",
+  "EndTime": "2024-10-08T07:19:15.5817009Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-08T07:19:15.6107136Z",
+  "EndTime": "2024-10-08T07:19:15.718286Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-08T07:19:15.731604Z",
+  "EndTime": "2024-10-08T07:19:15.8424295Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetHighRankedKeys (ITValet)",
+  "StartTime": "2024-10-08T07:20:01.7209503Z",
+  "EndTime": "2024-10-08T07:20:01.8244808Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserListAsync (ITValet)",
+  "StartTime": "2024-10-08T07:20:01.8366342Z",
+  "EndTime": "2024-10-08T07:20:02.4437219Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-08T07:20:32.9383639Z",
+  "EndTime": "2024-10-08T07:20:33.1034914Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-08T07:20:33.6331754Z",
+  "EndTime": "2024-10-08T07:20:33.7849595Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-08T07:20:33.8301446Z",
+  "EndTime": "2024-10-08T07:20:33.9403189Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetSearchedValetRecord (ITValet)",
+  "StartTime": "2024-10-08T07:20:41.7991379Z",
+  "EndTime": "2024-10-08T07:20:42.6452865Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-08T07:20:45.6144627Z",
+  "EndTime": "2024-10-08T07:20:45.7571303Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetValetRatingRecord (ITValet)",
+  "StartTime": "2024-10-08T07:20:46.0513097Z",
+  "EndTime": "2024-10-08T07:20:46.2860556Z",
+  "Status": "False",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetBookedAvailabilitySlot (ITValet)",
+  "StartTime": "2024-10-08T07:20:47.3502278Z",
+  "EndTime": "2024-10-08T07:20:47.8146024Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetOrderEventsOfValet (ITValet)",
+  "StartTime": "2024-10-08T07:20:48.7738302Z",
+  "EndTime": "2024-10-08T07:20:48.9649511Z",
+  "Status": "False",
+  "StatusCode": "400"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetOrderById (ITValet)",
+  "StartTime": "2024-10-08T07:21:57.1633428Z",
+  "EndTime": "2024-10-08T07:21:57.7184901Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetSearchedValetRecord (ITValet)",
+  "StartTime": "2024-10-08T07:22:03.6204094Z",
+  "EndTime": "2024-10-08T07:22:04.337732Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-08T07:22:06.1335033Z",
+  "EndTime": "2024-10-08T07:22:06.3167839Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetValetRatingRecord (ITValet)",
+  "StartTime": "2024-10-08T07:22:06.4106322Z",
+  "EndTime": "2024-10-08T07:22:06.5349536Z",
+  "Status": "False",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetBookedAvailabilitySlot (ITValet)",
+  "StartTime": "2024-10-08T07:22:07.1220985Z",
+  "EndTime": "2024-10-08T07:22:07.6125055Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetOrderEventsOfValet (ITValet)",
+  "StartTime": "2024-10-08T07:22:08.4086089Z",
+  "EndTime": "2024-10-08T07:22:08.5964403Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-08T07:23:26.1419012Z",
+  "EndTime": "2024-10-08T07:23:26.2957841Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-08T07:23:26.3239932Z",
+  "EndTime": "2024-10-08T07:23:26.4313582Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-08T07:23:26.4439647Z",
+  "EndTime": "2024-10-08T07:23:26.5585332Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-10-08T07:23:26.8173272Z",
+  "EndTime": "2024-10-08T07:23:26.9301008Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetHighRankedKeys (ITValet)",
+  "StartTime": "2024-10-08T07:34:32.8776036Z",
+  "EndTime": "2024-10-08T07:34:33.0333582Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserListAsync (ITValet)",
+  "StartTime": "2024-10-08T07:34:33.5128698Z",
+  "EndTime": "2024-10-08T07:34:34.3886174Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSkillByUserId (ITValet)",
+  "StartTime": "2024-10-08T07:34:47.835217Z",
+  "EndTime": "2024-10-08T07:34:48.0194392Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2024-10-08T07:34:48.1861408Z",
+  "EndTime": "2024-10-08T07:34:48.3789723Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserExperienceByUserId (ITValet)",
+  "StartTime": "2024-10-08T07:34:48.5171773Z",
+  "EndTime": "2024-10-08T07:34:48.7099719Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserAvailableSlotByUserId (ITValet)",
+  "StartTime": "2024-10-08T07:34:54.7271722Z",
+  "EndTime": "2024-10-08T07:34:54.8412781Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetOrderEventsByUserId (ITValet)",
+  "StartTime": "2024-10-08T07:35:37.1185865Z",
+  "EndTime": "2024-10-08T07:35:37.4389158Z",
+  "Status": "False",
+  "StatusCode": "400"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetOrdersDatatableByUserId (ITValet)",
+  "StartTime": "2024-10-08T07:35:52.3511365Z",
+  "EndTime": "2024-10-08T07:35:52.6546421Z",
+  "Status": "Error",
+  "StatusCode": "500"
+}]

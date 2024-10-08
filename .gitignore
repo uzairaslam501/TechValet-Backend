@@ -1,52 +1,96 @@
-# Prerequisites
-*.d
+# Ignore Visual Studio temporary files, build results, and
+# folder-based project outputs
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
 
-# Object files
-*.o
-*.ko
-*.obj
-*.elf
+# User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
 
-# Linker output
-*.ilk
-*.map
-*.exp
+# Mono Auto Generated Files
+mono_crash.*
 
-# Precompiled Headers
-*.gch
-*.pch
+# Windows image file caches
+Thumbs.db
+ehthumbs.db
 
-# Libraries
-*.lib
-*.a
-*.la
-*.lo
+# Folder config file
+Desktop.ini
 
-# Shared objects (inc. Windows DLLs)
-*.dll
-*.so
-*.so.*
-*.dylib
+# Recycle Bin used on file shares
+$RECYCLE.BIN/
 
-# Executables
-*.exe
-*.out
-*.app
-*.i*86
-*.x86_64
-*.hex
+# VS Code directories
+.vscode/
+.vscode-test/
 
-# Debug files
-*.dSYM/
-*.su
-*.idb
-*.pdb
+# Visual Studio 2019/2022 cache/options directory
+.vscode/
 
-# Kernel Module Compile Results
-*.mod*
-*.cmd
-.tmp_versions/
-modules.order
-Module.symvers
-Mkfile.old
-dkms.conf
+# Visual Studio 2017/2019/2022 auto-generated files
+*.log
+.vs/
+.vscode/
+
+# Rider directories
+.idea/
+.idea_modules/
+
+# Coverage Analysis software
+*.coverage
+*.coveragexml
+*_UnitTestCoverage
+*.coverageinfo
+*.coverage.xml
+*.nvuser
+.coverage
+.coveragexml
+
+# ReSharper files
+_ReSharper.Caches
+*.DotSettings.user
+
+# TeamCity
+_builds/
+.tc/
+*.tcmsg
+*.tclog
+*.idea
+
+# DotNet core 
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# msbuild logs
+msbuild.log
+msbuild.err
+msbuild.wrn
+
+# Publish Web Output
+*.Publish.xml
+.publish_output/
+
+# .NET Core
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# custom Files
+api/.vs/
+api/bin/
+api/obj/
+api/wwwroot/
+api/appSettings.Development.json
+api/appSettings.Production.json

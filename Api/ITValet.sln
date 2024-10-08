@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.6.33815.320
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ITValet", "ITValet.csproj", "{6AF3D66C-2D0B-4C9C-BFBE-1EC4B42974AD}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6AF3D66C-2D0B-4C9C-BFBE-1EC4B42974AD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6AF3D66C-2D0B-4C9C-BFBE-1EC4B42974AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6AF3D66C-2D0B-4C9C-BFBE-1EC4B42974AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6AF3D66C-2D0B-4C9C-BFBE-1EC4B42974AD}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {B1F8E4E9-EA8D-46B7-BF90-3F9FEF0D1FF3}
+	EndGlobalSection
+EndGlobal
