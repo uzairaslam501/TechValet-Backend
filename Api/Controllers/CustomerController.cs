@@ -41,29 +41,15 @@ namespace ITValet.Controllers
                 var obj = new RequestService();
                 var getServiceId = await AddRequestService(postAddRequestService);
 
-                if (postAddRequestService.RequestServiceSkills.Length > 0)
+                if (postAddRequestService?.RequestServiceSkills!.Length > 0)
                 {
-                    List<string> requestSkills = postAddRequestService.RequestServiceSkills.Split(",").ToList();
-                    //foreach (var skill in requestSkills)
-                    //{
-                    //    RequestServiceSkill requestServiceSkill = new RequestServiceSkill()
-                    //    {
-                    //        RequestServiceName = skill,
-                    //        RequestServiceId = getServiceId,
-                    //        IsActive = 1,
-                    //        CreatedAt = GeneralPurpose.DateTimeNow()
-                    //    };
-                    //    if (!await requestServiceRepo.AddRequestServiceSkill(requestServiceSkill))
-                    //    {
-                    //        return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
-                    //    }
-                    //}
+                    List<string> requestSkills = postAddRequestService.RequestServiceSkills!.Split(",").ToList();
                 }
                 return Ok(new ResponseDto() { Data = StringCipher.EncryptId(getServiceId), Status = true, StatusCode = "200", Message = GlobalMessages.SuccessMessage });
             }
             catch (Exception ex)
             {
-                MailSender.SendErrorMessage(ex.Message.ToString());
+                await MailSender.SendErrorMessage(ex.Message.ToString());
                 return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
             }
         }
@@ -105,7 +91,7 @@ namespace ITValet.Controllers
         {
             try
             {
-                var getDecryptedId = StringCipher.DecryptId(postUpdateRequestService.RequestServiceEncId);
+                var getDecryptedId = StringCipher.DecryptId(postUpdateRequestService.RequestServiceEncId!);
 
 
                 RequestService? obj = await requestServiceRepo.GetRequestServiceById(getDecryptedId);
@@ -114,7 +100,7 @@ namespace ITValet.Controllers
                 {
                     return Ok(new ResponseDto() { Status = false, StatusCode = "404", Message = GlobalMessages.RecordNotFound });
                 }
-                if (!await requestServiceRepo.ValidateServiceTitle(postUpdateRequestService.ServiceTitle, (int)obj.RequestedServiceUserId))
+                if (!await requestServiceRepo.ValidateServiceTitle(postUpdateRequestService.ServiceTitle!, (int)obj.RequestedServiceUserId!))
                 {
                     return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = GlobalMessages.DuplicateServiceTitle });
                 }
@@ -138,7 +124,7 @@ namespace ITValet.Controllers
             }
             catch(Exception ex)
             {
-                MailSender.SendErrorMessage(ex.Message);
+                await MailSender.SendErrorMessage(ex.Message);
                 return Ok(new ResponseDto() {Status = false, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
             }
         }

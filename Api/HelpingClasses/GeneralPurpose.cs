@@ -1,5 +1,6 @@
 ﻿using ITValet.Models;
 using ITValet.Services;
+using ITValet.ViewModel;
 using System.Net.NetworkInformation;
 
 namespace ITValet.HelpingClasses
@@ -233,5 +234,51 @@ namespace ITValet.HelpingClasses
         }
         #endregion
 
+        #region Responses 
+        public static ResponseViewModel NotFoundResponse(string message, Object? data = null)
+        {
+            return new ResponseViewModel()
+            {
+                IsSuccess = false,
+                StatusCode = 404,
+                Message = message,
+                Data = default
+            };
+        }
+
+        public static ResponseViewModel BadRequestResponse(string message, Object? data = null)
+        {
+            return new ResponseViewModel()
+            {
+                IsSuccess = false,
+                StatusCode = 400,
+                Message = message,
+                Data = default
+            };
+        }
+
+        public static ResponseViewModel SuccessResponse(string message, Object? data)
+        {
+            return new ResponseViewModel()
+            {
+                IsSuccess = true,
+                StatusCode = 200,
+                Message = message,
+                Data = data
+            };
+        }
+
+        public static ResponseViewModel OkResponse(string message, Object? data)
+        {
+            return new ResponseViewModel()
+            {
+                IsSuccess = true,
+                StatusCode = 201,
+                Message = message,
+                Data = data
+            };
+        }
+
+        #endregion
     }
 }

@@ -6,8 +6,6 @@ using ITValet.Models;
 using ITValet.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json;
 using Stripe;
 using System.Text;
 using ITValet.NotificationHub;
@@ -250,61 +248,77 @@ namespace ITValet.Controllers
         }
 
         [HttpGet("GetItValetsByRequestSkills")]
-        public async Task<IActionResult> GetItValetsByRequestSkills(string RequestSkills)
+        public async Task<IActionResult> GetItValetsByRequestSkills(string requestSkills)
         {
-            var usersWithMatchingSkills = await userRepo.GetUsersListByRequestSkills(RequestSkills);
-            //usersWithMatchingSkills = null; // for testing purpose
-            List<UserListDto> uDto = new List<UserListDto>();
-            if (usersWithMatchingSkills != null)
+            var userDtos = new List<UserListDto>();
+
+            // Fetch users matching the requested skills
+            var usersWithMatchingSkills = await userRepo.GetUsersListByRequestSkills(requestSkills);
+
+            if (usersWithMatchingSkills != null && usersWithMatchingSkills.Any())
             {
-                foreach (User u in usersWithMatchingSkills)
+                foreach (var user in usersWithMatchingSkills)
                 {
-                    var getUserRatings = await ratingRepo.GetUserRatingStarsListByUserId(u.Id);
-                    var AverageUserRating = 0.0;
+                    // Fetch user ratings
+                    var userRatings = await ratingRepo.GetUserRatingStarsListByUserId(user.Id);
+                    var averageRating = userRatings != null
+                        ? GeneralPurpose.CalculateUserRatingPercentage(userRatings)
+                        : 0.0;
 
-                    if (getUserRatings != null)
+                    // Build the DTO
+                    userDtos.Add(new UserListDto
                     {
-                        AverageUserRating = GeneralPurpose.CalculateUserRatingPercentage(getUserRatings);
-
-                    }
-
-                    UserListDto obj = new UserListDto()
-                    {
-                        Id = u.Id,
-                        UserEncId = StringCipher.EncryptId(u.Id),
-                        FirstName = u.FirstName,
-                        LastName = u.LastName,
-                        UserName = u.UserName,
-                        Contact = u.Contact,
-                        Email = u.Email,
-                        City = u.City,
-                        ZipCode = u.ZipCode,
-                        Description = u.Description,
-                        PricePerHour = u.PricePerHour.ToString(),
-                        ProfilePicture = projectVariables.SystemUrl + u.ProfilePicture,
-                        UserRating = AverageUserRating.ToString(),
-                        UserRatingCount = getUserRatings.Count.ToString()
-                    };
-                    uDto.Add(obj);
-
+                        Id = user.Id,
+                        UserEncId = StringCipher.EncryptId(user.Id),
+                        FirstName = user.FirstName,
+                        LastName = user.LastName,
+                        UserName = user.UserName,
+                        Contact = user.Contact,
+                        Email = user.Email,
+                        City = user.City,
+                        ZipCode = user.ZipCode,
+                        Description = user.Description,
+                        PricePerHour = user.PricePerHour.ToString(),
+                        ProfilePicture = $"{projectVariables.SystemUrl}{user.ProfilePicture}",
+                        UserRating = averageRating.ToString("F2"), // Format rating to 2 decimal places
+                        UserRatingCount = userRatings?.Count.ToString() ?? "0"
+                    });
                 }
-
             }
             else
             {
+                // Fallback: If no users match skills, fetch general user list
                 var userResponse = await GetUserListAsync();
-                if (userResponse is OkObjectResult responseResult && responseResult.Value is ResponseDto responseDto && responseDto.Status == true)
-                {
-                    // Access the Data object from the responseDto
-                    var reponseData = responseDto.Data;
-                    return new ObjectResult(new { data = reponseData });
-                    // used if we have to send response in 
-                    //return Ok(new ResponseDto() { Status = true, StatusCode = "200", Message = GlobalMessages.RecordNotFound });
-                }
-            }
-            return new ObjectResult(new { data = uDto });
 
+                if (userResponse is OkObjectResult responseResult && 
+                    responseResult.Value is ResponseDto responseDto &&
+                    responseDto.Status == true)
+                {
+                    return Ok(new ResponseDto
+                    {
+                        Status = true,
+                        StatusCode = "200",
+                        Message = "users found.",
+                        Data = responseDto.Data
+                    });
+                }
+
+                return NotFound(new ResponseDto
+                {
+                    Status = false,
+                    StatusCode = "404",
+                    Message = "No users found."
+                });
+            }
+
+            return Ok(new ResponseDto {
+                Status = true,
+                StatusCode = "200",
+                Message = "users found.",
+                Data = userDtos
+            });
         }
+
 
         [HttpGet("postUpdateUserRecord")]
         public async Task<IActionResult> postUpdateUserRecord(int? userId, int? IsDeleteStripeAccount = -1)
@@ -1749,7 +1763,7 @@ namespace ITValet.Controllers
             }
             catch(Exception ex)
             {
-                await MailSender.SendErrorMessage(projectVariables.BaseUrl + " ----------<br>" + ex.Message.ToString() + "---------------" + ex.StackTrace);
+                MailSender.SendErrorMessage(projectVariables.BaseUrl + " ----------<br>" + ex.Message.ToString() + "---------------" + ex.StackTrace);
                 return Ok(new ResponseDto() { Status = false, StatusCode = "404", Message = "Exception Occured" });
             }
         }
@@ -1768,7 +1782,7 @@ namespace ITValet.Controllers
             }
             catch (Exception ex)
             {
-                await MailSender.SendErrorMessage(projectVariables.BaseUrl + " ----------<br>" + ex.Message.ToString() + "---------------" + ex.StackTrace);
+                MailSender.SendErrorMessage(projectVariables.BaseUrl + " ----------<br>" + ex.Message.ToString() + "---------------" + ex.StackTrace);
                 return Ok(new ResponseDto() { Status = false, StatusCode = "404", Message = "Exception Occured" });
             }
         }

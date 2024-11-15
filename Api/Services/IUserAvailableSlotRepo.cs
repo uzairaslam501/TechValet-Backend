@@ -204,7 +204,7 @@ namespace ITValet.Services
                     {
                         var getUserId = userId;
                         var newRecord = new UserAvailableSlot();
-                        if (day <= daysInLastMonth)
+                        if (day <= daysInLastMonth && recordsOfLastMonth.Count > 0)
                         {
                             var lastRecordIndex = day - 1; // Index in recordsOfLastMonth
 
