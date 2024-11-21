@@ -610,7 +610,7 @@ namespace ITValet.Controllers
                 Timezone = user.Timezone,
                 Availability = user.Availability.ToString(),
                 Status = user.Status.ToString(),
-                BirthDate = user.BirthDate.ToString(),
+                BirthDate = user.BirthDate?.ToString("yyyy-MM-dd"),
                 Role = Enum.GetName(typeof(EnumRoles), user.Role),
                 IsActive = Enum.GetName(typeof(EnumActiveStatus), user.IsActive),
                 Language = user.Language,
@@ -969,7 +969,7 @@ namespace ITValet.Controllers
         public async Task<IActionResult> GetTimeZones()
         {
             var getKeyPairValues = DateTimeHelper.TimeZoneFriendlyNames;
-            return Ok(getKeyPairValues);
+            return Ok(new ResponseDto { Status = true, StatusCode = "200", Data = getKeyPairValues });
         }
     }
 }

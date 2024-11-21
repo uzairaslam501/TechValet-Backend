@@ -28,7 +28,11 @@ namespace ITValet.Controllers
         private readonly IUserSocialProfileRepo _userSocialProfileRepo;
         private readonly IUserSkillRepo _userSkillRepo;
         private readonly IUserTagRepo _userTagRepo;
-        public DatatableController(IJwtUtils _jwtUtils, IRequestServiceRepo _requestServiceRepo, IOrderRepo _orderRepo, INotificationService userPackageService, IUserRepo userRepo, IContactUsRepo contactUsRepo, IPayPalGateWayService payPalGateWayService, IUserEducationRepo userEducationRepo, IUserExperienceRepo userExperienceRepo, IUserSocialProfileRepo userSocialProfileRepo, IUserSkillRepo userSkillRepo, IUserTagRepo userTagRepo)
+        public DatatableController(IJwtUtils _jwtUtils, IRequestServiceRepo _requestServiceRepo,
+            IOrderRepo _orderRepo, INotificationService userPackageService, IUserRepo userRepo,
+            IContactUsRepo contactUsRepo, IPayPalGateWayService payPalGateWayService,
+            IUserEducationRepo userEducationRepo, IUserExperienceRepo userExperienceRepo,
+            IUserSocialProfileRepo userSocialProfileRepo, IUserSkillRepo userSkillRepo, IUserTagRepo userTagRepo)
         {
             jwtUtils = _jwtUtils;
             requestServiceRepo = _requestServiceRepo;
@@ -43,6 +47,7 @@ namespace ITValet.Controllers
             _userSkillRepo = userSkillRepo;
             _userTagRepo = userTagRepo;
         }
+        
         [HttpGet("GetRequestServicesDatatableByUserIdAsync")]
         public async Task<IActionResult> GetRequestServicesDatatableByUserIdAsync(int start, int length , string? sortColumnName ,string? sortDirection , string? searchValue , string? name)
         {
@@ -111,8 +116,8 @@ namespace ITValet.Controllers
                         PrefferedServiceTime = rs.PrefferedServiceTime,
                         CategoriesOfProblems = rs.CategoriesOfProblems,
                         ServiceDescription = rs.ServiceDescription,
-                        FromDateTime = rs.FromDateTime?.ToString(),
-                        ToDateTime = rs.ToDateTime?.ToString(),
+                        FromDateTime = rs.FromDateTime?.ToString("yyyy-MM-ddTHH:mm:ss"),
+                        ToDateTime = rs.ToDateTime?.ToString("yyyy-MM-ddTHH:mm:ss"),
                         AppointmentTime = $"{userRegionRequestStartTime} - {userRegionRequestEndTime}",
                         ServiceLanguage = rs.ServiceLanguage,
                         RequestServiceType = rs.RequestServiceType.ToString(),

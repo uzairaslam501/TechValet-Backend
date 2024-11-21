@@ -2100,7 +2100,7 @@ namespace ITValet.Controllers
             }
             else
             {
-                return Ok(new ResponseDto { Status = false, StatusCode = "400", Data = 0 });
+                return Ok(new ResponseDto { Status = true, StatusCode = "200", Data = 0 });
             }
         }
 

@@ -384,6 +384,85 @@ namespace ITValet.Controllers
             }
         }
 
+
+        [HttpGet("GetMessageSideBarLists")]
+        public async Task<IActionResult> GetMessageSideBarLists(string? loggedInUserId, string? Name = "", string? GetUserChatOnTop = "")
+        {
+            try
+            {
+                if (!string.IsNullOrEmpty(loggedInUserId))
+                {
+                    var getLoggedInUser = await userRepo.GetUserById(Convert.ToInt32(loggedInUserId));
+                    var Sender = new Models.User();
+                    var Receiver = new Models.User();
+                    var getMessages = await messagesRepo.GetMessageByUserId(getLoggedInUser.Id);
+                    List<ViewModelMessage> messagesList = new List<ViewModelMessage>();
+                    foreach (Message message in getMessages)
+                    {
+                        ViewModelMessage viewModelMessage = new ViewModelMessage()
+                        {
+                            Id = message.Id.ToString(),
+                            MessageEncId = StringCipher.EncryptId(message.Id),
+                            MessageDescription = message.MessageDescription,
+                            IsRead = message.IsRead != null ? message.IsRead.ToString() : null,
+                            FilePath = message.FilePath != null ? message.FilePath.ToString() : null,
+                            MessageTime = GeneralPurpose.regionChanged(Convert.ToDateTime(message.CreatedAt), getLoggedInUser.Timezone),
+                            SenderId = message.SenderId.ToString(),
+                            ReceiverId = message.ReceiverId.ToString(),
+                        };
+
+                        var Id = message.SenderId != getLoggedInUser.Id ? message.SenderId : message.ReceiverId;
+                        Sender = await userRepo.GetUserById((int)Id);
+                        viewModelMessage.Username = Sender.FirstName + " " + Sender.LastName;
+                        viewModelMessage.UserImage = projectVariables.BaseUrl + Sender.ProfilePicture;
+                        viewModelMessage.UserEncId = StringCipher.EncryptId(Sender.Id);
+                        viewModelMessage.UserDecId = Sender.Id.ToString();
+                        if (message.SenderId == getLoggedInUser.Id)
+                        {
+                            viewModelMessage.LastMessageUsername = "";
+                        }
+                        else
+                        {
+                            viewModelMessage.LastMessageUsername = Sender.FirstName + " " + Sender.LastName;
+                        }
+                        messagesList.Add(viewModelMessage);
+
+                    }
+                    if (!string.IsNullOrEmpty(GetUserChatOnTop) && GetUserChatOnTop != "null")
+                    {
+                        // ID to move to the top
+                        string idToMoveToTop = StringCipher.DecryptId(GetUserChatOnTop).ToString();
+                        // Reordering the list
+                        messagesList = messagesList.OrderBy(user => user.SenderId == idToMoveToTop ? 0 : 1)
+                                                  .ThenBy(user => user.Id)
+                                                  .ToList();
+                    }
+                    if (!String.IsNullOrWhiteSpace(Name))
+                    {
+                        messagesList = messagesList.Where(a => a.Username.ToLower().Contains(Name.ToLower())).ToList();
+                    }
+                    // messagesList = messagesList.OrderByDescending(x=> x.MessageTime).ToList();
+
+                    messagesList = messagesList.OrderByDescending(msg => DateTime.Parse(msg.MessageTime)).ToList();
+
+
+                    return Ok(new ResponseDto()
+                    {
+                        Status = true,
+                        StatusCode = "200",
+                        Data = messagesList
+                    });
+                }
+                return null;
+            }
+            catch (Exception ex)
+            {
+                var x = ex.Message.ToString();
+                return null;
+            }
+        }
+
+
         #endregion
 
         #region OrderZone
