@@ -4426,4 +4426,28 @@
   "EndTime": "2024-11-26T06:22:04.8678922Z",
   "Status": "Error",
   "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetHighRankedKeys (ITValet)",
+  "StartTime": "2024-11-26T07:44:54.9281432Z",
+  "EndTime": "2024-11-26T07:44:55.3497422Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetHighRankedKeys (ITValet)",
+  "StartTime": "2024-11-26T07:44:55.6550009Z",
+  "EndTime": "2024-11-26T07:44:55.9573287Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserListAsync (ITValet)",
+  "StartTime": "2024-11-26T07:44:54.9281381Z",
+  "EndTime": "2024-11-26T07:44:56.3804934Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserListAsync (ITValet)",
+  "StartTime": "2024-11-26T07:44:56.4021506Z",
+  "EndTime": "2024-11-26T07:44:57.6255663Z",
+  "Status": "True",
+  "StatusCode": "200"
 }]

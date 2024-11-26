@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.SignalR;
+﻿using ITValet.HelpingClasses;
+using Microsoft.AspNetCore.SignalR;
 
 namespace ITValet.NotificationHub
 {
@@ -9,6 +10,9 @@ namespace ITValet.NotificationHub
             await Clients.All.SendAsync("ReceiveMessage", senderId, receiverId, message);
         }
 
-
+        public async Task SendOfferObject(string senderId, string receiverId, ViewModelMessageChatBox obj)
+        {
+            await Clients.All.SendAsync("ReceiveOffers", senderId, receiverId, obj);
+        }
     }
 }

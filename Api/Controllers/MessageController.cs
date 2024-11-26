@@ -388,6 +388,8 @@ namespace ITValet.Controllers
             }
         }
 
+        #endregion
+        
         #region ForReact
         [HttpGet("GetReceiverStatuses/{userId}")]
         public async Task<IActionResult> GetReceiverStatuss(string? userId)
@@ -413,146 +415,213 @@ namespace ITValet.Controllers
         {
             var getLoggedInUser = await userRepo.GetUserById(Convert.ToInt32(postAddMessage.SenderId));
             var getOneUser = await userRepo.GetUserById(Convert.ToInt32(postAddMessage.ReceiverId));
+            var isWayUserProfile = postAddMessage.Way == "ViewUserProfile";
             var getChatMessages = new List<Message>();
             var message = new Message();
-            bool IsWayUserProfile = postAddMessage.Way == "ViewUserProfile" ? true : false;
-            var mssss = new ViewModelMessage();
-            if (IsWayUserProfile)
+
+            if (isWayUserProfile)
             {
-                getChatMessages = (List<Message>)await messagesRepo.GetMessageBySenderIdAndRecieverId(getLoggedInUser.Id, Convert.ToInt32(getOneUser.Id));
-                if (getChatMessages != null && getChatMessages.Count > 0)
+                getChatMessages = (List<Message>)await messagesRepo.GetMessageBySenderIdAndRecieverId(
+                    getLoggedInUser.Id,
+                    Convert.ToInt32(getOneUser.Id)
+                );
+
+                if (getChatMessages?.Count > 0)
                 {
-                    return Ok(new ResponseDto() { Id = StringCipher.EncryptId(Convert.ToInt32(postAddMessage.ReceiverId)), Status = true, StatusCode = "200", Message = "Exist" });
+                    return Ok(new ResponseDto
+                    {
+                        Id = StringCipher.EncryptId(Convert.ToInt32(postAddMessage.ReceiverId)),
+                        Status = true,
+                        StatusCode = "200",
+                        Message = "Exist"
+                    });
                 }
-                postAddMessage.MessageDescription = getLoggedInUser.Role == 4 ? "Hi! I am interested in your services! Please reach me back asap. Thanks!" : "Hi! I am interested in your project! Please reach me back asap. Thanks!";
-                message.MessageDescription = postAddMessage.MessageDescription;
-                message.SenderId = Convert.ToInt32(postAddMessage.SenderId);
-                message.ReceiverId = Convert.ToInt32(postAddMessage.ReceiverId);
-                message.IsRead = 0;
-                message.IsActive = 1;
-                message.CreatedAt = GeneralPurpose.DateTimeNow();
-                await messagesRepo.AddMessage(message);
+
+                postAddMessage.MessageDescription = getLoggedInUser.Role == 4
+                    ? "Hi! I am interested in your services! Please reach me back asap. Thanks!"
+                    : "Hi! I am interested in your project! Please reach me back asap. Thanks!";
+
+                await CreateMessage(postAddMessage, message);
+
                 if (!await messagesRepo.saveChangesFunction())
                 {
-                    return Ok(new ResponseDto() { Status = false, StatusCode = "500", Message = "User unavailable. Try again after some time." });
+                    return Ok(new ResponseDto
+                    {
+                        Status = false,
+                        StatusCode = "500",
+                        Message = "User unavailable. Try again after some time."
+                    });
                 }
-                Notification notificationObj = new Notification
+
+                await AddNotification(message, "You just received a message.");
+
+                return Ok(new ResponseDto
                 {
-                    UserId = message.ReceiverId,
-                    Title = "Message Received",
-                    IsRead = 0,
-                    IsActive = (int)EnumActiveStatus.Active,
-                    Url = $"{projectVariables.BaseUrl}Home/Messages",
-                    CreatedAt = GeneralPurpose.DateTimeNow(),
-                    Description = "You just received a message.",
-                    NotificationType = (int)NotificationType.OrderCancellationRequested
-                };
-                bool isNotification = await _notificationService.AddNotification(notificationObj);
-                await _notificationHubSocket.Clients.All.SendAsync("ReloadNotifications", message.ReceiverId.ToString());
-                return Ok(new ResponseDto() { Id = StringCipher.EncryptId(Convert.ToInt32(postAddMessage.ReceiverId)), Status = true, StatusCode = "200", Message = "Message Sent Successfully." });
+                    Id = StringCipher.EncryptId(Convert.ToInt32(postAddMessage.ReceiverId)),
+                    Status = true,
+                    StatusCode = "200",
+                    Message = "Message Sent Successfully."
+                });
             }
             else if (!string.IsNullOrEmpty(postAddMessage.MessageDescription))
             {
-                message.MessageDescription = postAddMessage.MessageDescription;
-                message.SenderId = Convert.ToInt32(postAddMessage.SenderId);
-                message.ReceiverId = Convert.ToInt32(postAddMessage.ReceiverId);
-                message.IsRead = 0;
-                message.IsActive = 1;
-                message.CreatedAt = GeneralPurpose.DateTimeNow();
-                await messagesRepo.AddMessage(message);
+                await CreateMessage(postAddMessage, message);
+
                 if (!await messagesRepo.saveChangesFunction())
                 {
                     return Ok("Failed to send/add message.");
                 }
-                Notification notificationObj = new Notification
-                {
-                    UserId = message.ReceiverId,
-                    Title = "Message Received",
-                    IsRead = 0,
-                    IsActive = (int)EnumActiveStatus.Active,
-                    Url = $"{projectVariables.BaseUrl}Home/Messages",
-                    CreatedAt = GeneralPurpose.DateTimeNow(),
-                    Description = "You just received a message.",
-                    NotificationType = (int)NotificationType.OrderCancellationRequested
-                };
-                bool isNotification = await _notificationService.AddNotification(notificationObj);
-                await _notificationHubSocket.Clients.All.SendAsync("ReloadNotifications", message.ReceiverId.ToString());
+
+                await AddNotification(message, "You just received a message.");
+
                 if (message.Id != 0)
                 {
-                    string msgTime = GeneralPurpose.regionChanged(Convert.ToDateTime(message.CreatedAt), getLoggedInUser.Timezone);
-                    string userName = getLoggedInUser.UserName;
-                    string ssss = getLoggedInUser.FirstName + getLoggedInUser.LastName;
-                    string profile = projectVariables.BaseUrl + getLoggedInUser.ProfilePicture;
-
-                    //order related
+                    var msgTime = GeneralPurpose.regionChanged(Convert.ToDateTime(message.CreatedAt), getLoggedInUser?.Timezone!);
+                    var userName = getLoggedInUser?.UserName;
+                    var fullName = $"{getLoggedInUser?.FirstName} {getLoggedInUser?.LastName}";
+                    var profileImage = $"{projectVariables.BaseUrl}{getLoggedInUser?.ProfilePicture}";
+                    var offer = new OfferDetail();
+                    
                     if (!string.IsNullOrEmpty(postAddMessage.OfferTitle))
+                        offer = await CreateOffer(postAddMessage, message, getLoggedInUser!);
+                    
+                    var model = await NotifyOffer(offer, message, getLoggedInUser!);
+                    var data = new
                     {
-                        DateTime orderStartTime = Convert.ToDateTime(postAddMessage.StartedDateTime);
-                        DateTime orderEndTime = Convert.ToDateTime(postAddMessage.EndedDateTime);
-                        var getTotalHours = GeneralPurpose.CalculatePrice(orderStartTime, orderEndTime);
-                        if (getLoggedInUser.Role != 3)
-                        {
-                            postAddMessage.CustomerId = postAddMessage.ReceiverId.ToString();
-                            postAddMessage.ValetId = postAddMessage.CustomerId;
-                            postAddMessage.OfferPrice = getTotalHours.price.ToString();
-                            postAddMessage.TransactionFee = getTotalHours.fee.ToString();
-                        }
-                        else
-                        {
-                            postAddMessage.ValetId = postAddMessage.ReceiverId.ToString();
-                            postAddMessage.OfferPrice = getTotalHours.price.ToString();
-                            postAddMessage.TransactionFee = getTotalHours.fee.ToString();
-                        }
-
-                        var offer = new OfferDetail();
-                        offer.OfferTitle = postAddMessage.OfferTitle;
-                        offer.OfferDescription = postAddMessage.OfferDescription;
-                        offer.OfferPrice = Convert.ToDouble(postAddMessage.OfferPrice);
-                        offer.StartedDateTime = Convert.ToDateTime(postAddMessage.StartedDateTime);
-                        offer.EndedDateTime = Convert.ToDateTime(postAddMessage.EndedDateTime);
-                        offer.OfferStatus = 1;
-                        offer.TransactionFee = postAddMessage.TransactionFee;
-                        offer.CustomerId = Convert.ToInt32(postAddMessage.CustomerId);
-                        offer.ValetId = Convert.ToInt32(postAddMessage.ValetId);
-                        offer.MessageId = message.Id;
-                        if (await offerDetailsRepo.AddOfferDetail(offer))
-                        {
-
-                            // send according to order detail
-                            await _notificationHubSocket.Clients.All.SendAsync("ReceiveOffer", offer, message.SenderId, message.ReceiverId, userName, profile, msgTime);
-                            return Ok(new
-                            {
-                                offer,
-                                SenderId = message.SenderId,
-                                ReceiverId = message.ReceiverId,
-                                UserName = userName,
-                                Profile = profile,
-                                MessageTime = msgTime
-                            });
-                        }
-                        return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
-                    }
-                    //end
-
-                    await _notificationHubSocket.Clients.All.SendAsync("ReceiveMessage", message.SenderId, message.ReceiverId, userName, profile, message.MessageDescription, msgTime);
-                    var datas = new
-                    {
-                        MessageDescription = message.MessageDescription,
-                        IsRead = "0",
-                        SenderId = message.SenderId.ToString(),
-                        ReceiverId = message.ReceiverId.ToString(),
-                        MessageTime = msgTime,
-                        Username = userName,
-                        Name = ssss,
-                        ProfileImage = profile,
-
+                        model,
+                        SenderId = message.SenderId,
+                        ReceiverId = message.ReceiverId,
                     };
-                    return Ok(new ResponseDto() { Status = true, StatusCode = "200", Data = datas });
+
+                    return Ok(new ResponseDto()
+                    {
+                        Status = true,
+                        StatusCode = "200",
+                        Data = data
+                    });
                 }
-                return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
             }
-            return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = "Message cannot be Empty" });
+
+            return Ok(new ResponseDto
+            {
+                Status = false,
+                StatusCode = "400",
+                Message = "Message cannot be Empty"
+            });
         }
+
+        // Helper Methods
+        private async Task CreateMessage(PostAddMessage postAddMessage, Message message)
+        {
+            message.MessageDescription = postAddMessage.MessageDescription;
+            message.SenderId = Convert.ToInt32(postAddMessage.SenderId);
+            message.ReceiverId = Convert.ToInt32(postAddMessage.ReceiverId);
+            message.IsRead = 0;
+            message.IsActive = 1;
+            message.CreatedAt = GeneralPurpose.DateTimeNow();
+            await messagesRepo.AddMessage(message);
+        }
+
+        private async Task AddNotification(Message message, string description)
+        {
+            var notificationObj = new Notification
+            {
+                UserId = message.ReceiverId,
+                Title = "Message Received",
+                IsRead = 0,
+                IsActive = (int)EnumActiveStatus.Active,
+                Url = $"{projectVariables.BaseUrl}Home/Messages",
+                CreatedAt = GeneralPurpose.DateTimeNow(),
+                Description = description,
+                NotificationType = (int)NotificationType.OrderCancellationRequested
+            };
+
+            await _notificationService.AddNotification(notificationObj);
+            await _notificationHubSocket.Clients.All.SendAsync("ReloadNotifications",
+                notificationObj.UserId.ToString(),
+                notificationObj.Title,
+                notificationObj.IsRead,
+                notificationObj.IsActive,
+                notificationObj.Url,
+                notificationObj.Description,
+                notificationObj.CreatedAt,
+                notificationObj.NotificationType
+            );
+        }
+
+        private async Task<OfferDetail> CreateOffer(PostAddMessage postAddMessage, Message message, User getLoggedInUser)
+        {
+            var orderStartTime = Convert.ToDateTime(postAddMessage.StartedDateTime);
+            var orderEndTime = Convert.ToDateTime(postAddMessage.EndedDateTime);
+            var totalHours = GeneralPurpose.CalculatePrice(orderStartTime, orderEndTime);
+
+            postAddMessage.CustomerId = getLoggedInUser.Role != 3 ? postAddMessage.ReceiverId.ToString() : postAddMessage.SenderId.ToString();
+            postAddMessage.ValetId = postAddMessage.CustomerId;
+            postAddMessage.OfferPrice = totalHours.price.ToString();
+            postAddMessage.TransactionFee = totalHours.fee.ToString();
+
+            var offer = new OfferDetail
+            {
+                OfferTitle = postAddMessage.OfferTitle,
+                OfferDescription = postAddMessage.OfferDescription,
+                OfferPrice = Convert.ToDouble(postAddMessage.OfferPrice),
+                StartedDateTime = orderStartTime,
+                EndedDateTime = orderEndTime,
+                OfferStatus = 1,
+                TransactionFee = postAddMessage.TransactionFee,
+                CustomerId = Convert.ToInt32(postAddMessage.CustomerId),
+                ValetId = Convert.ToInt32(postAddMessage.ValetId),
+                MessageId = message.Id
+            };
+
+            if (await offerDetailsRepo.AddOfferDetail(offer))
+            {
+                return offer;
+            }
+
+            return null;
+        }
+
+        private async Task<ViewModelMessageChatBox> NotifyOffer(OfferDetail offer, Message message, User getLoggedInUser)
+        {
+            var viewModelMessage = new ViewModelMessageChatBox
+            {
+                Id = message.Id.ToString(),
+                MessageEncId = StringCipher.EncryptId(message.Id),
+                MessageDescription = message.MessageDescription,
+                IsRead = message.IsRead?.ToString(),
+                FilePath = message.FilePath,
+                MessageTime = GeneralPurpose.regionChanged(Convert.ToDateTime(message.CreatedAt), getLoggedInUser?.Timezone!),
+                SenderId = message.SenderId.ToString(),
+            };
+            //order wprk
+            if (offer != null)
+            {
+                viewModelMessage.OfferTitleId = offer.Id.ToString();
+                viewModelMessage.OfferTitle = offer.OfferTitle;
+                viewModelMessage.TransactionFee = offer.TransactionFee;
+                viewModelMessage.OfferDescription = offer.OfferDescription;
+                viewModelMessage.OfferPrice = offer.OfferPrice.ToString();
+                viewModelMessage.StartedDateTime = offer.StartedDateTime.ToString();
+                viewModelMessage.EndedDateTime = offer.EndedDateTime.ToString();
+                viewModelMessage.CustomerId = offer.CustomerId.ToString();
+                viewModelMessage.ValetId = offer.ValetId.ToString();
+                viewModelMessage.OfferStatus = offer.OfferStatus.ToString();
+                viewModelMessage.Name = $"{getLoggedInUser?.FirstName} {getLoggedInUser?.LastName}";
+                viewModelMessage.Username = getLoggedInUser?.UserName;
+                viewModelMessage.ProfileImage = getLoggedInUser?.ProfilePicture;
+            }
+            //end
+
+
+            await _notificationHubSocket.Clients.All.SendAsync("ReceiveOffers",
+                viewModelMessage,
+                message.SenderId,
+                message.ReceiverId
+            );
+            return viewModelMessage;
+        }
+
 
         [HttpGet("GetMessageSideBarLists")]
         public async Task<IActionResult> GetMessageSideBarLists(string? loggedInUserId, string? Name = "", string? GetUserChatOnTop = "")
@@ -703,7 +772,6 @@ namespace ITValet.Controllers
                 return null;
             }
         }
-        #endregion
         #endregion
 
         #region OrderZone
