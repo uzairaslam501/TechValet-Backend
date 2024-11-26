@@ -10,9 +10,9 @@
 
         public static string StripeAccountVerifySuccessUrl = "User/Account?message=Stripe Account Verification Success";
         public static string StripeAccountVerifyFailedUrl = "User/Account?messages=Account Verification Failed";
-        public static string AccountUrl = "http://nodlayslahore-001-site50.atempurl.com/User/Account";
-        public static string OrderDetailUrl = "http://nodlayslahore-001-site50.atempurl.com/User/OrderDetail?orderId=";
-        public static string ForStripeUrl = "http://nodlayslahore-001-site50.atempurl.com/";
+        public static string AccountUrl = "https://techvalet.ca/User/Account";
+        public static string OrderDetailUrl = "https://techvalet.ca/User/OrderDetail?orderId=";
+        public static string ForStripeUrl = "https://techvalet.ca/";
     }
 
     public static class GlobalMessages
