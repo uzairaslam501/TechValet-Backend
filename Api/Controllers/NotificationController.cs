@@ -53,7 +53,7 @@ namespace ITValet.Controllers
         {
             int notificationCount = 0;
             notificationCount = await notificationRepo.GetUnreadNotificationCountByUserId(Convert.ToInt32(UserId), Title);
-            return Ok(notificationCount);
+            return Ok(new { Status = true, StatusCode = "200", Data = notificationCount });
         }
 
         [HttpGet("GetNotifications")]
@@ -101,8 +101,8 @@ namespace ITValet.Controllers
 
                 viewNotificationDtoList.Add(viewNotificationDto);
             }
-            viewNotificationDtoList = viewNotificationDtoList.Take(10).ToList(); 
-            return Ok(viewNotificationDtoList);
+            //viewNotificationDtoList = viewNotificationDtoList.Take(10).ToList(); 
+            return Ok(new { Status = true, StatusCode = "200", Data = viewNotificationDtoList });
         }
 
         [HttpGet("MarkNotification")]
@@ -110,6 +110,13 @@ namespace ITValet.Controllers
         {
             bool chkNotification = await notificationRepo.MarkNotification(Convert.ToInt32(NotificationId));
             return Ok(chkNotification);
+        }
+
+        [HttpPatch("MarkNotifications/{NotificationId}")]
+        public async Task<IActionResult> MarkNotifications(string NotificationId)
+        {
+            bool chkNotification = await notificationRepo.MarkNotification(Convert.ToInt32(NotificationId));
+            return Ok(new { Status = true, StatusCode = "200", Data = chkNotification });
         }
 
         [HttpGet("MarkAllNotifications")]

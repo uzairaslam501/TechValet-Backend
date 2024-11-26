@@ -2464,4 +2464,1966 @@
   "EndTime": "2024-11-21T06:36:16.6407423Z",
   "Status": "True",
   "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserListAsync (ITValet)",
+  "StartTime": "2024-11-21T07:30:05.0042386Z",
+  "EndTime": "2024-11-21T07:30:06.3487447Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetHighRankedKeys (ITValet)",
+  "StartTime": "2024-11-21T07:30:06.8585116Z",
+  "EndTime": "2024-11-21T07:30:07.0258534Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserListAsync (ITValet)",
+  "StartTime": "2024-11-21T07:30:06.8585115Z",
+  "EndTime": "2024-11-21T07:30:07.950637Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T07:30:16.3439685Z",
+  "EndTime": "2024-11-21T07:30:16.8314924Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T07:30:16.9652792Z",
+  "EndTime": "2024-11-21T07:30:17.1106281Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T07:32:56.5695296Z",
+  "EndTime": "2024-11-21T07:32:56.7165688Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T07:32:56.7625465Z",
+  "EndTime": "2024-11-21T07:32:56.8877212Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T07:33:10.1923248Z",
+  "EndTime": "2024-11-21T07:33:10.3269139Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T07:33:10.3405639Z",
+  "EndTime": "2024-11-21T07:33:10.462043Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T07:37:38.5347054Z",
+  "EndTime": "2024-11-21T07:37:38.7070151Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T07:37:38.7357512Z",
+  "EndTime": "2024-11-21T07:37:38.8672982Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T08:15:46.904342Z",
+  "EndTime": "2024-11-21T08:15:47.9393041Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T08:15:48.4228346Z",
+  "EndTime": "2024-11-21T08:15:48.5885596Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T08:21:42.8934868Z",
+  "EndTime": "2024-11-21T08:21:43.045036Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T08:21:43.0815258Z",
+  "EndTime": "2024-11-21T08:21:43.2167632Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T08:35:58.1721441Z",
+  "EndTime": "2024-11-21T08:36:00.3865789Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T08:36:00.539636Z",
+  "EndTime": "2024-11-21T08:36:00.8153499Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T08:42:22.7417375Z",
+  "EndTime": "2024-11-21T08:42:23.5347712Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T08:42:23.5501886Z",
+  "EndTime": "2024-11-21T08:42:23.674718Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T08:42:30.0206459Z",
+  "EndTime": "2024-11-21T08:42:30.3022612Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T08:42:30.4550925Z",
+  "EndTime": "2024-11-21T08:42:30.5964045Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T08:45:00.9765698Z",
+  "EndTime": "2024-11-21T08:45:01.10955Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T08:45:01.1530186Z",
+  "EndTime": "2024-11-21T08:45:01.2690413Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T08:47:52.3171921Z",
+  "EndTime": "2024-11-21T08:47:52.4890017Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T08:47:52.506861Z",
+  "EndTime": "2024-11-21T08:47:52.6334551Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T09:01:14.416109Z",
+  "EndTime": "2024-11-21T09:01:15.1536254Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T09:01:15.1696061Z",
+  "EndTime": "2024-11-21T09:01:15.3096354Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T09:03:20.1903523Z",
+  "EndTime": "2024-11-21T09:03:20.3165279Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T09:03:20.3282232Z",
+  "EndTime": "2024-11-21T09:03:20.4705273Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T09:03:24.8505025Z",
+  "EndTime": "2024-11-21T09:03:25.4083135Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T09:03:25.5005999Z",
+  "EndTime": "2024-11-21T09:03:25.6546151Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.DatatableController.GetRequestServicesDatatableByUserIdAsync (ITValet)",
+  "StartTime": "2024-11-21T09:04:05.0148636Z",
+  "EndTime": "2024-11-21T09:04:05.2082768Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.DatatableController.GetRequestServicesDatatableByUserIdAsync (ITValet)",
+  "StartTime": "2024-11-21T09:04:05.568148Z",
+  "EndTime": "2024-11-21T09:04:05.6975316Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.DatatableController.GetOrdersDatatableByUserId (ITValet)",
+  "StartTime": "2024-11-21T09:04:05.6482726Z",
+  "EndTime": "2024-11-21T09:04:06.0607517Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.DatatableController.GetOrdersDatatableByUserId (ITValet)",
+  "StartTime": "2024-11-21T09:04:06.0932506Z",
+  "EndTime": "2024-11-21T09:04:06.2338282Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetItValetsByRequestSkills (ITValet)",
+  "StartTime": "2024-11-21T09:04:07.1813422Z",
+  "EndTime": "2024-11-21T09:04:08.7565818Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetItValetsByRequestSkills (ITValet)",
+  "StartTime": "2024-11-21T09:04:08.7660406Z",
+  "EndTime": "2024-11-21T09:04:09.7047585Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.DatatableController.GetRequestServicesDatatableByUserIdAsync (ITValet)",
+  "StartTime": "2024-11-21T09:04:10.4763832Z",
+  "EndTime": "2024-11-21T09:04:10.6102682Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.DatatableController.GetRequestServicesDatatableByUserIdAsync (ITValet)",
+  "StartTime": "2024-11-21T09:04:10.6281344Z",
+  "EndTime": "2024-11-21T09:04:10.7836555Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.DatatableController.GetOrdersDatatableByUserId (ITValet)",
+  "StartTime": "2024-11-21T09:04:10.6780499Z",
+  "EndTime": "2024-11-21T09:04:10.8055976Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.DatatableController.GetOrdersDatatableByUserId (ITValet)",
+  "StartTime": "2024-11-21T09:04:10.8140847Z",
+  "EndTime": "2024-11-21T09:04:10.9309211Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T09:37:50.6132691Z",
+  "EndTime": "2024-11-21T09:37:51.2336889Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T09:37:51.279893Z",
+  "EndTime": "2024-11-21T09:37:51.4120621Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T09:37:55.1131888Z",
+  "EndTime": "2024-11-21T09:37:55.2234598Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T09:37:55.2489448Z",
+  "EndTime": "2024-11-21T09:37:55.3567521Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T09:38:48.3152177Z",
+  "EndTime": "2024-11-21T09:38:48.4242311Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T09:38:49.2556069Z",
+  "EndTime": "2024-11-21T09:38:49.3964944Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T09:39:11.7187504Z",
+  "EndTime": "2024-11-21T09:39:11.8452631Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T09:39:12.3617347Z",
+  "EndTime": "2024-11-21T09:39:12.4881785Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T09:39:17.3084867Z",
+  "EndTime": "2024-11-21T09:39:17.44004Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T09:39:17.4508302Z",
+  "EndTime": "2024-11-21T09:39:17.5778409Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetHighRankedKeys (ITValet)",
+  "StartTime": "2024-11-21T09:43:18.6735739Z",
+  "EndTime": "2024-11-21T09:43:19.1654964Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetHighRankedKeys (ITValet)",
+  "StartTime": "2024-11-21T09:43:19.6222778Z",
+  "EndTime": "2024-11-21T09:43:19.9242969Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserListAsync (ITValet)",
+  "StartTime": "2024-11-21T09:43:18.6735593Z",
+  "EndTime": "2024-11-21T09:43:20.2719866Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserListAsync (ITValet)",
+  "StartTime": "2024-11-21T09:43:20.3093455Z",
+  "EndTime": "2024-11-21T09:43:21.515864Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T09:43:22.7411396Z",
+  "EndTime": "2024-11-21T09:43:23.2614957Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T09:43:23.273682Z",
+  "EndTime": "2024-11-21T09:43:23.5765637Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T09:45:45.8424392Z",
+  "EndTime": "2024-11-21T09:45:46.1365078Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T09:45:46.1517101Z",
+  "EndTime": "2024-11-21T09:45:46.4373572Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T09:54:07.4094418Z",
+  "EndTime": "2024-11-21T09:54:09.7296131Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T09:54:09.9236255Z",
+  "EndTime": "2024-11-21T09:54:10.2257687Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T09:55:58.1641299Z",
+  "EndTime": "2024-11-21T09:55:58.4738478Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T09:55:58.5083716Z",
+  "EndTime": "2024-11-21T09:55:58.7921519Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T09:59:53.1485142Z",
+  "EndTime": "2024-11-21T09:59:53.440287Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T09:59:56.8222251Z",
+  "EndTime": "2024-11-21T09:59:57.130856Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T10:02:05.1693753Z",
+  "EndTime": "2024-11-21T10:02:05.4673692Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T10:02:05.4740461Z",
+  "EndTime": "2024-11-21T10:02:05.7642754Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T10:10:08.0029154Z",
+  "EndTime": "2024-11-21T10:10:08.3626943Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T10:10:08.3780427Z",
+  "EndTime": "2024-11-21T10:10:08.9046198Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T10:12:01.4229244Z",
+  "EndTime": "2024-11-21T10:12:01.7380702Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T10:12:01.7538084Z",
+  "EndTime": "2024-11-21T10:12:02.0385258Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T10:20:11.7901729Z",
+  "EndTime": "2024-11-21T10:20:12.0823222Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T10:20:12.0901567Z",
+  "EndTime": "2024-11-21T10:20:12.5310208Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T10:24:34.5017029Z",
+  "EndTime": "2024-11-21T10:24:34.8045942Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T10:24:34.8140379Z",
+  "EndTime": "2024-11-21T10:24:35.1037641Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T10:25:22.3740729Z",
+  "EndTime": "2024-11-21T10:25:22.6838699Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T10:25:22.7283681Z",
+  "EndTime": "2024-11-21T10:25:23.0162145Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T10:35:22.1895825Z",
+  "EndTime": "2024-11-21T10:35:22.4864913Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T10:35:22.4997274Z",
+  "EndTime": "2024-11-21T10:35:22.7882928Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T10:35:30.8214586Z",
+  "EndTime": "2024-11-21T10:35:31.1078722Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T10:35:31.1170179Z",
+  "EndTime": "2024-11-21T10:35:31.4299993Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T10:37:20.1429022Z",
+  "EndTime": "2024-11-21T10:37:20.4285146Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T10:37:20.4528961Z",
+  "EndTime": "2024-11-21T10:37:20.7386552Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T10:47:43.8488854Z",
+  "EndTime": "2024-11-21T10:47:44.9290391Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T10:47:44.9468069Z",
+  "EndTime": "2024-11-21T10:47:45.6619868Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T10:48:59.1843412Z",
+  "EndTime": "2024-11-21T10:48:59.5027501Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T10:48:59.5243517Z",
+  "EndTime": "2024-11-21T10:48:59.8207209Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T11:00:59.1706843Z",
+  "EndTime": "2024-11-21T11:00:59.49289Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T11:00:59.5004173Z",
+  "EndTime": "2024-11-21T11:00:59.8398456Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T11:01:40.576328Z",
+  "EndTime": "2024-11-21T11:01:41.0089633Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T11:01:41.0187654Z",
+  "EndTime": "2024-11-21T11:01:42.1261726Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T11:11:06.3460005Z",
+  "EndTime": "2024-11-21T11:11:06.6786007Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T11:11:06.7008337Z",
+  "EndTime": "2024-11-21T11:11:06.9888863Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T11:13:50.7733968Z",
+  "EndTime": "2024-11-21T11:13:51.063503Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T11:13:51.0869716Z",
+  "EndTime": "2024-11-21T11:13:51.379623Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T11:44:51.374478Z",
+  "EndTime": "2024-11-21T11:44:51.6817726Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T11:44:51.7118123Z",
+  "EndTime": "2024-11-21T11:44:51.9881343Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T11:45:52.0275964Z",
+  "EndTime": "2024-11-21T11:45:52.310821Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T11:45:52.3243045Z",
+  "EndTime": "2024-11-21T11:45:52.613792Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T11:56:18.8918842Z",
+  "EndTime": "2024-11-21T11:56:19.1688099Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T11:56:19.1773901Z",
+  "EndTime": "2024-11-21T11:56:19.4511959Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T12:02:04.1685039Z",
+  "EndTime": "2024-11-21T12:02:04.5372126Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T12:02:04.6952126Z",
+  "EndTime": "2024-11-21T12:02:05.698585Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T12:08:24.6233011Z",
+  "EndTime": "2024-11-21T12:08:24.9458307Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T12:08:24.9773233Z",
+  "EndTime": "2024-11-21T12:08:26.6472467Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T12:23:49.8116124Z",
+  "EndTime": "2024-11-21T12:23:50.1395666Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T12:23:50.149417Z",
+  "EndTime": "2024-11-21T12:23:50.4423181Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T12:24:19.9181439Z",
+  "EndTime": "2024-11-21T12:24:20.2149641Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T12:24:20.255961Z",
+  "EndTime": "2024-11-21T12:24:21.0691444Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T12:26:24.781334Z",
+  "EndTime": "2024-11-21T12:26:25.05949Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T12:26:25.0665463Z",
+  "EndTime": "2024-11-21T12:26:25.3483824Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T12:31:27.8734953Z",
+  "EndTime": "2024-11-21T12:31:28.5199135Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T12:31:28.5301113Z",
+  "EndTime": "2024-11-21T12:31:28.8434113Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T12:31:28.8512778Z",
+  "EndTime": "2024-11-21T12:31:29.1470071Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T12:31:29.1529864Z",
+  "EndTime": "2024-11-21T12:31:29.4457686Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T12:32:33.8521068Z",
+  "EndTime": "2024-11-21T12:32:34.2748533Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T12:32:34.2929781Z",
+  "EndTime": "2024-11-21T12:32:34.637036Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T12:32:34.6983846Z",
+  "EndTime": "2024-11-21T12:32:35.0859073Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T12:32:35.0936629Z",
+  "EndTime": "2024-11-21T12:32:35.7203373Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T12:33:20.8663215Z",
+  "EndTime": "2024-11-21T12:33:21.3770598Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T12:33:21.383228Z",
+  "EndTime": "2024-11-21T12:33:21.673066Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T12:33:21.6806128Z",
+  "EndTime": "2024-11-21T12:33:21.9784893Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T12:33:21.9866549Z",
+  "EndTime": "2024-11-21T12:33:22.298885Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T12:33:38.861782Z",
+  "EndTime": "2024-11-21T12:33:39.4595868Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T12:33:39.4651476Z",
+  "EndTime": "2024-11-21T12:33:39.7472383Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T12:33:39.7583597Z",
+  "EndTime": "2024-11-21T12:33:40.0463149Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T12:33:40.0513881Z",
+  "EndTime": "2024-11-21T12:33:40.3357185Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T12:33:53.0663974Z",
+  "EndTime": "2024-11-21T12:33:53.3845095Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T12:33:53.4396162Z",
+  "EndTime": "2024-11-21T12:33:54.4629489Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T12:33:56.3696246Z",
+  "EndTime": "2024-11-21T12:33:57.9206856Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T12:33:58.0407165Z",
+  "EndTime": "2024-11-21T12:33:58.3723417Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T12:49:25.0833055Z",
+  "EndTime": "2024-11-21T12:49:25.4123279Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T12:49:25.4497058Z",
+  "EndTime": "2024-11-21T12:49:25.7367308Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T13:06:43.5883224Z",
+  "EndTime": "2024-11-21T13:06:43.8764844Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T13:06:43.8909886Z",
+  "EndTime": "2024-11-21T13:06:44.1742374Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T13:13:31.2294311Z",
+  "EndTime": "2024-11-21T13:13:31.5166838Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T13:13:31.5503446Z",
+  "EndTime": "2024-11-21T13:13:32.1199152Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T13:14:28.9945735Z",
+  "EndTime": "2024-11-21T13:14:29.2804948Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T13:14:29.2905558Z",
+  "EndTime": "2024-11-21T13:14:29.5722899Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T13:14:33.4089497Z",
+  "EndTime": "2024-11-21T13:14:33.6883314Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T13:14:33.6963613Z",
+  "EndTime": "2024-11-21T13:14:33.9787663Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T13:14:34.9928001Z",
+  "EndTime": "2024-11-21T13:14:35.2823734Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T13:14:35.3159477Z",
+  "EndTime": "2024-11-21T13:14:35.6219289Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T13:14:58.9615786Z",
+  "EndTime": "2024-11-21T13:14:59.2402911Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T13:14:59.2617488Z",
+  "EndTime": "2024-11-21T13:14:59.5474805Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T13:15:53.2051972Z",
+  "EndTime": "2024-11-21T13:15:53.510611Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T13:15:53.5299276Z",
+  "EndTime": "2024-11-21T13:15:53.8187156Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T13:15:53.8551217Z",
+  "EndTime": "2024-11-21T13:15:54.1642676Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T13:15:54.1759109Z",
+  "EndTime": "2024-11-21T13:15:54.5040247Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T13:16:46.8898625Z",
+  "EndTime": "2024-11-21T13:16:47.1821179Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T13:16:47.1969964Z",
+  "EndTime": "2024-11-21T13:16:47.4886483Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T13:17:32.9263249Z",
+  "EndTime": "2024-11-21T13:17:33.2088322Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T13:17:33.2234391Z",
+  "EndTime": "2024-11-21T13:17:33.5175432Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T13:17:36.9233804Z",
+  "EndTime": "2024-11-21T13:17:37.2027308Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T13:17:37.2082591Z",
+  "EndTime": "2024-11-21T13:17:37.4891565Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T13:17:47.0971745Z",
+  "EndTime": "2024-11-21T13:17:47.3898298Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T13:17:47.4137669Z",
+  "EndTime": "2024-11-21T13:17:47.7042075Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T13:17:50.4856981Z",
+  "EndTime": "2024-11-21T13:17:50.8218908Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T13:17:50.8406857Z",
+  "EndTime": "2024-11-21T13:17:51.1219639Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T13:19:12.0047175Z",
+  "EndTime": "2024-11-21T13:19:12.2937386Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T13:19:12.3078308Z",
+  "EndTime": "2024-11-21T13:19:12.5973179Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T13:19:13.6863859Z",
+  "EndTime": "2024-11-21T13:19:15.6454106Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T13:19:15.7649395Z",
+  "EndTime": "2024-11-21T13:19:16.0904814Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T13:19:59.9831442Z",
+  "EndTime": "2024-11-21T13:20:00.2739877Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T13:20:00.3066178Z",
+  "EndTime": "2024-11-21T13:20:00.6154966Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T13:20:05.9251978Z",
+  "EndTime": "2024-11-21T13:20:06.2082753Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T13:20:06.2174002Z",
+  "EndTime": "2024-11-21T13:20:06.4986513Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T13:20:41.0292532Z",
+  "EndTime": "2024-11-21T13:20:41.348818Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T13:20:44.0929742Z",
+  "EndTime": "2024-11-21T13:20:44.3744196Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T13:20:44.3835057Z",
+  "EndTime": "2024-11-21T13:20:44.6612621Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T13:20:44.6737847Z",
+  "EndTime": "2024-11-21T13:20:44.9671244Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T13:20:49.8511309Z",
+  "EndTime": "2024-11-21T13:20:50.1282605Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T13:20:50.1425711Z",
+  "EndTime": "2024-11-21T13:20:50.4566463Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T13:22:29.9831342Z",
+  "EndTime": "2024-11-21T13:22:30.2593685Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T13:22:30.2648176Z",
+  "EndTime": "2024-11-21T13:22:30.542362Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T13:22:37.0641303Z",
+  "EndTime": "2024-11-21T13:22:37.3437198Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T13:22:37.3542103Z",
+  "EndTime": "2024-11-21T13:22:37.62907Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T13:23:48.3209849Z",
+  "EndTime": "2024-11-21T13:23:48.6218258Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T13:23:48.6438126Z",
+  "EndTime": "2024-11-21T13:23:48.9329282Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T13:23:48.9396856Z",
+  "EndTime": "2024-11-21T13:23:49.2181598Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T13:23:49.2282097Z",
+  "EndTime": "2024-11-21T13:23:49.5171982Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T13:28:14.9701221Z",
+  "EndTime": "2024-11-21T13:28:17.8516525Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T13:28:17.8575284Z",
+  "EndTime": "2024-11-21T13:28:18.1330505Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T13:29:31.8085455Z",
+  "EndTime": "2024-11-21T13:29:32.098744Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T13:29:32.8843217Z",
+  "EndTime": "2024-11-21T13:29:33.1655953Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T13:29:49.7973703Z",
+  "EndTime": "2024-11-21T13:29:50.0984608Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T13:29:50.1402502Z",
+  "EndTime": "2024-11-21T13:29:50.4498741Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T13:29:59.2576412Z",
+  "EndTime": "2024-11-21T13:29:59.5458683Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T13:29:59.5580834Z",
+  "EndTime": "2024-11-21T13:29:59.8467566Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T13:30:10.7970699Z",
+  "EndTime": "2024-11-21T13:30:11.1164571Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T13:30:11.1223195Z",
+  "EndTime": "2024-11-21T13:30:11.4072845Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T13:32:45.8129281Z",
+  "EndTime": "2024-11-21T13:32:46.0897469Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T13:32:46.1157918Z",
+  "EndTime": "2024-11-21T13:32:46.3917208Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T13:32:52.5002374Z",
+  "EndTime": "2024-11-21T13:32:52.8274475Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T13:32:52.9264166Z",
+  "EndTime": "2024-11-21T13:32:53.2028836Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T13:36:58.8637539Z",
+  "EndTime": "2024-11-21T13:36:59.1453237Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T13:36:59.1566593Z",
+  "EndTime": "2024-11-21T13:36:59.4318448Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T13:38:23.8068144Z",
+  "EndTime": "2024-11-21T13:38:24.1098095Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T13:38:24.1245081Z",
+  "EndTime": "2024-11-21T13:38:24.4019205Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T13:43:31.7691991Z",
+  "EndTime": "2024-11-21T13:43:32.0704655Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T13:43:32.085969Z",
+  "EndTime": "2024-11-21T13:43:32.3957464Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetHighRankedKeys (ITValet)",
+  "StartTime": "2024-11-21T13:51:25.68887Z",
+  "EndTime": "2024-11-21T13:51:26.00308Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetHighRankedKeys (ITValet)",
+  "StartTime": "2024-11-21T13:51:26.0193043Z",
+  "EndTime": "2024-11-21T13:51:26.293606Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T13:51:27.1339602Z",
+  "EndTime": "2024-11-21T13:51:27.4165647Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-21T13:51:27.4710495Z",
+  "EndTime": "2024-11-21T13:51:27.757113Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserListAsync (ITValet)",
+  "StartTime": "2024-11-21T13:51:25.6887811Z",
+  "EndTime": "2024-11-21T13:51:28.5538804Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserListAsync (ITValet)",
+  "StartTime": "2024-11-21T13:51:28.5770643Z",
+  "EndTime": "2024-11-21T13:51:29.7493948Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetHighRankedKeys (ITValet)",
+  "StartTime": "2024-11-21T13:51:59.4484964Z",
+  "EndTime": "2024-11-21T13:51:59.7417175Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetHighRankedKeys (ITValet)",
+  "StartTime": "2024-11-21T13:51:59.8673824Z",
+  "EndTime": "2024-11-21T13:52:00.2370005Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserListAsync (ITValet)",
+  "StartTime": "2024-11-21T13:51:59.4484483Z",
+  "EndTime": "2024-11-21T13:52:00.5659484Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserListAsync (ITValet)",
+  "StartTime": "2024-11-21T13:52:00.5766922Z",
+  "EndTime": "2024-11-21T13:52:01.7182347Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.DatatableController.GetRequestServicesDatatableByUserIdAsync (ITValet)",
+  "StartTime": "2024-11-22T05:25:03.9425554Z",
+  "EndTime": "2024-11-22T05:25:05.0246247Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.DatatableController.GetRequestServicesDatatableByUserIdAsync (ITValet)",
+  "StartTime": "2024-11-22T05:25:05.3097807Z",
+  "EndTime": "2024-11-22T05:25:05.6686445Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.DatatableController.GetOrdersDatatableByUserId (ITValet)",
+  "StartTime": "2024-11-22T05:25:08.4049185Z",
+  "EndTime": "2024-11-22T05:25:09.4267317Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.DatatableController.GetOrdersDatatableByUserId (ITValet)",
+  "StartTime": "2024-11-22T05:25:09.465482Z",
+  "EndTime": "2024-11-22T05:25:09.8381926Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.DatatableController.GetRequestServicesDatatableByUserIdAsync (ITValet)",
+  "StartTime": "2024-11-22T05:25:21.8113923Z",
+  "EndTime": "2024-11-22T05:25:22.3469525Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.DatatableController.GetRequestServicesDatatableByUserIdAsync (ITValet)",
+  "StartTime": "2024-11-22T05:25:22.3565226Z",
+  "EndTime": "2024-11-22T05:25:22.7196318Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.DatatableController.GetOrdersDatatableByUserId (ITValet)",
+  "StartTime": "2024-11-22T05:25:22.7357214Z",
+  "EndTime": "2024-11-22T05:25:23.0761143Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.DatatableController.GetOrdersDatatableByUserId (ITValet)",
+  "StartTime": "2024-11-22T05:25:23.0978589Z",
+  "EndTime": "2024-11-22T05:25:23.4820832Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetHighRankedKeys (ITValet)",
+  "StartTime": "2024-11-22T05:30:55.3995601Z",
+  "EndTime": "2024-11-22T05:30:55.9132709Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetHighRankedKeys (ITValet)",
+  "StartTime": "2024-11-22T05:30:56.4979317Z",
+  "EndTime": "2024-11-22T05:30:57.1587826Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserListAsync (ITValet)",
+  "StartTime": "2024-11-22T05:30:55.4032154Z",
+  "EndTime": "2024-11-22T05:30:57.9146591Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetHighRankedKeys (ITValet)",
+  "StartTime": "2024-11-22T05:30:59.1647972Z",
+  "EndTime": "2024-11-22T05:30:59.583153Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetHighRankedKeys (ITValet)",
+  "StartTime": "2024-11-22T05:30:59.6136255Z",
+  "EndTime": "2024-11-22T05:30:59.9115132Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserListAsync (ITValet)",
+  "StartTime": "2024-11-22T05:30:59.1562422Z",
+  "EndTime": "2024-11-22T05:31:00.5892451Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserListAsync (ITValet)",
+  "StartTime": "2024-11-22T05:31:00.5993266Z",
+  "EndTime": "2024-11-22T05:31:03.0449087Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetOrderEventsByUserId (ITValet)",
+  "StartTime": "2024-11-22T13:21:00.456727Z",
+  "EndTime": "2024-11-22T13:21:01.1130772Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetOrderEventsByUserId (ITValet)",
+  "StartTime": "2024-11-22T13:21:01.3466414Z",
+  "EndTime": "2024-11-22T13:21:02.1990457Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.DatatableController.GetRequestServicesDatatableByUserIdAsync (ITValet)",
+  "StartTime": "2024-11-22T13:22:21.0455152Z",
+  "EndTime": "2024-11-22T13:22:21.409825Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.DatatableController.GetRequestServicesDatatableByUserIdAsync (ITValet)",
+  "StartTime": "2024-11-22T13:22:21.4494296Z",
+  "EndTime": "2024-11-22T13:22:21.7507061Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.DatatableController.GetOrdersDatatableByUserId (ITValet)",
+  "StartTime": "2024-11-22T13:22:22.1115959Z",
+  "EndTime": "2024-11-22T13:22:22.6390737Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.DatatableController.GetOrdersDatatableByUserId (ITValet)",
+  "StartTime": "2024-11-22T13:22:22.658446Z",
+  "EndTime": "2024-11-22T13:22:23.0578684Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetHighRankedKeys (ITValet)",
+  "StartTime": "2024-11-22T13:22:25.4480554Z",
+  "EndTime": "2024-11-22T13:22:25.808524Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetHighRankedKeys (ITValet)",
+  "StartTime": "2024-11-22T13:22:25.8720199Z",
+  "EndTime": "2024-11-22T13:22:26.5069125Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserListAsync (ITValet)",
+  "StartTime": "2024-11-22T13:22:25.4480554Z",
+  "EndTime": "2024-11-22T13:22:26.9238328Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserListAsync (ITValet)",
+  "StartTime": "2024-11-22T13:22:26.9848645Z",
+  "EndTime": "2024-11-22T13:22:28.173575Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetHighRankedKeys (ITValet)",
+  "StartTime": "2024-11-25T05:47:04.4783927Z",
+  "EndTime": "2024-11-25T05:47:04.8355425Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetHighRankedKeys (ITValet)",
+  "StartTime": "2024-11-25T05:47:05.0211904Z",
+  "EndTime": "2024-11-25T05:47:05.3444155Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserListAsync (ITValet)",
+  "StartTime": "2024-11-25T05:47:04.4783946Z",
+  "EndTime": "2024-11-25T05:47:05.7445777Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserListAsync (ITValet)",
+  "StartTime": "2024-11-25T05:47:05.7553635Z",
+  "EndTime": "2024-11-25T05:47:06.9290358Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-25T05:48:36.9317601Z",
+  "EndTime": "2024-11-25T05:48:37.3329314Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-25T05:48:38.2478008Z",
+  "EndTime": "2024-11-25T05:48:38.7553914Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-25T05:48:46.0490272Z",
+  "EndTime": "2024-11-25T05:48:46.337503Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-25T05:48:46.4034683Z",
+  "EndTime": "2024-11-25T05:48:46.701489Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetHighRankedKeys (ITValet)",
+  "StartTime": "2024-11-25T05:49:05.1454558Z",
+  "EndTime": "2024-11-25T05:49:05.4580824Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetHighRankedKeys (ITValet)",
+  "StartTime": "2024-11-25T05:49:05.4978495Z",
+  "EndTime": "2024-11-25T05:49:06.1346761Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserListAsync (ITValet)",
+  "StartTime": "2024-11-25T05:49:05.1513733Z",
+  "EndTime": "2024-11-25T05:49:06.6659372Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserListAsync (ITValet)",
+  "StartTime": "2024-11-25T05:49:06.722613Z",
+  "EndTime": "2024-11-25T05:49:07.9378422Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetHighRankedKeys (ITValet)",
+  "StartTime": "2024-11-25T05:50:59.2361981Z",
+  "EndTime": "2024-11-25T05:50:59.5298631Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetHighRankedKeys (ITValet)",
+  "StartTime": "2024-11-25T05:50:59.5463258Z",
+  "EndTime": "2024-11-25T05:50:59.8232568Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserListAsync (ITValet)",
+  "StartTime": "2024-11-25T05:50:59.2367066Z",
+  "EndTime": "2024-11-25T05:51:00.4287139Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserListAsync (ITValet)",
+  "StartTime": "2024-11-25T05:51:00.439493Z",
+  "EndTime": "2024-11-25T05:51:03.0888046Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-25T05:51:53.856895Z",
+  "EndTime": "2024-11-25T05:51:54.1683336Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-25T05:51:54.1995998Z",
+  "EndTime": "2024-11-25T05:51:54.5949669Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.DatatableController.GetUserPackageDatatableAsync (ITValet)",
+  "StartTime": "2024-11-25T05:51:59.5830066Z",
+  "EndTime": "2024-11-25T05:52:00.4684358Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.DatatableController.GetUserPackageDatatableAsync (ITValet)",
+  "StartTime": "2024-11-25T05:52:00.6448687Z",
+  "EndTime": "2024-11-25T05:52:01.8688009Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.DatatableController.GetOrdersDatatableByPackageId (ITValet)",
+  "StartTime": "2024-11-25T05:52:25.1556643Z",
+  "EndTime": "2024-11-25T05:52:25.5996753Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.DatatableController.GetOrdersDatatableByPackageId (ITValet)",
+  "StartTime": "2024-11-25T05:52:25.6134898Z",
+  "EndTime": "2024-11-25T05:52:25.9103565Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.DatatableController.GetOrdersDatatableByPackageId (ITValet)",
+  "StartTime": "2024-11-25T05:52:28.8936843Z",
+  "EndTime": "2024-11-25T05:52:29.1995204Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetOrderEventsByUserId (ITValet)",
+  "StartTime": "2024-11-25T05:52:31.970385Z",
+  "EndTime": "2024-11-25T05:52:32.8517437Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetOrderEventsByUserId (ITValet)",
+  "StartTime": "2024-11-25T05:52:32.8617563Z",
+  "EndTime": "2024-11-25T05:52:33.4479902Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.DatatableController.GetRequestServicesDatatableByUserIdAsync (ITValet)",
+  "StartTime": "2024-11-25T05:52:37.2354082Z",
+  "EndTime": "2024-11-25T05:52:38.1239791Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.DatatableController.GetRequestServicesDatatableByUserIdAsync (ITValet)",
+  "StartTime": "2024-11-25T05:52:38.1370556Z",
+  "EndTime": "2024-11-25T05:52:38.4361468Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.DatatableController.GetOrdersDatatableByUserId (ITValet)",
+  "StartTime": "2024-11-25T05:52:38.9551971Z",
+  "EndTime": "2024-11-25T05:52:39.3353629Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.DatatableController.GetOrdersDatatableByUserId (ITValet)",
+  "StartTime": "2024-11-25T05:52:39.348745Z",
+  "EndTime": "2024-11-25T05:52:39.6674363Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetItValetsByRequestSkills (ITValet)",
+  "StartTime": "2024-11-25T05:52:48.2225119Z",
+  "EndTime": "2024-11-25T05:52:49.4914811Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetItValetsByRequestSkills (ITValet)",
+  "StartTime": "2024-11-25T05:52:49.4981866Z",
+  "EndTime": "2024-11-25T05:52:50.6485209Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetItValetsByRequestSkills (ITValet)",
+  "StartTime": "2024-11-25T06:26:39.7754489Z",
+  "EndTime": "2024-11-25T06:26:40.9741412Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetItValetsByRequestSkills (ITValet)",
+  "StartTime": "2024-11-25T06:26:41.0138116Z",
+  "EndTime": "2024-11-25T06:26:42.7170823Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetHighRankedKeys (ITValet)",
+  "StartTime": "2024-11-25T06:27:04.5568567Z",
+  "EndTime": "2024-11-25T06:27:04.8382017Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserListAsync (ITValet)",
+  "StartTime": "2024-11-25T06:27:04.5613135Z",
+  "EndTime": "2024-11-25T06:27:05.7227981Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetHighRankedKeys (ITValet)",
+  "StartTime": "2024-11-25T06:27:05.4912006Z",
+  "EndTime": "2024-11-25T06:27:05.770733Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserListAsync (ITValet)",
+  "StartTime": "2024-11-25T06:27:05.7363237Z",
+  "EndTime": "2024-11-25T06:27:06.936261Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetHighRankedKeys (ITValet)",
+  "StartTime": "2024-11-25T06:27:41.5097355Z",
+  "EndTime": "2024-11-25T06:27:41.798058Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserListAsync (ITValet)",
+  "StartTime": "2024-11-25T06:27:41.5087459Z",
+  "EndTime": "2024-11-25T06:27:42.660921Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetHighRankedKeys (ITValet)",
+  "StartTime": "2024-11-25T06:27:45.1578428Z",
+  "EndTime": "2024-11-25T06:27:45.4464019Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserListAsync (ITValet)",
+  "StartTime": "2024-11-25T06:27:45.1412459Z",
+  "EndTime": "2024-11-25T06:27:46.2908855Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetHighRankedKeys (ITValet)",
+  "StartTime": "2024-11-25T06:29:14.2308834Z",
+  "EndTime": "2024-11-25T06:29:14.9998696Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetHighRankedKeys (ITValet)",
+  "StartTime": "2024-11-25T06:29:15.808357Z",
+  "EndTime": "2024-11-25T06:29:16.1203949Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserListAsync (ITValet)",
+  "StartTime": "2024-11-25T06:29:14.2871976Z",
+  "EndTime": "2024-11-25T06:29:16.6983248Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserListAsync (ITValet)",
+  "StartTime": "2024-11-25T06:29:16.7375973Z",
+  "EndTime": "2024-11-25T06:29:17.8892431Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetHighRankedKeys (ITValet)",
+  "StartTime": "2024-11-25T08:11:14.7659688Z",
+  "EndTime": "2024-11-25T08:11:15.0887237Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetHighRankedKeys (ITValet)",
+  "StartTime": "2024-11-25T08:11:15.4783336Z",
+  "EndTime": "2024-11-25T08:11:15.763399Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserListAsync (ITValet)",
+  "StartTime": "2024-11-25T08:11:14.7624526Z",
+  "EndTime": "2024-11-25T08:11:16.0196089Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserListAsync (ITValet)",
+  "StartTime": "2024-11-25T08:11:16.0483512Z",
+  "EndTime": "2024-11-25T08:11:17.3066023Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetHighRankedKeys (ITValet)",
+  "StartTime": "2024-11-26T05:20:39.4316616Z",
+  "EndTime": "2024-11-26T05:20:39.9512356Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetHighRankedKeys (ITValet)",
+  "StartTime": "2024-11-26T05:20:40.6322261Z",
+  "EndTime": "2024-11-26T05:20:41.0045252Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserListAsync (ITValet)",
+  "StartTime": "2024-11-26T05:20:39.4316569Z",
+  "EndTime": "2024-11-26T05:20:41.0670205Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserListAsync (ITValet)",
+  "StartTime": "2024-11-26T05:20:41.0982169Z",
+  "EndTime": "2024-11-26T05:20:42.2958542Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetHighRankedKeys (ITValet)",
+  "StartTime": "2024-11-26T05:21:06.6406537Z",
+  "EndTime": "2024-11-26T05:21:06.960181Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetHighRankedKeys (ITValet)",
+  "StartTime": "2024-11-26T05:21:06.9732282Z",
+  "EndTime": "2024-11-26T05:21:07.3582741Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserListAsync (ITValet)",
+  "StartTime": "2024-11-26T05:21:06.6263959Z",
+  "EndTime": "2024-11-26T05:21:07.9912725Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserListAsync (ITValet)",
+  "StartTime": "2024-11-26T05:21:08.0163006Z",
+  "EndTime": "2024-11-26T05:21:09.3154399Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetHighRankedKeys (ITValet)",
+  "StartTime": "2024-11-26T05:39:50.2594351Z",
+  "EndTime": "2024-11-26T05:39:50.6119612Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetHighRankedKeys (ITValet)",
+  "StartTime": "2024-11-26T05:39:50.6251436Z",
+  "EndTime": "2024-11-26T05:39:50.9228425Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserListAsync (ITValet)",
+  "StartTime": "2024-11-26T05:39:50.2594836Z",
+  "EndTime": "2024-11-26T05:39:51.4842996Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserListAsync (ITValet)",
+  "StartTime": "2024-11-26T05:39:51.5169134Z",
+  "EndTime": "2024-11-26T05:39:52.6678028Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetHighRankedKeys (ITValet)",
+  "StartTime": "2024-11-26T05:42:24.4168707Z",
+  "EndTime": "2024-11-26T05:42:24.7182469Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetHighRankedKeys (ITValet)",
+  "StartTime": "2024-11-26T05:42:24.7312106Z",
+  "EndTime": "2024-11-26T05:42:25.029555Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserListAsync (ITValet)",
+  "StartTime": "2024-11-26T05:42:24.3914281Z",
+  "EndTime": "2024-11-26T05:42:25.55543Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserListAsync (ITValet)",
+  "StartTime": "2024-11-26T05:42:25.6164004Z",
+  "EndTime": "2024-11-26T05:42:26.9817306Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserListAsync (ITValet)",
+  "StartTime": "2024-11-26T05:45:49.8443889Z",
+  "EndTime": "2024-11-26T05:45:51.0968274Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserListAsync (ITValet)",
+  "StartTime": "2024-11-26T05:45:51.1250867Z",
+  "EndTime": "2024-11-26T05:45:52.4087574Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetHighRankedKeys (ITValet)",
+  "StartTime": "2024-11-26T05:45:49.8450645Z",
+  "EndTime": "2024-11-26T05:45:52.5903185Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetHighRankedKeys (ITValet)",
+  "StartTime": "2024-11-26T05:45:52.9726707Z",
+  "EndTime": "2024-11-26T05:45:53.2931909Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-26T05:46:32.2735542Z",
+  "EndTime": "2024-11-26T05:46:32.6129764Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserSessionStatus (ITValet)",
+  "StartTime": "2024-11-26T05:46:32.6187161Z",
+  "EndTime": "2024-11-26T05:46:32.8891846Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.DatatableController.GetUserPackageDatatableAsync (ITValet)",
+  "StartTime": "2024-11-26T05:46:35.1138152Z",
+  "EndTime": "2024-11-26T05:46:35.6986983Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.DatatableController.GetUserPackageDatatableAsync (ITValet)",
+  "StartTime": "2024-11-26T05:46:35.7476429Z",
+  "EndTime": "2024-11-26T05:46:36.2942434Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetOrderEventsByUserId (ITValet)",
+  "StartTime": "2024-11-26T05:46:37.3880011Z",
+  "EndTime": "2024-11-26T05:46:38.0202837Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetOrderEventsByUserId (ITValet)",
+  "StartTime": "2024-11-26T05:46:38.0310627Z",
+  "EndTime": "2024-11-26T05:46:38.5838685Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.DatatableController.GetRequestServicesDatatableByUserIdAsync (ITValet)",
+  "StartTime": "2024-11-26T05:46:40.0940952Z",
+  "EndTime": "2024-11-26T05:46:40.4031887Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.DatatableController.GetRequestServicesDatatableByUserIdAsync (ITValet)",
+  "StartTime": "2024-11-26T05:46:40.4154464Z",
+  "EndTime": "2024-11-26T05:46:40.6946555Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.DatatableController.GetOrdersDatatableByUserId (ITValet)",
+  "StartTime": "2024-11-26T05:46:40.4733531Z",
+  "EndTime": "2024-11-26T05:46:40.8403218Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.DatatableController.GetOrdersDatatableByUserId (ITValet)",
+  "StartTime": "2024-11-26T05:46:40.8519226Z",
+  "EndTime": "2024-11-26T05:46:41.1281619Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.DatatableController.GetRequestServicesDatatableByUserIdAsync (ITValet)",
+  "StartTime": "2024-11-26T05:46:44.653308Z",
+  "EndTime": "2024-11-26T05:46:44.9311792Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.DatatableController.GetRequestServicesDatatableByUserIdAsync (ITValet)",
+  "StartTime": "2024-11-26T05:46:44.9422838Z",
+  "EndTime": "2024-11-26T05:46:45.2295066Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.DatatableController.GetOrdersDatatableByUserId (ITValet)",
+  "StartTime": "2024-11-26T05:46:45.024834Z",
+  "EndTime": "2024-11-26T05:46:45.2940518Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.DatatableController.GetOrdersDatatableByUserId (ITValet)",
+  "StartTime": "2024-11-26T05:46:45.3017264Z",
+  "EndTime": "2024-11-26T05:46:45.5799773Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetHighRankedKeys (ITValet)",
+  "StartTime": "2024-11-26T06:14:44.6263062Z",
+  "EndTime": "2024-11-26T06:14:46.2315851Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetHighRankedKeys (ITValet)",
+  "StartTime": "2024-11-26T06:14:46.406745Z",
+  "EndTime": "2024-11-26T06:14:46.7043286Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserListAsync (ITValet)",
+  "StartTime": "2024-11-26T06:14:44.6204061Z",
+  "EndTime": "2024-11-26T06:14:47.3020683Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserListAsync (ITValet)",
+  "StartTime": "2024-11-26T06:14:47.3217362Z",
+  "EndTime": "2024-11-26T06:14:48.5889616Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.DatatableController.GetRequestServicesDatatableByUserIdAsync (ITValet)",
+  "StartTime": "2024-11-26T06:22:03.7030953Z",
+  "EndTime": "2024-11-26T06:22:04.0868823Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.DatatableController.GetRequestServicesDatatableByUserIdAsync (ITValet)",
+  "StartTime": "2024-11-26T06:22:04.1194Z",
+  "EndTime": "2024-11-26T06:22:04.4135011Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.DatatableController.GetOrdersDatatableByUserId (ITValet)",
+  "StartTime": "2024-11-26T06:22:04.246085Z",
+  "EndTime": "2024-11-26T06:22:04.5468733Z",
+  "Status": "Error",
+  "StatusCode": "500"
+},{
+  "ActionName": "ITValet.Controllers.DatatableController.GetOrdersDatatableByUserId (ITValet)",
+  "StartTime": "2024-11-26T06:22:04.5587278Z",
+  "EndTime": "2024-11-26T06:22:04.8678922Z",
+  "Status": "Error",
+  "StatusCode": "500"
 }]

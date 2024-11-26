@@ -93,7 +93,7 @@ namespace ITValet.Services
                 return await _context.Notification
                     .Where(x => x.IsActive == (int)EnumActiveStatus.Active &&
                     x.UserId == userId &&
-                    x.IsRead == 0 && !x.Title.ToLower().Contains("Message".ToLower())).CountAsync();
+                    x.IsRead == 0 && x.Title.ToLower().Contains("Message".ToLower())).CountAsync();
             }
         }
 

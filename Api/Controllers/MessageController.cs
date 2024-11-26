@@ -7,6 +7,7 @@ using ITValet.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Options;
+using MimeKit;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using RestSharp;
@@ -130,7 +131,9 @@ namespace ITValet.Controllers
                     NotificationType = (int)NotificationType.OrderCancellationRequested
                 };
                 bool isNotification = await _notificationService.AddNotification(notificationObj);
-                await _notificationHubSocket.Clients.All.SendAsync("ReloadNotifications", message.ReceiverId.ToString());
+                await _notificationHubSocket.Clients.All.SendAsync("ReloadNotifications",
+                    notificationObj.UserId.ToString(), notificationObj.Title, notificationObj.IsRead, notificationObj.IsActive,
+                    notificationObj.Url, notificationObj.Description, notificationObj.CreatedAt, notificationObj.NotificationType);
                 if (message.Id != 0)
                 {
                     string msgTime = GeneralPurpose.regionChanged(Convert.ToDateTime(message.CreatedAt), getLoggedInUser.Timezone);
@@ -179,8 +182,9 @@ namespace ITValet.Controllers
                         return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
                     }
                     //end
-
-                    await _notificationHubSocket.Clients.All.SendAsync("ReceiveMessage", message.SenderId, message.ReceiverId, userName, profile, message.MessageDescription, msgTime);
+                    string name = getLoggedInUser.FirstName + " " + getLoggedInUser.LastName; 
+                    await _notificationHubSocket.Clients.All.SendAsync("ReceiveMessage", message.SenderId, message.ReceiverId,
+                        name, profile, message.MessageDescription, msgTime);
 
                     return Ok(new { UserName = userName, Profile = profile, Message = message.MessageDescription, MessageTime = msgTime });
                 }
@@ -384,6 +388,171 @@ namespace ITValet.Controllers
             }
         }
 
+        #region ForReact
+        [HttpGet("GetReceiverStatuses/{userId}")]
+        public async Task<IActionResult> GetReceiverStatuss(string? userId)
+        {
+            try
+            {
+                var user = await userRepo.GetUserById(Convert.ToInt32(userId));
+
+                if (user == null)
+                {
+                    return NotFound(new ResponseDto() { Status = false, StatusCode = "404", Message = "No record found." });
+                }
+                return Ok(new ResponseDto() { Status = true, StatusCode = "200", Data= user.Status });
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
+
+        [HttpPost("PostAddMessages")]
+        public async Task<IActionResult> PostAddMessages(PostAddMessage postAddMessage)
+        {
+            var getLoggedInUser = await userRepo.GetUserById(Convert.ToInt32(postAddMessage.SenderId));
+            var getOneUser = await userRepo.GetUserById(Convert.ToInt32(postAddMessage.ReceiverId));
+            var getChatMessages = new List<Message>();
+            var message = new Message();
+            bool IsWayUserProfile = postAddMessage.Way == "ViewUserProfile" ? true : false;
+            var mssss = new ViewModelMessage();
+            if (IsWayUserProfile)
+            {
+                getChatMessages = (List<Message>)await messagesRepo.GetMessageBySenderIdAndRecieverId(getLoggedInUser.Id, Convert.ToInt32(getOneUser.Id));
+                if (getChatMessages != null && getChatMessages.Count > 0)
+                {
+                    return Ok(new ResponseDto() { Id = StringCipher.EncryptId(Convert.ToInt32(postAddMessage.ReceiverId)), Status = true, StatusCode = "200", Message = "Exist" });
+                }
+                postAddMessage.MessageDescription = getLoggedInUser.Role == 4 ? "Hi! I am interested in your services! Please reach me back asap. Thanks!" : "Hi! I am interested in your project! Please reach me back asap. Thanks!";
+                message.MessageDescription = postAddMessage.MessageDescription;
+                message.SenderId = Convert.ToInt32(postAddMessage.SenderId);
+                message.ReceiverId = Convert.ToInt32(postAddMessage.ReceiverId);
+                message.IsRead = 0;
+                message.IsActive = 1;
+                message.CreatedAt = GeneralPurpose.DateTimeNow();
+                await messagesRepo.AddMessage(message);
+                if (!await messagesRepo.saveChangesFunction())
+                {
+                    return Ok(new ResponseDto() { Status = false, StatusCode = "500", Message = "User unavailable. Try again after some time." });
+                }
+                Notification notificationObj = new Notification
+                {
+                    UserId = message.ReceiverId,
+                    Title = "Message Received",
+                    IsRead = 0,
+                    IsActive = (int)EnumActiveStatus.Active,
+                    Url = $"{projectVariables.BaseUrl}Home/Messages",
+                    CreatedAt = GeneralPurpose.DateTimeNow(),
+                    Description = "You just received a message.",
+                    NotificationType = (int)NotificationType.OrderCancellationRequested
+                };
+                bool isNotification = await _notificationService.AddNotification(notificationObj);
+                await _notificationHubSocket.Clients.All.SendAsync("ReloadNotifications", message.ReceiverId.ToString());
+                return Ok(new ResponseDto() { Id = StringCipher.EncryptId(Convert.ToInt32(postAddMessage.ReceiverId)), Status = true, StatusCode = "200", Message = "Message Sent Successfully." });
+            }
+            else if (!string.IsNullOrEmpty(postAddMessage.MessageDescription))
+            {
+                message.MessageDescription = postAddMessage.MessageDescription;
+                message.SenderId = Convert.ToInt32(postAddMessage.SenderId);
+                message.ReceiverId = Convert.ToInt32(postAddMessage.ReceiverId);
+                message.IsRead = 0;
+                message.IsActive = 1;
+                message.CreatedAt = GeneralPurpose.DateTimeNow();
+                await messagesRepo.AddMessage(message);
+                if (!await messagesRepo.saveChangesFunction())
+                {
+                    return Ok("Failed to send/add message.");
+                }
+                Notification notificationObj = new Notification
+                {
+                    UserId = message.ReceiverId,
+                    Title = "Message Received",
+                    IsRead = 0,
+                    IsActive = (int)EnumActiveStatus.Active,
+                    Url = $"{projectVariables.BaseUrl}Home/Messages",
+                    CreatedAt = GeneralPurpose.DateTimeNow(),
+                    Description = "You just received a message.",
+                    NotificationType = (int)NotificationType.OrderCancellationRequested
+                };
+                bool isNotification = await _notificationService.AddNotification(notificationObj);
+                await _notificationHubSocket.Clients.All.SendAsync("ReloadNotifications", message.ReceiverId.ToString());
+                if (message.Id != 0)
+                {
+                    string msgTime = GeneralPurpose.regionChanged(Convert.ToDateTime(message.CreatedAt), getLoggedInUser.Timezone);
+                    string userName = getLoggedInUser.UserName;
+                    string ssss = getLoggedInUser.FirstName + getLoggedInUser.LastName;
+                    string profile = projectVariables.BaseUrl + getLoggedInUser.ProfilePicture;
+
+                    //order related
+                    if (!string.IsNullOrEmpty(postAddMessage.OfferTitle))
+                    {
+                        DateTime orderStartTime = Convert.ToDateTime(postAddMessage.StartedDateTime);
+                        DateTime orderEndTime = Convert.ToDateTime(postAddMessage.EndedDateTime);
+                        var getTotalHours = GeneralPurpose.CalculatePrice(orderStartTime, orderEndTime);
+                        if (getLoggedInUser.Role != 3)
+                        {
+                            postAddMessage.CustomerId = postAddMessage.ReceiverId.ToString();
+                            postAddMessage.ValetId = postAddMessage.CustomerId;
+                            postAddMessage.OfferPrice = getTotalHours.price.ToString();
+                            postAddMessage.TransactionFee = getTotalHours.fee.ToString();
+                        }
+                        else
+                        {
+                            postAddMessage.ValetId = postAddMessage.ReceiverId.ToString();
+                            postAddMessage.OfferPrice = getTotalHours.price.ToString();
+                            postAddMessage.TransactionFee = getTotalHours.fee.ToString();
+                        }
+
+                        var offer = new OfferDetail();
+                        offer.OfferTitle = postAddMessage.OfferTitle;
+                        offer.OfferDescription = postAddMessage.OfferDescription;
+                        offer.OfferPrice = Convert.ToDouble(postAddMessage.OfferPrice);
+                        offer.StartedDateTime = Convert.ToDateTime(postAddMessage.StartedDateTime);
+                        offer.EndedDateTime = Convert.ToDateTime(postAddMessage.EndedDateTime);
+                        offer.OfferStatus = 1;
+                        offer.TransactionFee = postAddMessage.TransactionFee;
+                        offer.CustomerId = Convert.ToInt32(postAddMessage.CustomerId);
+                        offer.ValetId = Convert.ToInt32(postAddMessage.ValetId);
+                        offer.MessageId = message.Id;
+                        if (await offerDetailsRepo.AddOfferDetail(offer))
+                        {
+
+                            // send according to order detail
+                            await _notificationHubSocket.Clients.All.SendAsync("ReceiveOffer", offer, message.SenderId, message.ReceiverId, userName, profile, msgTime);
+                            return Ok(new
+                            {
+                                offer,
+                                SenderId = message.SenderId,
+                                ReceiverId = message.ReceiverId,
+                                UserName = userName,
+                                Profile = profile,
+                                MessageTime = msgTime
+                            });
+                        }
+                        return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
+                    }
+                    //end
+
+                    await _notificationHubSocket.Clients.All.SendAsync("ReceiveMessage", message.SenderId, message.ReceiverId, userName, profile, message.MessageDescription, msgTime);
+                    var datas = new
+                    {
+                        MessageDescription = message.MessageDescription,
+                        IsRead = "0",
+                        SenderId = message.SenderId.ToString(),
+                        ReceiverId = message.ReceiverId.ToString(),
+                        MessageTime = msgTime,
+                        Username = userName,
+                        Name = ssss,
+                        ProfileImage = profile,
+
+                    };
+                    return Ok(new ResponseDto() { Status = true, StatusCode = "200", Data = datas });
+                }
+                return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
+            }
+            return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = "Message cannot be Empty" });
+        }
 
         [HttpGet("GetMessageSideBarLists")]
         public async Task<IActionResult> GetMessageSideBarLists(string? loggedInUserId, string? Name = "", string? GetUserChatOnTop = "")
@@ -462,7 +631,79 @@ namespace ITValet.Controllers
             }
         }
 
+        [HttpGet("GetMessagesForUsers")]
+        public async Task<IActionResult> GetMessagesForUsers(string? loggedInUserId, string? userId)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(userId))
+                {
+                    return null;
+                }
+                var getLoggedInUser = await userRepo.GetUserById(Convert.ToInt32(loggedInUserId));
+                var getUser = await userRepo.GetUserById(Convert.ToInt32(userId));
+                if (loggedInUserId != null)
+                {
+                    var getMessages = await messagesRepo.GetMessageBySenderIdAndRecieverId(getLoggedInUser.Id, Convert.ToInt32(userId));
+                    List<ViewModelMessageChatBox> messagesList = new List<ViewModelMessageChatBox>();
+                    foreach (var message in getMessages)
+                    {
+                        var viewModelMessage = new ViewModelMessageChatBox
+                        {
+                            Id = message.Id.ToString(),
+                            MessageEncId = StringCipher.EncryptId(message.Id),
+                            MessageDescription = message.MessageDescription,
+                            IsRead = message.IsRead?.ToString(),
+                            FilePath = message.FilePath,
+                            MessageTime = GeneralPurpose.regionChanged(Convert.ToDateTime(message.CreatedAt), getLoggedInUser.Timezone),
+                            SenderId = message.SenderId.ToString(),
+                        };
+                        //order wprk
+                        if (message.OfferDetails != null)
+                        {
+                            viewModelMessage.OfferTitleId = message.OfferDetails.Id.ToString();
+                            viewModelMessage.OfferTitle = message.OfferDetails.OfferTitle;
+                            viewModelMessage.TransactionFee = message.OfferDetails.TransactionFee;
+                            viewModelMessage.OfferDescription = message.OfferDetails.OfferDescription;
+                            viewModelMessage.OfferPrice = message.OfferDetails.OfferPrice.ToString();
+                            viewModelMessage.StartedDateTime = message.OfferDetails.StartedDateTime.ToString();
+                            viewModelMessage.EndedDateTime = message.OfferDetails.EndedDateTime.ToString();
+                            viewModelMessage.CustomerId = message.OfferDetails.CustomerId.ToString();
+                            viewModelMessage.ValetId = message.OfferDetails.ValetId.ToString();
+                            viewModelMessage.OfferStatus = message.OfferDetails.OfferStatus.ToString();
+                        }
+                        //end
 
+                        if (getLoggedInUser.Id == message.SenderId)
+                        {
+                            viewModelMessage.Name = $"{getLoggedInUser.FirstName} {getLoggedInUser.LastName}";
+                            viewModelMessage.Username = getLoggedInUser.UserName;
+                            viewModelMessage.ProfileImage = projectVariables.BaseUrl + getLoggedInUser.ProfilePicture;
+                        }
+                        else
+                        {
+                            viewModelMessage.Name = $"{getUser.FirstName} {getUser.LastName}";
+                            viewModelMessage.Username = getUser.UserName;
+                            viewModelMessage.ProfileImage = projectVariables.BaseUrl + getUser.ProfilePicture;
+                        }
+                        messagesList.Add(viewModelMessage);
+                    }
+                    return Ok(new ResponseDto()
+                    {
+                        Status = true,
+                        StatusCode = "200",
+                        Data = messagesList
+                    });
+                }
+                return null;
+            }
+            catch (Exception ex)
+            {
+                var x = ex.Message.ToString();
+                return null;
+            }
+        }
+        #endregion
         #endregion
 
         #region OrderZone
