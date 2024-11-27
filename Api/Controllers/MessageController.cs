@@ -510,6 +510,79 @@ namespace ITValet.Controllers
             });
         }
 
+        [HttpPut("UpdateOrderOfferStatus")]
+        public async Task<IActionResult> UpdateOrderOfferStatus(PostUpdateMessage postAddMessage)
+        {
+            try
+            {
+                // Retrieve the offer details
+                var offerDetails = await offerDetailsRepo.GetOfferDetailById(Convert.ToInt32(postAddMessage.OfferDetailId));
+                if (offerDetails == null)
+                {
+                    return NotFound(new ResponseDto { Status = false, StatusCode = "404", Message = "Offer not found." });
+                }
+
+                string offerStatus = "";
+                if (postAddMessage.MessageDescription == "Accept")
+                {
+                    offerDetails.OfferStatus = 2; // Accepted
+                    offerStatus = "accepted";
+                }
+                else if (postAddMessage.MessageDescription == "Reject")
+                {
+                    offerDetails.OfferStatus = 3; // Rejected
+                    offerStatus = "rejected";
+                }
+
+                offerDetails.UpdatedAt = GeneralPurpose.DateTimeNow();
+                if (!await offerDetailsRepo.UpdateOfferDetail(offerDetails))
+                {
+                    return Ok(new ResponseDto { Status = false, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
+                }
+
+                // Update the associated message
+                var message = await messagesRepo.GetMessageById((int)offerDetails?.MessageId!);
+                if (message == null)
+                {
+                    return NotFound(new ResponseDto { Status = false, StatusCode = "404", Message = "Message not found." });
+                }
+
+                message.MessageDescription = postAddMessage.MessageDescription;
+                message.UpdatedAt = GeneralPurpose.DateTimeNow();
+
+                if (!await messagesRepo.UpdateMessage(message))
+                {
+                    return Ok(new ResponseDto { Status = false, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
+                }
+
+                // Notify the receiver
+                var getReceiverUser = await userRepo.GetUserById(Convert.ToInt32(message.ReceiverId));
+                var getSenderUser = await userRepo.GetUserById(Convert.ToInt32(message.SenderId));
+
+                var model = await NotifyOffer(offerDetails, message, getSenderUser!);
+
+                // Prepare and return the response
+                var data = new
+                {
+                    model,
+                    SenderId = message.SenderId,
+                    ReceiverId = message.ReceiverId,
+                };
+
+                return Ok(new ResponseDto
+                {
+                    Status = true,
+                    StatusCode = "200",
+                    Data = data
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ResponseDto { Status = false, StatusCode = "500", Message = GlobalMessages.SystemFailureMessage, Data = ex.Message });
+            }
+        }
+
+
         // Helper Methods
         private async Task CreateMessage(PostAddMessage postAddMessage, Message message)
         {
