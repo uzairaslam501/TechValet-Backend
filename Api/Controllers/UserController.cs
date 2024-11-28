@@ -224,7 +224,7 @@ namespace ITValet.Controllers
                         UserEncId = StringCipher.EncryptId(user.Id),
                         UserName = user.UserName,
                         Email = user.Email,
-                        ProfilePicture = user.ProfilePicture != null ? projectVariables.SystemUrl + user.ProfilePicture : null,
+                        ProfilePicture = user.ProfilePicture != null ? projectVariables.BaseUrl + user.ProfilePicture : null,
                         Status = user.Status.ToString(),
                         Description = user.Description,
                         Country = user.Country,
@@ -232,7 +232,7 @@ namespace ITValet.Controllers
                         PricePerHour = user.PricePerHour.ToString(),
                         City = user.City,
                         UserRating = AverageUserRating.ToString(),
-                        UserRatingCount = getUserRatings.Count.ToString()
+                        UserRatingCount = getUserRatings?.Count.ToString()
                     };
 
                     udto.Add(obj);
