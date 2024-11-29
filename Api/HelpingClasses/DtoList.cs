@@ -232,6 +232,14 @@ namespace ITValet.HelpingClasses
         public string? OtherMessage3 { get; set; }
     }
 
+    public class ResponseDtos
+    {
+        public string? StatusCode { get; set; }
+        public string? Message { get; set; }
+        public dynamic? Data { get; set; }
+        public bool? Status { get; set; }
+    }
+
     public class UpdatePasswordDto
     {
         public string? OldPassword { get; set; }
@@ -906,8 +914,9 @@ namespace ITValet.HelpingClasses
     {
         public int? ClientId { get; set; }
         public string? SelectedPackage { get; set; }
-        public string? stripeEmail { set; get; }
-        public string? stripeToken { set; get; }
+        public string? StripeEmail { set; get; }
+        public string? StripeToken { set; get; }
+        public string? Description { set; get; }
     }
     public class CheckoutPaymentStatusPackage
     {

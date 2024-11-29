@@ -24,6 +24,11 @@
         public string? OrderDetailUrl { get; set; }
     }
 
+    public class StripeApiKeys
+    {
+        public string? StripeApiKey { get; set; }
+    }
+
     public static class GlobalMessages
     {
         public static string ZoomAccountId = "BWKIKMwhTTiCbxE_Hbuuhw";

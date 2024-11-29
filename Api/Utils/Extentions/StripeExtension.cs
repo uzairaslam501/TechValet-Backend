@@ -6,7 +6,8 @@ namespace ITValet.Utils.Extentions
     {
         public static IServiceCollection ConfigureStripe(this IServiceCollection services, IConfiguration configuration)
         {
-            StripeConfiguration.ApiKey = configuration["Stripe:ApiKey"];
+            StripeConfiguration.ApiKey = configuration["Stripe:StripeApiKey"];
+            StripeConfiguration.ClientId = configuration["Stripe:ClientId"];
             return services;
         }
     }

@@ -42,14 +42,15 @@ namespace ITValet.Utils.Extentions
         private static void RegisterServices(IServiceCollection services, IConfiguration configuration)
         {
             services.Configure<ProjectVariables>(configuration.GetSection("ProjectVariables"));
+            services.Configure<StripeApiKeys>(configuration.GetSection("StripeApiKeys"));
             services.Configure<ReturnUrls>(configuration.GetSection("ReturnUrls"));
             services.AddScoped<IJwtUtils, JwtUtils>();
-            services.AddScoped<INotificationService, UserPackageService>();
-            services.AddScoped<ISearchLogService, SearchLogService>();
-            services.AddScoped<LogApiRequestResponseFilter>();
             services.AddTransient<NotificationHubSocket>();
-            services.AddTransient<IPayPalGateWayService, PayPalGateWayService>();
+            services.AddScoped<LogApiRequestResponseFilter>();
+            services.AddScoped<ISearchLogService, SearchLogService>();
+            services.AddScoped<INotificationService, UserPackageService>();
             services.AddTransient<IFundTransferService, FundTransferService>();
+            services.AddTransient<IPayPalGateWayService, PayPalGateWayService>();
         }
     }
 }
