@@ -848,8 +848,8 @@ namespace ITValet.HelpingClasses
         public decimal OrderPrice { get; set; }
         public decimal TotalPrice { get; set; }
         public string? PaymentId { get; set; }
-        public DateTime StartDate { get; set; }
-        public DateTime EndDate { get; set; }
+        public string? StartDate { get; set; }
+        public string? EndDate { get; set; }
     }
 
     public class PayPalEarningInCome
@@ -921,6 +921,9 @@ namespace ITValet.HelpingClasses
         public string? PaymentId { get; set; }
         public string? AuthorizationId { get; set; }
         public string? CaptureId { get; set; }
+        public string? TotalPayment { get; set; }
+        public string? PaymentMethod { get; set; }
+        public string? TransactionFee { get; set; }
     }
     public class PayPalOrderInsertion
     {

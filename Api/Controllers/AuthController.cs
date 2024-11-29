@@ -77,7 +77,7 @@ namespace ITValet.Controllers
                 IsActive = Enum.GetName(typeof(EnumActiveStatus), user.IsActive),
                 Role = Enum.GetName(typeof(EnumRoles), user.Role),
                 Token = jwtUtils.GenerateToken(user),
-                ProfilePicture = user.ProfilePicture != null ? projectVariables.SystemUrl + user.ProfilePicture : null,
+                ProfilePicture = user.ProfilePicture != null ? projectVariables.BaseUrl + user.ProfilePicture : null,
                 IsCompleteValetAccount = IsCompleteValetAccount.ToString(),
             };
 

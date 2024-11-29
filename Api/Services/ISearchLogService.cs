@@ -48,7 +48,7 @@ namespace ITValet.Services
                     // Transform the skilledUsers to SearchedUserList view model
                     searchedUsers = skilledUsers.Select(user => new SearchedUserList
                     {
-                        UserProfile = projectVariables.SystemUrl + user.ProfilePicture,
+                        UserProfile = projectVariables.BaseUrl + user.ProfilePicture,
                         UserName = user.UserName,
                         FirstName = user.FirstName,
                         LastName = user.LastName,
@@ -66,7 +66,7 @@ namespace ITValet.Services
                     var searchUserByName = await _userService.GetUsersByName(searchKeyword);
                     searchedUsers = searchUserByName.Select(user => new SearchedUserList
                     {
-                        UserProfile = projectVariables.SystemUrl + user.ProfilePicture,
+                        UserProfile = projectVariables.BaseUrl + user.ProfilePicture,
                         UserName = user.UserName,
                         FirstName = user.FirstName,
                         LastName = user.LastName,

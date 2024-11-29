@@ -136,7 +136,7 @@ namespace ITValet.Controllers
                     Email = obj.Email,
                     Password = StringCipher.Decrypt(obj.Password),
                     Gender = obj.Gender,
-                    ProfilePicture = obj.ProfilePicture != null ? projectVariables.SystemUrl + obj.ProfilePicture : null,
+                    ProfilePicture = obj.ProfilePicture != null ? projectVariables.BaseUrl + obj.ProfilePicture : null,
                     Country = obj.Country,
                     State = obj.State,
                     City = obj.City,
@@ -279,7 +279,7 @@ namespace ITValet.Controllers
                         ZipCode = user.ZipCode,
                         Description = user.Description,
                         PricePerHour = user.PricePerHour.ToString(),
-                        ProfilePicture = $"{projectVariables.SystemUrl}{user.ProfilePicture}",
+                        ProfilePicture = $"{projectVariables.BaseUrl}{user.ProfilePicture}",
                         UserRating = averageRating.ToString("F2"), // Format rating to 2 decimal places
                         UserRatingCount = userRatings?.Count.ToString() ?? "0"
                     });

@@ -465,7 +465,7 @@ namespace ITValet.Services
                 {
                     Id = customer.Id,
                     Name = customer.UserName,
-                    ProfilePic = customer.ProfilePicture != null ? _projectVariables.SystemUrl + customer.ProfilePicture : null
+                    ProfilePic = customer.ProfilePicture != null ? _projectVariables.BaseUrl + customer.ProfilePicture : null
                 }).ToListAsync();
 
                 return customerRecord;

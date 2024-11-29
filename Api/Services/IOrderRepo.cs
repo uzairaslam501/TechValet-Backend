@@ -215,8 +215,8 @@ namespace ITValet.Services
                 orderinfo.ValetId = orderObj.ValetId;
                 orderinfo.OfferId = orderObj.OfferId;
                 orderinfo.CreatedAt = DateTime.Now;
-                orderinfo.StartDateTime = orderObj.StartDate;
-                orderinfo.EndDateTime = orderObj.EndDate;
+                orderinfo.StartDateTime = Convert.ToDateTime(orderObj.StartDate);
+                orderinfo.EndDateTime = Convert.ToDateTime(orderObj.EndDate);
 
                 _context.Order.Add(orderinfo);
                 await _context.SaveChangesAsync();

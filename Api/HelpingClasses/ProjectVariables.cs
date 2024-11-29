@@ -2,17 +2,26 @@
 {
     public class ProjectVariables
     {
-        public static string FromEmail { get; set; } = null;
-        public static string FromEmailPassword { get; set; } = null;
+        public string? FromEmail { get; set; }
+        public string? FromEmailPassword { get; set; }
         public string JwtSecret { get; set; } = null!;
         public string BaseUrl { get; set; } = null!;
-        public string SystemUrl { get; set; } = null!;
+        public string FrontEnd { get; set; } = null!;
+        public string ReactUrl { get; set; } = null!;
 
         public static string StripeAccountVerifySuccessUrl = "User/Account?message=Stripe Account Verification Success";
         public static string StripeAccountVerifyFailedUrl = "User/Account?messages=Account Verification Failed";
         public static string AccountUrl = "http://nodlayslahore-001-site50.atempurl.com/User/Account";
         public static string OrderDetailUrl = "http://nodlayslahore-001-site50.atempurl.com/User/OrderDetail?orderId=";
         public static string ForStripeUrl = "http://nodlayslahore-001-site50.atempurl.com/";
+    }
+
+    public class ReturnUrls
+    {
+        public string? StripeAccountSuccessUrl { get; set; }
+        public string? StripeAccountFailedUrl { get; set; }
+        public string? AccountUrl { get; set; }
+        public string? OrderDetailUrl { get; set; }
     }
 
     public static class GlobalMessages

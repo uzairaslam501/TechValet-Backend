@@ -600,15 +600,15 @@ namespace ITValet.Controllers
                 UserName = user.UserName,
                 Contact = user.Contact,
                 Email = user.Email,
-                Password = StringCipher.Decrypt(user.Password),
-                Gender = user.Gender,
-                ProfilePicture = user.ProfilePicture != null ? projectVariables.SystemUrl + user.ProfilePicture : null,
-                Country = user.Country,
-                State = user.State,
-                City = user.City,
-                ZipCode = user.ZipCode,
-                Timezone = user.Timezone,
-                Availability = user.Availability.ToString(),
+                Password = StringCipher.Decrypt(user?.Password!),
+                Gender = user?.Gender,
+                ProfilePicture = user?.ProfilePicture != null ? projectVariables.BaseUrl + user.ProfilePicture : null,
+                Country = user?.Country,
+                State = user?.State,
+                City = user?.City,
+                ZipCode = user?.ZipCode,
+                Timezone = user?.Timezone,
+                Availability = user?.Availability.ToString(),
                 Status = user.Status.ToString(),
                 BirthDate = user.BirthDate?.ToString("yyyy-MM-dd"),
                 Role = Enum.GetName(typeof(EnumRoles), user.Role),
@@ -718,7 +718,7 @@ namespace ITValet.Controllers
                 Contact = user.Contact,
                 Email = user.Email,
                 Gender = user.Gender,
-                ProfilePicture = user.ProfilePicture != null ? projectVariables.SystemUrl + user.ProfilePicture : null,
+                ProfilePicture = user.ProfilePicture != null ? projectVariables.BaseUrl + user.ProfilePicture : null,
                 Country = user.Country,
                 State = user.State,
                 City = user.City,
@@ -828,7 +828,7 @@ namespace ITValet.Controllers
             {
                 string imgName = DateTime.Now.Ticks.ToString() + user.ProfilePicture;
                 var rootDir = Path.Combine(Directory.GetCurrentDirectory(), @"wwwroot\profiles", imgName);
-                obj.ProfilePicture = obj.ProfilePicture != null ? projectVariables.SystemUrl + "" + imgName : null;
+                obj.ProfilePicture = obj.ProfilePicture != null ? projectVariables.BaseUrl + "" + imgName : null;
             }
 
             if (!await userRepo.UpdateUser(obj))
@@ -886,7 +886,7 @@ namespace ITValet.Controllers
                     Email = getUser.Email,
                     Password = StringCipher.Decrypt(getUser.Password),
                     Gender = getUser.Gender,
-                    ProfilePicture = getUser.ProfilePicture != null ? projectVariables.SystemUrl + "" + getUser.ProfilePicture : null,
+                    ProfilePicture = getUser.ProfilePicture != null ? projectVariables.BaseUrl + "" + getUser.ProfilePicture : null,
                     Country = getUser.Country,
                     State = getUser.State,
                     City = getUser.City,

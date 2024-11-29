@@ -207,6 +207,10 @@ namespace ITValet.Services
                         OrderId = orderObj.OrderId,
                         PaymentId = orderObj.PaymentId,
                         ClientId = orderObj.ClientId,
+                        OrderPrice = orderObj.OrderPrice,
+                        PayPalTransactionFee = orderObj.PayPalTransactionFee,
+                        CaptureId = orderObj.CaptureId,
+                        AuthorizationId = orderObj.AuthorizationId,
                     };
                     return orderCheckout;
                 }

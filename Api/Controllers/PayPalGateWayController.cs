@@ -4,6 +4,7 @@ using ITValet.JwtAuthorization;
 using ITValet.Models;
 using ITValet.NotificationHub;
 using ITValet.Services;
+using ITValet.Utils.Helpers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Options;
@@ -257,178 +258,6 @@ namespace ITValet.Controllers
             }
         }
 
-        [HttpPost("paypalCheckoutForOrder")]
-        public async Task<IActionResult> PayPalCheckoutForOrders(PayPalOrderCheckOutViewModel orderDto)
-        {
-            try
-            {
-                if (orderDto.OrderPrice <= 0m)
-                {
-                    return Ok(new ResponseDto() { Status = false, StatusCode = "404", Message = "Price can't be negative" });
-                }
-
-                OrderCheckOutViewModel orderObj = new OrderCheckOutViewModel();
-                var config = new Dictionary<string, string> { { "mode", "sandbox" } };
-                var accessToken = new OAuthTokenCredential(_configuration["PayPal:ClientId"], _configuration["PayPal:ClientSecret"], config).GetAccessToken();
-
-                var apiContext = new APIContext(accessToken);
-
-                var payment = new Payment
-                {
-                    intent = "authorize",
-                    payer = new Payer { payment_method = "paypal" },
-                    redirect_urls = new RedirectUrls
-                    {
-                        return_url = projectVariables.BaseUrl + "PayPalClientGateway/PaymentStatusForOrder",
-                        cancel_url = projectVariables.BaseUrl + "PayPalClientGateway/CancelOrder"
-                    },
-                    transactions = new List<Transaction>
-                    {
-                        new Transaction
-                        {
-                            item_list = new ItemList
-                            {
-                                items = new List<Item>
-                                {
-                                    new Item
-                                    {
-                                        name = orderDto.OrderTitle,
-                                        sku = "001",
-                                        price = orderDto.TotalPrice.ToString("0.00"), // Convert the price to a formatted string
-                                        currency = "CAD",
-                                        quantity = "1"
-                                    }
-                                }
-                            },
-                            amount = new Amount
-                            {
-                                currency = "CAD",
-                                total = orderDto.TotalPrice.ToString("0.00") // Convert the price to a formatted string
-                            },
-                            description = orderDto.OrderDescription,
-                        }
-                    }
-                };
-
-                var createdPayment = payment.Create(apiContext);
-                var paymentId = createdPayment.id;
-                orderObj.PaymentId = paymentId;
-                orderObj.OrderId = orderDto.OrderId;
-                orderObj.ClientId = orderDto.ClientId;
-                orderObj.ValetId = orderDto.ValetId;
-                orderObj.OrderPrice = orderDto.OrderPrice;
-
-                // Insert record in orderTable Against PayPalPaymentId
-                orderDto.OrderStatus = 0;
-                orderDto.PaymentId = paymentId;
-
-                var orderId = await _orderService.AddOrderByPayPal(orderDto);
-                if (orderId != -1)
-                {
-                    orderObj.OrderId = orderId;
-                }
-                bool isOrderInsertedInPayPalRec = await _payPalGateWayService.AddPayPalOrder(orderObj);
-                if (!isOrderInsertedInPayPalRec && orderId != -1)
-                {
-                    return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = "InsertionFailed" });
-                }
-                var approvalUrl = createdPayment.links.FirstOrDefault(link => link.rel.Equals("approval_url", StringComparison.OrdinalIgnoreCase))?.href;
-                if (approvalUrl != null)
-                {
-                    PayPalCheckOutURL urlObj = new PayPalCheckOutURL();
-                    var redirectUrl = approvalUrl + "&paymentId=" + paymentId;
-                    urlObj.Url = redirectUrl;
-                    return Ok(new ResponseDto() { Data = urlObj, Status = true, StatusCode = "200" });
-                }
-                return Ok(new ResponseDto() { Status = false, StatusCode = "500", Message = "Something went wrong" });
-            }
-            catch (Exception ex)
-            {
-                await MailSender.SendErrorMessage(projectVariables.BaseUrl + " ----------<br>" + ex.Message.ToString() + "---------------" + ex.StackTrace);
-                return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
-            }
-        }
-
-       
-        [HttpGet("orderstatus")]
-        public async Task<IActionResult> CheckPaymentStatusForOrder(string paymentId, string token, string PayerID)
-        {
-            try
-            {
-                CheckPaymentStatusForOrder orderstatus = new CheckPaymentStatusForOrder();
-                var orderObj = await _payPalGateWayService.GetOrderByPaymentId(paymentId);
-                if (orderObj == null)
-                {
-                    return Ok(new ResponseDto() { Status = false, StatusCode = "404", Message = "OrderRecordNotFound" });
-                }
-                var config = new Dictionary<string, string> { { "mode", "sandbox" } };
-                var accessToken = new OAuthTokenCredential(_configuration["PayPal:ClientId"], _configuration["PayPal:ClientSecret"], config).GetAccessToken();
-                var apiContext = new APIContext(accessToken);
-
-                var paymentExecution = new PaymentExecution { payer_id = PayerID };
-                var executedPayment = Payment.Execute(apiContext, paymentId, paymentExecution);
-
-                if (executedPayment.state.ToLower() == "approved" && executedPayment.intent.ToLower() == "authorize")
-                {
-                    orderObj.PayableAmount = executedPayment.transactions.FirstOrDefault()?.amount.total;
-                    orderObj.Currency = executedPayment.transactions.FirstOrDefault()?.amount.currency;
-                    var authorizationId = executedPayment.transactions.FirstOrDefault()?.related_resources.FirstOrDefault()?.authorization.id;
-
-                    var capture = new Capture
-                    {
-                        is_final_capture = true,
-                        amount = new Amount
-                        {
-                            currency = "CAD",
-                            total = orderObj.PayableAmount
-                        }
-                    };
-
-                    var capturedPayment = PayPal.Api.Authorization.Get(apiContext, authorizationId).Capture(apiContext, capture);
-                    orderObj.PayPalTransactionFee = capturedPayment.transaction_fee.value;
-                    if (capturedPayment.state == "completed")
-                    {
-                        orderObj.PaymentStatus = capturedPayment.state;
-                        orderObj.CaptureId = capturedPayment.id;
-                        orderObj.AuthorizationId = authorizationId;
-                        orderObj.IsRefund = false;
-
-                        bool isPayPalOrderRecUpdate = await _payPalGateWayService.UpdateOrderRecord(orderObj);
-                        var orderUpdate = await _orderService.UpdateOrderByPayPal(paymentId, capturedPayment.id);
-                        var encOrderId = StringCipher.EncryptId(orderUpdate.Id);
-                        if (orderUpdate != null)
-                        {
-                            if (orderUpdate.OfferId != 0)
-                            {
-                              bool isOfferUpdate = await _offerService.UpdateOfferStatus(orderUpdate.Id, orderUpdate.OfferId);
-                            }
-                        }
-
-                        if (isPayPalOrderRecUpdate && orderUpdate != null)
-                        {
-                            orderstatus.AuthorizationId = authorizationId;
-                            orderstatus.CaptureId = capturedPayment.id;
-                            orderstatus.PaymentId = paymentId;
-                            orderstatus.EncOrderId = encOrderId;
-                            orderstatus.PaymentStatus = "success";
-                            return Ok(new ResponseDto() { Data = orderstatus, Status = true, StatusCode = "200" });
-                        }
-                        return Ok(new ResponseDto() { Status = false, StatusCode = "402", Message = "IssueAriseDuringPayment" });
-                    }
-                    else
-                    {
-                        return Ok(new ResponseDto() { Status = false, StatusCode = "204", Message = "Payment Executed But captured Failed" });
-                    }
-                }
-
-                return Ok(new ResponseDto() { Status = false, StatusCode = "500", Message = "Something went wrong" });
-            }
-            catch (Exception ex)
-            {
-                await MailSender.SendErrorMessage(projectVariables.BaseUrl + " ----------<br>" + ex.Message.ToString() + "---------------" + ex.StackTrace);
-                return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
-            }
-        }
 
         [HttpPost("paypalRefund")]
         public async Task<IActionResult> Refund(string captureId, int orderId)
@@ -843,31 +672,148 @@ namespace ITValet.Controllers
             return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = "Session Not Updated" });
         }
 
-        /*   [HttpGet("CalculatePayPalEarning")]
-           public async Task<IActionResult> CalculatePayPalEarning (int valetId)
-           {
-               var totalPayPalEarning = await _payPalGateWayService.CalculateTotalPayPalEarning(valetId);
-               if(totalPayPalEarning.HasValue)
-               {
-                   var totalEarnedAmount = totalPayPalEarning.ToString();
-                   return Ok(new ResponseDto()
-                   {
-                       Status = true,
-                       Data = totalEarnedAmount,
-                       StatusCode = "200"
-                   });
-               }
-               else
-               {
-                   return Ok(new ResponseDto()
-                   {
-                       Status = false,
-                       Message = "Amount Not Found",
-                       StatusCode = "400"
-                   });
-               }
 
-           }*/
+        #region Code Refactor
+
+        [HttpPost("PayPalCheckoutForOrder")]
+        public async Task<IActionResult> PayPalCheckoutForOrders(PayPalOrderCheckOutViewModel orderDto)
+        {
+            try
+            {
+                // Validate order price
+                if (orderDto.OrderPrice <= 0m)
+                    return BadRequest(new ResponseDto { Status = false, StatusCode = "400", Message = "Price can't be negative" });
+
+                // Create the payment request
+                var paymentRequest = PayPalPaymentHelper.CreatePaymentRequest(
+                    orderDto,
+                    projectVariables.ReactUrl,
+                    _configuration["PayPal:ClientId"],
+                    _configuration["PayPal:ClientSecret"]
+                );
+
+                if (paymentRequest.PaymentId == null)
+                    return StatusCode(500, new ResponseDto { Status = false, StatusCode = "500", Message = "Payment creation failed" });
+
+                // Save the order in the database
+                orderDto.PaymentId = paymentRequest.PaymentId;
+                var orderId = await _orderService.AddOrderByPayPal(orderDto);
+                if (orderId == -1)
+                    return StatusCode(500, new ResponseDto { Status = false, StatusCode = "500", Message = "Order insertion failed" });
+
+                // Save PayPal order details
+                var orderSaved = await _payPalGateWayService.AddPayPalOrder(new OrderCheckOutViewModel
+                {
+                    PaymentId = paymentRequest.PaymentId,
+                    OrderId = orderId,
+                    ClientId = orderDto.ClientId,
+                    ValetId = orderDto.ValetId,
+                    OrderPrice = orderDto.OrderPrice
+                });
+
+                if (!orderSaved)
+                    return StatusCode(500, new ResponseDto { Status = false, StatusCode = "500", Message = "PayPal record insertion failed" });
+
+                if (!string.IsNullOrEmpty(paymentRequest.ApprovalUrl))
+                {
+                    return Ok(new ResponseDto
+                    {
+                        Status = true,
+                        StatusCode = "200",
+                        Data = new PayPalCheckOutURL { Url = paymentRequest.ApprovalUrl },
+                    });
+                }
+
+                return StatusCode(500, new ResponseDto { Status = false, StatusCode = "500", Message = "Approval URL not found" });
+            }
+            catch (Exception ex)
+            {
+                await MailSender.SendErrorMessage($"{projectVariables.BaseUrl} ----------<br>{ex.Message}<br>{ex.StackTrace}");
+                return StatusCode(500, new ResponseDto { Status = false, StatusCode = "500", Message = GlobalMessages.SystemFailureMessage });
+            }
+        }
+
+        [HttpGet("CheckPaymentStatusForOrder")]
+        public async Task<IActionResult> CheckPaymentStatusForOrder(string paymentId, string token, string payerID)
+        {
+            try
+            {
+                // Retrieve order by payment ID
+                var orderObj = await _payPalGateWayService.GetOrderByPaymentId(paymentId);
+                if (orderObj == null)
+                {
+                    return NotFound(new ResponseDto { Status = false, StatusCode = "404", Message = "OrderRecordNotFound" });
+                }
+
+                //// Execute payment
+                //var executedPayment = PayPalPaymentHelper.ExecutePayment(paymentId, payerID, _configuration);
+                //if (executedPayment.state.ToLower() != "approved" || executedPayment.intent.ToLower() != "authorize")
+                //{
+                //    return StatusCode(500, new ResponseDto { Status = false, StatusCode = "500", Message = "Something went wrong" });
+                //}
+
+                //// Capture payment
+                //var captureResponse = PayPalPaymentHelper.CapturePayment(executedPayment, _configuration);
+                //if (captureResponse == null || captureResponse.State != "completed")
+                //{
+                //    return StatusCode(204, new ResponseDto { Status = false, StatusCode = "204", Message = "Payment executed but capture failed" });
+                //}
+
+                //// Update order details
+                //bool isUpdated = await UpdateOrderDetails(orderObj, captureResponse, paymentId);
+                //if (!isUpdated)
+                //{
+                //    return StatusCode(402, new ResponseDto { Status = false, StatusCode = "402", Message = "Issue arose during payment update" });
+                //}
+
+                // Create response
+                var orderStatus = new CheckPaymentStatusForOrder
+                {
+                    AuthorizationId = orderObj?.AuthorizationId,
+                    CaptureId = orderObj?.CaptureId,
+                    PaymentId = orderObj?.PaymentId,
+                    EncOrderId = StringCipher.EncryptId(orderObj.OrderId),
+                    TotalPayment = orderObj.OrderPrice.ToString(),
+                    TransactionFee = orderObj.PayPalTransactionFee,
+                    PaymentStatus = "success",
+                    PaymentMethod = "PayPal"
+                };
+                
+
+                return Ok(new ResponseDto { Data = orderStatus, Status = true, StatusCode = "200" });
+            }
+            catch (Exception ex)
+            {
+                await MailSender.SendErrorMessage($"{projectVariables.BaseUrl}<br>{ex.Message}<br>{ex.StackTrace}");
+                return StatusCode(400, new ResponseDto { Status = false, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
+            }
+        }
+
+        private async Task<bool> UpdateOrderDetails(OrderCheckOutViewModel orderObj, CaptureResponse captureResponse, string paymentId)
+        {
+            orderObj.PayableAmount = captureResponse.TransactionFee;
+            orderObj.Currency = "CAD";
+            orderObj.PayPalTransactionFee = captureResponse.TransactionFee;
+            orderObj.PaymentStatus = captureResponse.State;
+            orderObj.CaptureId = captureResponse.CaptureId;
+            orderObj.AuthorizationId = captureResponse.AuthorizationId;
+            orderObj.IsRefund = false;
+
+            // Update PayPal order record
+            bool isPayPalOrderUpdated = await _payPalGateWayService.UpdateOrderRecord(orderObj);
+
+            // Update main order
+            var orderUpdate = await _orderService.UpdateOrderByPayPal(paymentId, captureResponse.CaptureId);
+
+            if (orderUpdate != null && orderUpdate.OfferId != 0)
+            {
+                await _offerService.UpdateOfferStatus(orderUpdate.Id, orderUpdate.OfferId);
+            }
+
+            return isPayPalOrderUpdated && orderUpdate != null;
+        }
+
+        #endregion
 
     }
 }
