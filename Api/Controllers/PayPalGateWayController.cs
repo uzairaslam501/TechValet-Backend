@@ -746,31 +746,31 @@ namespace ITValet.Controllers
                 }
 
                 //// Execute payment
-                //var executedPayment = PayPalPaymentHelper.ExecutePayment(paymentId, payerID, _configuration);
-                //if (executedPayment.state.ToLower() != "approved" || executedPayment.intent.ToLower() != "authorize")
-                //{
-                //    return StatusCode(500, new ResponseDto { Status = false, StatusCode = "500", Message = "Something went wrong" });
-                //}
+                var executedPayment = PayPalPaymentHelper.ExecutePayment(paymentId, payerID, _configuration);
+                if (executedPayment.state.ToLower() != "approved" || executedPayment.intent.ToLower() != "authorize")
+                {
+                    return StatusCode(500, new ResponseDto { Status = false, StatusCode = "500", Message = "Something went wrong" });
+                }
 
-                //// Capture payment
-                //var captureResponse = PayPalPaymentHelper.CapturePayment(executedPayment, _configuration);
-                //if (captureResponse == null || captureResponse.State != "completed")
-                //{
-                //    return StatusCode(204, new ResponseDto { Status = false, StatusCode = "204", Message = "Payment executed but capture failed" });
-                //}
+                // Capture payment
+                var captureResponse = PayPalPaymentHelper.CapturePayment(executedPayment, _configuration);
+                if (captureResponse == null || captureResponse.State != "completed")
+                {
+                    return StatusCode(204, new ResponseDto { Status = false, StatusCode = "204", Message = "Payment executed but capture failed" });
+                }
 
-                //// Update order details
-                //bool isUpdated = await UpdateOrderDetails(orderObj, captureResponse, paymentId);
-                //if (!isUpdated)
-                //{
-                //    return StatusCode(402, new ResponseDto { Status = false, StatusCode = "402", Message = "Issue arose during payment update" });
-                //}
+                // Update order details
+                bool isUpdated = await UpdateOrderDetails(orderObj, captureResponse, paymentId);
+                if (!isUpdated)
+                {
+                    return StatusCode(402, new ResponseDto { Status = false, StatusCode = "402", Message = "Issue arose during payment update" });
+                }
 
                 // Create response
                 var orderStatus = new CheckPaymentStatusForOrder
                 {
-                    AuthorizationId = orderObj?.AuthorizationId,
-                    CaptureId = orderObj?.CaptureId,
+                    AuthorizationId = captureResponse?.AuthorizationId,
+                    CaptureId = captureResponse?.CaptureId,
                     PaymentId = orderObj?.PaymentId,
                     EncOrderId = StringCipher.EncryptId(orderObj.OrderId),
                     TotalPayment = orderObj.OrderPrice.ToString(),

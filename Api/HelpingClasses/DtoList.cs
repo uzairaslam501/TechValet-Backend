@@ -743,27 +743,26 @@ namespace ITValet.HelpingClasses
 
     public class CheckOutDTO
     {
-        public string? Id { set; get; }
         public string? FromDateTime { set; get; }
         public string? ToDateTime { set; get; }
         public string? PaymentTitle { set; get; }
         public string? PaymentDescription { set; get; }
-        public string? Duration { set; get; }
-        public string? orderId { set; get; }
         public string? customerId { set; get; }
         public string? ValetId { set; get; }
-        public string? HourlyRate { set; get; }
-        public string? StripeFee { set; get; }
-        public string? platformFee { set; get; }
         public string? WorkingHours { set; get; }
         public string? TotalWorkCharges { set; get; }
-        public string? stripeEmail { set; get; }
-        public string? stripeToken { set; get; }
         public int? OfferId { get; set; }
-        public string? ActualOrderPrice { get; set; }
         public int? PackageId { get; set; }
-       public string? PackagePaidBy { set; get; }
+        public string? ActualOrderPrice { get; set; }
+        public string? PackagePaidBy { set; get; }
+        public string? PaymentId { set; get; }
+        
+        public string? StripeEmail { set; get; }
+        public string? StripeId { set; get; }
+        public string? StripeToken { set; get; }
     }
+
+
 
     #endregion
 

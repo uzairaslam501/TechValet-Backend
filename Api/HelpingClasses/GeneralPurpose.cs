@@ -176,6 +176,17 @@ namespace ITValet.HelpingClasses
             return hstFee;
         }
 
+        public static string CalculcateTimeDifference(string dateTime1, string dateTime2)
+        {
+            TimeSpan difference = Convert.ToDateTime(dateTime2) - Convert.ToDateTime(dateTime1);
+
+            // Extract days, hours, and minutes
+            int days = Math.Abs(difference.Days);
+            int hours = Math.Abs(difference.Hours);
+            int minutes = Math.Abs(difference.Minutes);
+            return $"{days} days, {hours} hours, and {minutes} minutes";
+        }
+
         #region UserRating
 
         public static double CalculateUserRatingPercentage(List<int> ratings)

@@ -1,6 +1,5 @@
 ﻿using ITValet.HelpingClasses;
 using ITValet.JwtAuthorization;
-using ITValet.Models;
 using ITValet.Services;
 using ITValet.Utils.Helpers;
 using Microsoft.AspNetCore.Mvc;
@@ -36,66 +35,113 @@ namespace ITValet.Controllers
             _projectVariables = options.Value;
         }
 
-        [HttpPost("create-checkout-session")]
+        [HttpPost("create-checkout-session/{userId}")]
         public async Task<IActionResult> CreateCheckoutSession(string userId, CheckOutDTO checkoutDTO)
         {
             try
             {
-                var getUser = await _userRepo.GetUserById(Convert.ToInt32(StringCipher.DecryptId(userId)));
-                if (getUser != null && getUser.StripeId == null)
+                var getUser = await _userRepo.GetUserById(Convert.ToInt32(userId));
+                if (getUser != null)
                 {
-                    var customerOptions = new CustomerCreateOptions
+                    string duration = GeneralPurpose.CalculcateTimeDifference(checkoutDTO?.FromDateTime, checkoutDTO?.ToDateTime);
+                    string startTo = checkoutDTO?.FromDateTime;
+                    string endTo = checkoutDTO?.ToDateTime;
+                    string svgContent = SvgDataGenerator.GenerateSvg(duration, startTo, endTo);
+                    string customerId = checkoutDTO?.customerId?.ToString() ?? "";
+                    string valetId = checkoutDTO?.ValetId?.ToString() ?? "";
+                    string offerId = checkoutDTO?.OfferId?.ToString() ?? "";
+
+                    // Convert the SVG to a Data URL
+                    string svgDataUrl = SvgDataGenerator.GenerateDataUrlFromSvg(svgContent);
+
+                    if (getUser.StripeId == null)
                     {
-                        Email = getUser.Email,
+                        var customerOptions = new CustomerCreateOptions
+                        {
+                            Email = getUser.Email,
+                            Metadata = new Dictionary<string, string>
+                            {
+                                { "userId", getUser.Id.ToString() },
+                            }
+                        };
+                        var customerService = new CustomerService();
+                        Customer customer = await customerService.CreateAsync(customerOptions);
+                        getUser.StripeId = customer.Id;
+                        await _userRepo.UpdateUser(getUser);
+                    }
+
+                    var priceOptions = new PriceCreateOptions
+                    {
+                        UnitAmountDecimal = decimal.Parse(checkoutDTO.ActualOrderPrice) * 100, // Stripe uses cents
+                        Currency = "usd", // Adjust currency if needed
+                        ProductData = new PriceProductDataOptions
+                        {
+                            Name = $"Title: {checkoutDTO.PaymentTitle}" ?? "Payment",
+                            StatementDescriptor = checkoutDTO.PaymentDescription
+                        },
+                    };
+
+                    var priceService = new PriceService();
+                    Price price = await priceService.CreateAsync(priceOptions);
+
+
+                    // Checkout session for one-time payment
+                    var options = new SessionCreateOptions
+                    {
+                        SuccessUrl = $"{_projectVariables.ReactUrl}PaymentSuccessfully?session_id={{CHECKOUT_SESSION_ID}}",
+                        CancelUrl = $"{_projectVariables.ReactUrl}PaymentCancelled?session_id={{CHECKOUT_SESSION_ID}}",
+                        PaymentMethodTypes = new List<string> { "card" },
+                        Mode = "payment",                        
+                        LineItems = new List<SessionLineItemOptions>
+                        {
+                            new SessionLineItemOptions
+                            {
+                                Price = price.Id,
+                                Quantity = 1,
+                            },
+                            
+                        },
+                        Customer = getUser?.StripeId,
                         Metadata = new Dictionary<string, string>
                         {
-                            { "userId", getUser.Id.ToString() },
+                            { "ValetId", valetId },
+                            { "OfferId", offerId },
+                            { "CustomerId", customerId },
+                            { "ToTime", checkoutDTO.ToDateTime.ToString() },
+                            { "FromTime", checkoutDTO.FromDateTime.ToString() },
+                            { "PaymentDescription", checkoutDTO.PaymentDescription },
+                            { "PaymentTitle", checkoutDTO.PaymentTitle ?? "Payment" },
+                            { "TotalWorkCharges", checkoutDTO.TotalWorkCharges!.ToString() },
+                            { "ActualOrderPrice", checkoutDTO.ActualOrderPrice.ToString() },
+                            { "Duration", GeneralPurpose.CalculcateTimeDifference(checkoutDTO.FromDateTime, checkoutDTO.ToDateTime) },
+                            { "StripeEmail", getUser?.Email! },
+                            { "StripeId", getUser?.StripeId! },
                         }
                     };
-                    var customerService = new CustomerService();
-                    Customer customer = await customerService.CreateAsync(customerOptions);
-                    getUser.StripeId = customer.Id;
-                    await _userRepo.UpdateUser(getUser);
-                }
-
-                // Checkout session for one-time payment
-                var options = new SessionCreateOptions
-                {
-                    SuccessUrl = $"{_projectVariables.FrontEnd}PaymentSuccess",
-                    CancelUrl = $"{_projectVariables.FrontEnd}PaymentCancelled",
-                    PaymentMethodTypes = new List<string> { "card" },
-                    Mode = "payment",
-                    LineItems = new List<SessionLineItemOptions>
+                    var service = new SessionService();
+                    try
                     {
-                        new SessionLineItemOptions
+                        var session = await service.CreateAsync(options);
+                        CreateCheckoutSessionResponse data = new CreateCheckoutSessionResponse
                         {
-                            Price = checkoutDTO.ActualOrderPrice,
-                        },
-                    },
-                    Customer = getUser?.Id.ToString(),
-                };
+                            SessionId = session.Id,
+                            CheckOutURL = session.Url,
+                            PublicKey = _configuration["Stripe:StripeClientId"],
+                            PaymentTimeTicks = Convert.ToDateTime(GeneralPurpose.DateTimeNow()).Ticks.ToString()
+                        };
 
-                var service = new SessionService();
-                try
-                {
-                    var session = await service.CreateAsync(options);
-                    CreateCheckoutSessionResponse data = new CreateCheckoutSessionResponse
+
+                        return Ok(new ResponseDto() { Data = data, Status = true, StatusCode = "200", Message = "You Are Ready To Proceed, Hit Confirm CheckOut Button." });
+
+                    }
+                    catch (StripeException e)
                     {
-                        SessionId = session.Id,
-                        CheckOutURL = session.Url,
-                        PublicKey = _configuration["Stripe:StripeClientId"],
-                        PaymentTimeTicks = Convert.ToDateTime(GeneralPurpose.DateTimeNow()).Ticks.ToString()
-                    };
-
-                    return Ok(new { data = data, Status = true, StatusCode = "200", Message = "You Are Ready To Proceed, Hit Confirm CheckOut Button." });
-
+                        Console.WriteLine(e.StripeError.Message);
+                        return Ok(new ResponseDto() { Data = null, Status = false, StatusCode = "500", Message = e.StripeError.Message });
+                    }
                 }
-                catch (StripeException e)
-                {
-                    Console.WriteLine(e.StripeError.Message);
+                return Ok(new ResponseDto() { Data = null, Status = false, StatusCode = "500", Message = GlobalMessages.SystemFailureMessage });
 
-                    return Ok(new { Status = false, StatusCode = "500", Message = e.StripeError.Message });
-                }
             }
             catch (StripeException e)
             {
@@ -106,6 +152,79 @@ namespace ITValet.Controllers
                 return Ok(new { Status = false, StatusCode = "500", Message = ex.Message });
             }
         }
+
+        [HttpPost("payment-intent/{userId}")]
+        public async Task<IActionResult> CreatePaymentIntent(string userId, CheckOutDTO checkoutDTO)
+        {
+            try
+            {
+                var paymentIntentService = new PaymentIntentService();
+                var sss = Convert.ToDouble(checkoutDTO.ActualOrderPrice) * 100;
+                var paymentIntent = await paymentIntentService.CreateAsync(new PaymentIntentCreateOptions
+                {
+                    Amount = (long)sss, // Amount in cents
+                    Currency = "cad", // Adjust as needed
+                });
+
+                return Ok(new ResponseDto() { Data = paymentIntent.ClientSecret, Status = true, StatusCode = "200", Message="Cleint Secret" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Error = ex.Message });
+            }
+        }
+
+        [HttpGet]
+        [Route("payment-success/{session_id}")]
+        public async Task<IActionResult> PaymentSuccess(string session_id)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(session_id))
+                {
+                    return BadRequest(new { Status = false, Message = "Session ID is required." });
+                }
+
+                var sessionService = new SessionService();
+                var session = await sessionService.GetAsync(session_id);
+
+                if (session != null)
+                {
+                    var metadata = session.Metadata;
+                    var data = new {
+                        CustomerId = metadata.ContainsKey("CustomerId") ? metadata["CustomerId"] : "N/A",
+                        ValetId = metadata.ContainsKey("ValetId") ? metadata["ValetId"] : "N/A",
+                        OfferId = metadata.ContainsKey("OfferId") ? metadata["OfferId"] : "N/A",
+                        PaymentTitle = metadata.ContainsKey("PaymentTitle") ? metadata["PaymentTitle"] : "N/A",
+                        PaymentDescription = metadata.ContainsKey("PaymentDescription") ? metadata["PaymentDescription"] : "N/A",
+                        TotalWorkCharges = metadata.ContainsKey("TotalWorkCharges") ? metadata["TotalWorkCharges"] : "0",
+                        ActualOrderPrice = metadata.ContainsKey("ActualOrderPrice") ? metadata["ActualOrderPrice"] : "0",
+                        FromDateTime = metadata.ContainsKey("FromTime") ? metadata["FromTime"] : "N/A",
+                        ToDateTime = metadata.ContainsKey("ToTime") ? metadata["ToTime"] : "N/A",
+                        duration = metadata.ContainsKey("Duration") ? metadata["Duration"] : "N/A",
+                        StripeEmail = metadata.ContainsKey("StripeEmail") ? metadata["StripeEmail"] : "N/A",
+                        StripeId = metadata.ContainsKey("StripeId") ? metadata["StripeId"] : "N/A",
+                        PaymentId = session.PaymentIntentId,
+                    };
+
+                    // Return the metadata as part of the response
+                    return Ok(new ResponseDto()
+                    {
+                        Status = true,
+                        Message = "Payment successful!",
+                        StatusCode = "200",
+                        Data = data
+                    });
+                }
+
+                return BadRequest(new { Status = false, Message = "Invalid session or session not found." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Status = false, Message = ex.Message });
+            }
+        }
+
 
         [HttpPost("CreateStripeCharge")]
         public async Task<IActionResult> CreateStripeCharge(CheckOutDTO checkOutData)
@@ -327,19 +446,19 @@ namespace ITValet.Controllers
 
                 var customerService = new CustomerService();
                 var chargeService = new ChargeService();
-
+                
                 var customer = await customerService.CreateAsync(new CustomerCreateOptions
                 {
-                    Email = checkOutData.stripeEmail,
-                    Source = checkOutData.stripeToken,
+                    Email = checkOutData.StripeEmail,
+                    Source = checkOutData.StripeToken,
                 });
-
+                
                 var chargeOptions = new ChargeCreateOptions
                 {
                     Amount = amountInCents,
                     Currency = "CAD",
                     Description = checkOutData.PaymentTitle ?? "Payment for Services",
-                    Customer = customer.Id,
+                    Customer = checkOutData.StripeId,
                 };
 
                 var charge = await chargeService.CreateAsync(chargeOptions);
