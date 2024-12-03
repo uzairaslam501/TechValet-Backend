@@ -131,10 +131,10 @@ namespace ITValet.Controllers
 
         #region CustomerPackage
 
-        [HttpGet("GetUserPackageByUserId")]
-        public async Task<ActionResult> GetUserPackageByUserId(int? UserId)
+        [HttpGet("GetUserPackageByUserId/{userId}")]
+        public async Task<ActionResult> GetUserPackageByUserId(string userId)
         {
-            var getuserPackage = await _userPackageService.GetUserPackageByUserId(UserId);
+            var getuserPackage = await _userPackageService.GetUserPackageByUserId(Convert.ToInt32(userId));
 
             if (getuserPackage == null)
             {

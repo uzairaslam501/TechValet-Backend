@@ -1,8 +1,11 @@
 ﻿using ITValet.HelpingClasses;
 using ITValet.JwtAuthorization;
+using ITValet.Models;
+using ITValet.NotificationHub;
 using ITValet.Services;
 using ITValet.Utils.Helpers;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Options;
 using Stripe;
 using Stripe.Checkout;
@@ -17,14 +20,16 @@ namespace ITValet.Controllers
         private readonly IUserRepo _userRepo;
         private readonly IOrderRepo _orderRepo;
         private readonly IConfiguration _configuration;
+        private readonly IMessagesRepo _messageService;
         private readonly ProjectVariables _projectVariables;
         private readonly IOfferDetailsRepo _offerDetailService;
         private readonly INotificationService _userPackageService;
         private readonly IPayPalGateWayService _paypalGatewayService;
+        private readonly IHubContext<NotificationHubSocket> _notificationHubSocket;
 
         public StripePaymentController(IUserRepo userRepo, IOptions<ProjectVariables> options, IConfiguration configuration,
             IOrderRepo orderRepo, IPayPalGateWayService paypalGateWayService, INotificationService userPackageService, 
-            IOfferDetailsRepo offerDetailService)
+            IOfferDetailsRepo offerDetailService, IHubContext<NotificationHubSocket> notificationHubSocket, IMessagesRepo messageService)
         {
             _userRepo = userRepo;
             _orderRepo = orderRepo;
@@ -33,6 +38,8 @@ namespace ITValet.Controllers
             _offerDetailService = offerDetailService;
             _paypalGatewayService = paypalGateWayService;
             _projectVariables = options.Value;
+            _notificationHubSocket = notificationHubSocket;
+            _messageService = messageService;
         }
 
         [HttpPost("create-checkout-session/{userId}")]
@@ -46,14 +53,11 @@ namespace ITValet.Controllers
                     string duration = GeneralPurpose.CalculcateTimeDifference(checkoutDTO?.FromDateTime, checkoutDTO?.ToDateTime);
                     string startTo = checkoutDTO?.FromDateTime;
                     string endTo = checkoutDTO?.ToDateTime;
-                    string svgContent = SvgDataGenerator.GenerateSvg(duration, startTo, endTo);
                     string customerId = checkoutDTO?.customerId?.ToString() ?? "";
                     string valetId = checkoutDTO?.ValetId?.ToString() ?? "";
                     string offerId = checkoutDTO?.OfferId?.ToString() ?? "";
 
-                    // Convert the SVG to a Data URL
-                    string svgDataUrl = SvgDataGenerator.GenerateDataUrlFromSvg(svgContent);
-
+                    
                     if (getUser.StripeId == null)
                     {
                         var customerOptions = new CustomerCreateOptions
@@ -231,7 +235,7 @@ namespace ITValet.Controllers
         {
             var order = StripeHelper.InitializeOrder(checkOutData);
             var orderId = await _orderRepo.GetOrderId(order);
-
+            var getLoggedInUser = await _userRepo.GetUserById(Convert.ToInt32(checkOutData.customerId));
             if (orderId == -1)
                 return BadRequest(new ResponseDto() { StatusCode = "404", Message = GlobalMessages.SystemFailureMessage, Data = null, Status = false });
 
@@ -260,7 +264,13 @@ namespace ITValet.Controllers
                 });
 
             if (checkOutData?.OfferId! != null)
+            {
                 await _offerDetailService.UpdateOfferStatus(orderId, checkOutData.OfferId);
+                var offer = await _offerDetailService.GetOfferDetailById((int)checkOutData.OfferId);
+                var message = await _messageService.GetMessageById(Convert.ToInt32(checkOutData?.MessageId));
+                await NotifyOffer(offer!, message!, getLoggedInUser!);
+            }
+
 
             return Ok(new ResponseDto()
             {
@@ -456,9 +466,9 @@ namespace ITValet.Controllers
                 var chargeOptions = new ChargeCreateOptions
                 {
                     Amount = amountInCents,
-                    Currency = "CAD",
+                    Currency = "USD",
                     Description = checkOutData.PaymentTitle ?? "Payment for Services",
-                    Customer = checkOutData.StripeId,
+                    Customer = customer.Id,
                 };
 
                 var charge = await chargeService.CreateAsync(chargeOptions);
@@ -632,6 +642,46 @@ namespace ITValet.Controllers
                 return true;
             }
             return false;
+        }
+
+        private async Task<ViewModelMessageChatBox> NotifyOffer(OfferDetail offer, Message message, User getLoggedInUser)
+        {
+            var viewModelMessage = new ViewModelMessageChatBox
+            {
+                Id = message.Id.ToString(),
+                MessageEncId = StringCipher.EncryptId(message.Id),
+                MessageDescription = message.MessageDescription,
+                IsRead = message.IsRead?.ToString(),
+                FilePath = message.FilePath,
+                MessageTime = GeneralPurpose.regionChanged(Convert.ToDateTime(message.CreatedAt), getLoggedInUser?.Timezone!),
+                SenderId = message.SenderId.ToString(),
+            };
+            //order wprk
+            if (offer != null)
+            {
+                viewModelMessage.OfferTitleId = offer.Id.ToString();
+                viewModelMessage.OfferTitle = offer.OfferTitle;
+                viewModelMessage.TransactionFee = offer.TransactionFee;
+                viewModelMessage.OfferDescription = offer.OfferDescription;
+                viewModelMessage.OfferPrice = offer.OfferPrice.ToString();
+                viewModelMessage.StartedDateTime = offer.StartedDateTime.ToString();
+                viewModelMessage.EndedDateTime = offer.EndedDateTime.ToString();
+                viewModelMessage.CustomerId = offer.CustomerId.ToString();
+                viewModelMessage.ValetId = offer.ValetId.ToString();
+                viewModelMessage.OfferStatus = offer.OfferStatus.ToString();
+                viewModelMessage.Name = $"{getLoggedInUser?.FirstName} {getLoggedInUser?.LastName}";
+                viewModelMessage.Username = getLoggedInUser?.UserName;
+                viewModelMessage.ProfileImage = getLoggedInUser?.ProfilePicture;
+            }
+            //end
+
+
+            await _notificationHubSocket.Clients.All.SendAsync("ReceiveOffers",
+                viewModelMessage,
+                message.SenderId,
+                message.ReceiverId
+            );
+            return viewModelMessage;
         }
     }
 }

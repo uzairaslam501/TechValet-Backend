@@ -756,6 +756,7 @@ namespace ITValet.HelpingClasses
         public string? ActualOrderPrice { get; set; }
         public string? PackagePaidBy { set; get; }
         public string? PaymentId { set; get; }
+        public string? MessageId { set; get; }
         
         public string? StripeEmail { set; get; }
         public string? StripeId { set; get; }
