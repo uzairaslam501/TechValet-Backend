@@ -264,20 +264,14 @@ namespace ITValet.Controllers
                 });
 
             if (checkOutData?.OfferId! != null)
-            {
                 await _offerDetailService.UpdateOfferStatus(orderId, checkOutData.OfferId);
-                var offer = await _offerDetailService.GetOfferDetailById((int)checkOutData.OfferId);
-                var message = await _messageService.GetMessageById(Convert.ToInt32(checkOutData?.MessageId));
-                await NotifyOffer(offer!, message!, getLoggedInUser!);
-            }
-
 
             return Ok(new ResponseDto()
             {
                 Status = true,
                 StatusCode = "200",
                 Message = GlobalMessages.SuccessMessage,
-                Data = StringCipher.EncryptId(orderId),
+                Data = orderId,
             });
         }
 
@@ -295,13 +289,15 @@ namespace ITValet.Controllers
                 var chargeResult = await ProcessChargeForPackage(checkOut, packagePrice);
 
                 if (!string.IsNullOrEmpty(chargeResult) && await _userPackageService.UpdateUserPackage(userPackageId, "STRIPE"))
+                {
                     return Ok(new ResponseDto()
                     {
                         Status = true,
                         StatusCode = "200",
                         Message = "Your Package Buy Successfully",
-                        Data = null,
+                        Data = userPackageId,
                     });
+                }
 
                 return BadRequest(new ResponseDto()
                 {

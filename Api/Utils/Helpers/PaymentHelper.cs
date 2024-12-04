@@ -1,4 +1,5 @@
 ﻿using ITValet.HelpingClasses;
+using ITValet.Models;
 using PayPal.Api;
 
 namespace ITValet.Utils.Helpers
@@ -9,7 +10,8 @@ namespace ITValet.Utils.Helpers
             PayPalOrderCheckOutViewModel orderDto,
             string reactUrl,
             string clientId,
-            string clientSecret)
+            string clientSecret,
+            string type)
         {
             try
             {
@@ -23,7 +25,7 @@ namespace ITValet.Utils.Helpers
                     payer = new Payer { payment_method = "paypal" },
                     redirect_urls = new RedirectUrls
                     {
-                        return_url = $"{reactUrl}PaymentSuccess",
+                        return_url = $"{reactUrl}PaymentSuccess?type={type}",
                         cancel_url = $"{reactUrl}CancelOrder"
                     },
                     transactions = new List<Transaction>
@@ -112,6 +114,54 @@ namespace ITValet.Utils.Helpers
                 TransactionFee = capturedPayment.transaction_fee?.value
             };
         }
+
+        public static decimal CalculateOrderPrice(int sessions, decimal pricePerHour)
+        {
+            return sessions * pricePerHour;
+        }
+
+        public static int CalculateSessions(DateTime startDate, DateTime endDate, int sessionDurationInMinutes = 60)
+        {
+            TimeSpan duration = endDate - startDate;
+            int totalMinutes = (int)duration.TotalMinutes;
+            return (int)Math.Ceiling(totalMinutes / (double)sessionDurationInMinutes);
+        }
+
+        public static ResponseDto CreateErrorResponse(string message, string statusCode = "400")
+        {
+            return new ResponseDto { Status = false, StatusCode = statusCode, Message = message };
+        }
+    }
+
+    public static class PackageDetailsExtensions
+    {
+        public static UserPackage ToUserPackage(this PackageDetails packageDetails)
+        {
+            return new UserPackage
+            {
+                PackageName = packageDetails.PackageName,
+                StartDateTime = packageDetails.StartDate,
+                EndDateTime = packageDetails.EndDate,
+                TotalSessions = packageDetails.TotalSessions,
+                RemainingSessions = packageDetails.RemainingSessions,
+                PackageType = packageDetails.PackageType,
+                PaidBy = "PAYPAL"
+            };
+        }
+
+        public static PackageCheckOutViewModel ToPackageCheckOutViewModel(this PackageDetails packageDetails, int userPackageId)
+        {
+            return new PackageCheckOutViewModel
+            {
+                UserPackageId = userPackageId,
+                PaymentId = packageDetails.PaymentId,
+                PackagePrice = packageDetails.Price,
+                StartDate = packageDetails.StartDate,
+                EndDate = packageDetails.EndDate,
+                PackageType = packageDetails.PackageName,
+                ClientId = Convert.ToInt32(packageDetails.ClientId)
+            };
+        }
     }
 
     public class PayPalPaymentResponse
@@ -127,5 +177,24 @@ namespace ITValet.Utils.Helpers
         public string AuthorizationId { get; set; }
         public string TransactionFee { get; set; }
     }
+
+    public class PackageDetails
+    {
+        public int Id { get; set; } // Unique identifier for the package
+        public string PackageName { get; set; } // Name of the package (e.g., "1 Year", "2 Years")
+        public string Description { get; set; } // Description of the package
+        public decimal Price { get; set; } // Price of the package
+        public DateTime StartDate { get; set; } // Start date of the package
+        public DateTime EndDate { get; set; } // End date of the package
+        public int TotalSessions { get; set; } // Total sessions included in the package
+        public int RemainingSessions { get; set; } // Sessions remaining
+        public string Currency { get; set; } // Currency (e.g., "CAD", "USD")
+        public int PackageType { get; set; } // Type of package (e.g., 1 for 1 Year, 2 for 2 Years)
+        public bool IsActive { get; set; } // Status of the package
+        public string PaymentId { get; set; } // Associated payment ID
+        public string ClientId { get; set; } // ID of the client purchasing the package
+        public string PaymentStatus { get; set; } // Status of the payment (e.g., "completed", "pending")
+    }
+
 
 }

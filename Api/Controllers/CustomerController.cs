@@ -157,6 +157,32 @@ namespace ITValet.Controllers
             return Ok(new ResponseDto() { Data = obj, Status = true, StatusCode = "200", Message = "Record Fetch Successfully" });
         }
 
+        [HttpGet("GetPackageById/{id}")]
+        public async Task<ActionResult> GetPackageById(string id)
+        {
+            var getuserPackage = await _userPackageService.GetUserPackageById(Convert.ToInt32(id));
+
+            if (getuserPackage == null)
+            {
+                return Ok(new ResponseDto() { Status = true, StatusCode = "200", Message = GlobalMessages.InsufficientRemainingSession });
+            }
+
+            UserPackageDto obj = new UserPackageDto()
+            {
+                Id = getuserPackage.Id,
+                PackageName = getuserPackage.PackageName,
+                PackageType = getuserPackage.PackageType,
+                RemainingSessions = getuserPackage.RemainingSessions,
+                StartDateTime = getuserPackage.StartDateTime,
+                EndDateTime = getuserPackage.EndDateTime,
+                TotalSessions = getuserPackage.TotalSessions,
+                CustomerId = getuserPackage.CustomerId,
+                PackagePaidBy = getuserPackage.PaidBy
+            };
+
+            return Ok(new ResponseDto() { Data = obj, Status = true, StatusCode = "200", Message = "Record Fetch Successfully" });
+        }
+
         [HttpPost("GetUserPackageDatatable")]
         public async Task<IActionResult> GetUserPackageDatatable(int? UserId)
         {
@@ -296,6 +322,31 @@ namespace ITValet.Controllers
             }
 
             return new ObjectResult(new { data = udto, draw = Request.Form["draw"].FirstOrDefault(), recordsTotal = totalrows, recordsFiltered = totalrowsafterfilterinig });
+        }
+
+        [HttpGet("GetOrderById/{id}")]
+        public async Task<IActionResult> GetOrderById(string? id = "")
+        {
+            if (string.IsNullOrEmpty(id))
+            {
+                return null;
+            }
+            var getOrder = await orderRepo.GetOrderById(Convert.ToInt32(id));
+
+            List<OrderDtoList> udto = new List<OrderDtoList>();
+            var order = new OrderDtoList
+            {
+                Id = getOrder.Id.ToString(),
+                EncId = StringCipher.EncryptId(getOrder.Id),
+                OrderTitle = getOrder.OrderTitle,
+                StartDateTime = getOrder.StartDateTime != null ? getOrder.StartDateTime.ToString() : "",
+                EndDateTime = getOrder.EndDateTime != null ? getOrder.EndDateTime.ToString() : "",
+                OrderPrice = getOrder.OrderPrice.ToString(),
+                PackageBuyFrom = getOrder.PackageBuyFrom,
+                CapturedId = getOrder.CapturedId
+            };
+
+            return Ok(new ResponseDto() { Data = getOrder, Status = true, StatusCode = "200" });
         }
 
         #endregion

@@ -5,6 +5,7 @@ using ITValet.Models;
 using ITValet.NotificationHub;
 using ITValet.Services;
 using ITValet.Utils.Helpers;
+using MailKit.Search;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Options;
@@ -55,207 +56,6 @@ namespace ITValet.Controllers
             jwtUtils = _jwtUtils;
             _notificationService = notificationService;
             _userService = userService;
-        }
-
-        [HttpPost("payPalCheckoutForPackage")]
-        public async Task<IActionResult> PayPalCheckOutForPackages(PackageCOutRequest checkOut)
-        {
-            try
-            {
-                PackageCheckOutViewModel packageobj = new PackageCheckOutViewModel();
-                UserPackage package = new UserPackage();
-                var config = new Dictionary<string, string> { { "mode", "sandbox" } };
-                var accessToken = new OAuthTokenCredential(_configuration["PayPal:ClientId"], _configuration["PayPal:ClientSecret"], config).GetAccessToken();
-                var apiContext = new APIContext(accessToken);
-
-                decimal price;
-                string description;
-
-                if (checkOut.SelectedPackage == "IYear")
-                {
-                    price = 100.00m;
-                    description = "1 Year (6 Sessions) Package";
-                    //Calculate start and end dates for a 1-year package
-                    DateTime startDate = DateTime.Now;
-                    DateTime endDate = startDate.AddYears(1);
-                    packageobj.StartDate = startDate;
-                    packageobj.EndDate = endDate;
-                    packageobj.PackageType = "OneYear";
-                    package.StartDateTime = startDate;
-                    package.EndDateTime = endDate;
-                    package.PackageType = 1;
-                    package.PackageName = checkOut.SelectedPackage;
-                    package.TotalSessions = 6;
-                    package.RemainingSessions = 6;
-                }
-                else if (checkOut.SelectedPackage == "2Year")
-                {
-
-                    price = 200.00m;
-                    description = "2 Years (12 Sessions) Package";
-
-                    // Calculate start and end dates for a 2-year package
-                    DateTime startDate = DateTime.Now;
-                    DateTime endDate = startDate.AddYears(2);
-                    packageobj.StartDate = startDate;
-                    packageobj.EndDate = endDate;
-                    packageobj.PackageType = "TwoYear";
-                    package.StartDateTime = startDate;
-                    package.EndDateTime = endDate;
-                    package.PackageType = 2;
-                    package.PackageName = checkOut.SelectedPackage;
-                    package.TotalSessions = 12;
-                    package.RemainingSessions = 12;
-                }
-                else
-                {
-                    return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = "InvalidSelection" });
-                }
-
-                var payment = new Payment
-                {
-                    intent = "sale",
-                    payer = new Payer { payment_method = "paypal" },
-                    redirect_urls = new RedirectUrls
-                    {
-                        return_url = projectVariables.BaseUrl+"PayPalClientGateway/PaymentStatusForPackage",
-                        cancel_url = projectVariables.BaseUrl+"PayPalClientGateway/CancelPackage"
-                    },
-                    transactions = new List<Transaction>
-                    {
-                        new Transaction
-                        {
-                            item_list = new ItemList
-                            {
-                                items = new List<Item>
-                                {
-                                    new Item
-                                    {
-                                        name = description,
-                                        sku = "001",
-                                        price = price.ToString("0.00"),
-                                        currency = "CAD",
-                                        quantity = "1"
-                                    }
-                                }
-                            },
-                            amount = new Amount
-                            {
-                                currency = "CAD",
-                                total = price.ToString("0.00") // Convert the price to a formatted string
-                            },
-                            description = description // Use the description of the selected package
-                        }
-                    }
-                };
-
-                var createdPayment = payment.Create(apiContext);
-                var paymentId = createdPayment.id;
-                packageobj.PaymentId = paymentId;
-                packageobj.PackagePrice = price;
-                packageobj.ClientId = checkOut.ClientId.Value;
-                package.CustomerId = checkOut.ClientId;
-
-                int userPackageId = -1;
-                bool isPackageInsertion = false;
-                try
-                {
-                    userPackageId = await _userPackageService.AddUserPackageAndGetId(package);
-                    if (userPackageId != -1)
-                    {
-                        packageobj.UserPackageId = userPackageId;
-                        isPackageInsertion = await _payPalGateWayService.AddPayPalPackage(packageobj);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = "An error occurred during package processing" });
-                }
-
-                if (isPackageInsertion)
-                {
-                    var approvalUrl = createdPayment.links.FirstOrDefault(link => link.rel.Equals("approval_url", StringComparison.OrdinalIgnoreCase))?.href;
-                    if (approvalUrl != null)
-                    {
-                        PayPalCheckOutURL urlObj = new PayPalCheckOutURL();
-                        var redirectUrl = approvalUrl + "&paymentId=" + paymentId;
-                        urlObj.Url = redirectUrl;
-                        return Ok(new ResponseDto() { Data = urlObj, Status = true, StatusCode = "200" });
-                    }
-                }
-
-                return Ok(new ResponseDto() { Status = false, StatusCode = "500", Message = "Something went wrong" });
-            }
-            catch (Exception ex)
-            {
-                await MailSender.SendErrorMessage(projectVariables.BaseUrl + " ----------<br>" + ex.Message.ToString() + "---------------" + ex.StackTrace);
-                return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
-            }
-        }
-
-        [HttpGet("packagestatus")]
-        public async Task<IActionResult> CheckPaymentStatusForPackages(string paymentId, string token, string PayerID)
-        {
-            try
-            {
-                // Retrieve the data from the database with the help of paymentId
-                var packageobj = await _payPalGateWayService.GetPackageByPaymentId(paymentId);
-                if (packageobj == null)
-                {
-                    return Ok(new ResponseDto() { Status = false, StatusCode = "404", Message = "NotFound" });
-                }
-
-                var config = new Dictionary<string, string> { { "mode", "sandbox" } };
-                var accessToken = new OAuthTokenCredential(_configuration["PayPal:ClientId"], _configuration["PayPal:ClientSecret"], config).GetAccessToken();
-                var apiContext = new APIContext(accessToken);
-
-                // Execute the payment using the payer ID
-                var paymentExecution = new PaymentExecution { payer_id = PayerID };
-                var executedPayment = Payment.Execute(apiContext, paymentId, paymentExecution);
-
-                // Check if the payment is approved
-                if (executedPayment.state.ToLower() == "approved" && executedPayment.intent.ToLower() == "sale")
-                {
-                    var paymentStatus = executedPayment.transactions.FirstOrDefault()?.related_resources.FirstOrDefault()?.sale.state;
-                    if (paymentStatus == "completed")
-                    {
-                        packageobj.PaymentStatus = paymentStatus;
-                        packageobj.IsActive = 1;
-                        packageobj.PayableAmount = executedPayment.transactions.FirstOrDefault()?.amount.total;
-                        packageobj.Currency = executedPayment.transactions.FirstOrDefault()?.amount.currency;
-
-                        // Update package record
-                        bool isUpdatePackageRecord = await _payPalGateWayService.UpdatePackageRecord(packageobj);
-                        bool IsUserPackageUpdated = await _userPackageService.UpdateUserPackage(packageobj.UserPackageId, "PAYPAL");
-
-                        if (isUpdatePackageRecord && IsUserPackageUpdated)
-                        {
-                            CheckoutPaymentStatusPackage status = new CheckoutPaymentStatusPackage
-                            {
-                                PaymentStatus = "success",
-                                PaymentId = paymentId,
-                            };
-                            return Ok(new ResponseDto() { Data = status, Status = true, StatusCode = "200" });
-                        }
-                    }
-                    else
-                    {
-                        CheckoutPaymentStatusPackage status = new CheckoutPaymentStatusPackage
-                        {
-                            PaymentStatus = "notCompleted",
-                            PaymentId = paymentId,
-                        };
-                        return Ok(new ResponseDto() { Data = status, Status = false, StatusCode = "400", Message = "NotFound" });
-                    }
-                }
-
-                return Ok(new ResponseDto() { Status = false, StatusCode = "500", Message = "Something went wrong" });
-            }
-            catch (Exception ex)
-            {
-                await MailSender.SendErrorMessage(projectVariables.BaseUrl + " ----------<br>" + ex.Message.ToString() + "---------------" + ex.StackTrace);
-                return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
-            }
         }
 
 
@@ -539,103 +339,7 @@ namespace ITValet.Controllers
             }
         }
 
-        [HttpPost("CreateOrderBySession")]
-        public async Task<IActionResult> CreateOrderBySession(CheckOutDTO orderObj)
-        {
-            try
-            {
-                var order = new Models.Order
-                {
-                    OrderTitle = orderObj.PaymentTitle,
-                    OrderDescription = orderObj.PaymentDescription,
-                    StartDateTime = Convert.ToDateTime(orderObj.FromDateTime),
-                    EndDateTime = Convert.ToDateTime(orderObj.ToDateTime),
-                    ValetId = Convert.ToInt32(orderObj.ValetId),
-                    CustomerId = Convert.ToInt32(orderObj.customerId),
-                    OfferId = orderObj.OfferId,
-                    PackageId = orderObj.PackageId,
-                    PackageBuyFrom = "PAYPAL",
-                    StripeStatus = (int)StripePaymentStatus.SessionUsed,
-                    IsActive = 0,
-                    OrderStatus = 0,
-                    IsDelivered = 0,
-                    OrderPrice = 0,
-                    TotalAmountIncludedFee = 0,
-                    CreatedAt = GeneralPurpose.DateTimeNow()
-                };
-
-                // Get the order ID
-                var orderId = await _orderService.GetOrderId(order);
-                //Update OrderRecord in PayPalGateWayService
-                PayPalOrderCheckOutViewModel orderCK = new PayPalOrderCheckOutViewModel();
-                orderCK.ValetId = Convert.ToInt32(orderObj.ValetId);
-                orderCK.ClientId = Convert.ToInt32(orderObj.customerId);
-                orderCK.OrderId = orderId;
-                orderCK.PayByPackage = true;
-
-                // Calculate session duration in minutes, rounding up to the nearest hour
-                DateTime endDate = Convert.ToDateTime(orderObj.ToDateTime);
-                DateTime startDate = Convert.ToDateTime(orderObj.FromDateTime);
-                TimeSpan duration = endDate - startDate;
-
-                // Calculate sessions based on working hours (e.g., 1 session = 60 minutes)
-                int totalMinutes = (int)duration.TotalMinutes;
-                int sessions = (int)Math.Ceiling(totalMinutes / 60.0); // Round up to the nearest hour
-
-                // Calculate the order price based on sessions (1 session = 1 hour)
-                var getValet = await _userService.GetUserById(Convert.ToInt32(orderObj.ValetId));
-                decimal orderPrice = sessions * (decimal)getValet.PricePerHour;
-                orderCK.OrderPrice = orderPrice;
-
-                var createOrderInOrderCheckOutForPackage = await _payPalGateWayService.AddPayPalOrderForPackage(orderCK);
-
-                // Update remaining sessions in the user package if there are enough sessions available
-                var packageObj = await _userPackageService.GetUserPackageById(orderObj.PackageId.Value);
-
-                if (packageObj.RemainingSessions >= sessions)
-                {
-                    packageObj.RemainingSessions -= sessions;
-                    bool updateSessionRecord = await _userPackageService.UpdateUserPackageSession(packageObj);
-
-                    if (updateSessionRecord)
-                    {
-                        // Update the order
-                        bool updateOrder = await UpdateOrder(orderPrice, orderId);
-                        var orderOBJ = await _orderService.GetOrderById(orderId);
-                        if (orderOBJ.OfferId != null)
-                        {
-                            bool isOfferUpdate = await _offerService.UpdateOfferStatus(orderOBJ.Id, orderOBJ.OfferId);
-                        }
-                        if (updateOrder)
-                        {
-                            return Ok(new ResponseDto
-                            {
-                                Id = StringCipher.EncryptId(orderId),
-                                Status = true,
-                                StatusCode = "200",
-                                Message = GlobalMessages.SuccessMessage
-                            });
-                        }
-                    }
-                }
-
-                return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = "Session Not Updated" });
-            }
-            catch (Exception ex)
-            {
-                await MailSender.SendErrorMessage(projectVariables.BaseUrl + " ----------<br>" + ex.Message.ToString() + "---------------" + ex.StackTrace);
-                return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
-            }
-        }
-
-        private async Task<bool> UpdateOrder(decimal price, int orderId)
-        {
-            var orderObj = await _orderService.GetOrderById(orderId);
-            orderObj.IsActive = 1;
-            orderObj.OrderPrice = price;
-            return await _orderService.UpdateOrder(orderObj);
-        }
-
+        
         private async Task<bool> AddUserRatingAgainstOrder(AcceptOrder order)
         {
             try
@@ -689,7 +393,8 @@ namespace ITValet.Controllers
                     orderDto,
                     projectVariables.ReactUrl,
                     _configuration["PayPal:ClientId"],
-                    _configuration["PayPal:ClientSecret"]
+                    _configuration["PayPal:ClientSecret"],
+                    "Order"
                 );
 
                 if (paymentRequest.PaymentId == null)
@@ -789,6 +494,206 @@ namespace ITValet.Controllers
             }
         }
 
+        [HttpPost("PayPalCheckoutForPackage")]
+        public async Task<IActionResult> PayPalCheckOutForPackages(PackageCOutRequest checkOut)
+        {
+            try
+            {
+                // Prepare package data
+                var packageDetails = GetPackageDetails(checkOut.SelectedPackage);
+                if (packageDetails == null)
+                {
+                    return BadRequest(new ResponseDto { Status = false, StatusCode = "400", Message = "Invalid package selection" });
+                }
+
+                // Create payment request using PayPalPaymentHelper
+                var paymentRequest = PayPalPaymentHelper.CreatePaymentRequest(
+                    new PayPalOrderCheckOutViewModel
+                    {
+                        OrderTitle = packageDetails.Description,
+                        TotalPrice = packageDetails.Price,
+                        OrderDescription = packageDetails.Description
+                    },
+                    $"{projectVariables.ReactUrl}",
+                    _configuration["PayPal:ClientId"],
+                    _configuration["PayPal:ClientSecret"],
+                    "Package"
+                );
+
+                if (string.IsNullOrEmpty(paymentRequest.PaymentId))
+                {
+                    return StatusCode(500, new ResponseDto { Status = false, StatusCode = "500", Message = "Payment creation failed" });
+                }
+
+                // Save package and PayPal details
+                packageDetails.PaymentId = paymentRequest.PaymentId;
+                packageDetails.ClientId = checkOut?.ClientId?.ToString();
+                var userPackageId = await _userPackageService.AddUserPackageAndGetId(packageDetails.ToUserPackage());
+                if (userPackageId == -1 || !await _payPalGateWayService.AddPayPalPackage(packageDetails.ToPackageCheckOutViewModel(userPackageId)))
+                {
+                    return StatusCode(500, new ResponseDto { Status = false, StatusCode = "500", Message = "Failed to save package details" });
+                }
+
+                return Ok(new ResponseDto
+                {
+                    Status = true,
+                    StatusCode = "200",
+                    Data = new PayPalCheckOutURL { Url = paymentRequest.ApprovalUrl }
+                });
+            }
+            catch (Exception ex)
+            {
+                await MailSender.SendErrorMessage($"{projectVariables.BaseUrl}<br>{ex.Message}<br>{ex.StackTrace}");
+                return StatusCode(500, new ResponseDto { Status = false, StatusCode = "500", Message = GlobalMessages.SystemFailureMessage });
+            }
+        }
+
+        [HttpGet("CheckPaymentStatusForPackage")]
+        public async Task<IActionResult> CheckPaymentStatusForPackages(string paymentId, string token, string payerID)
+        {
+            try
+            {
+                // Retrieve package by payment ID
+                var packageObj = await _payPalGateWayService.GetPackageByPaymentId(paymentId);
+                if (packageObj == null)
+                {
+                    return NotFound(new ResponseDto { Status = false, StatusCode = "404", Message = "Package not found" });
+                }
+
+                // Execute payment using PayPalPaymentHelper
+                var executedPayment = PayPalPaymentHelper.ExecutePayment(paymentId, payerID, _configuration);
+                if (executedPayment.state.ToLower() != "approved")
+                {
+                    return StatusCode(400, new ResponseDto { Status = false, StatusCode = "400", Message = "Payment not approved" });
+                }
+
+                // Update package details
+                packageObj.PaymentStatus = "completed";
+                packageObj.PayableAmount = executedPayment.transactions.FirstOrDefault()?.amount.total ;
+                packageObj.Currency = executedPayment.transactions.FirstOrDefault()?.amount.currency;
+
+                if (!await _payPalGateWayService.UpdatePackageRecord(packageObj) ||
+                    !await _userPackageService.UpdateUserPackage(packageObj.UserPackageId, "PAYPAL"))
+                {
+                    return StatusCode(500, new ResponseDto { Status = false, StatusCode = "500", Message = "Failed to update package record" });
+                }
+
+                return Ok(new ResponseDto()
+                {
+                    Status = true,
+                    StatusCode = "200",
+                    Message = "Payment Completed",
+                    Data = packageObj
+                });
+            }
+            catch (Exception ex)
+            {
+                await MailSender.SendErrorMessage($"{projectVariables.BaseUrl}<br>{ex.Message}<br>{ex.StackTrace}");
+                return StatusCode(500, new ResponseDto { Status = false, StatusCode = "500", Message = GlobalMessages.SystemFailureMessage });
+            }
+        }
+
+        [HttpPost("CreateOrderBySession")]
+        public async Task<IActionResult> CreateOrderBySession(CheckOutDTO orderObj)
+        {
+            try
+            {
+                var order = ModelBinding(orderObj);
+
+                int orderId = await _orderService.GetOrderId(order);
+
+                var orderCK = new PayPalOrderCheckOutViewModel
+                {
+                    ValetId = Convert.ToInt32(orderObj.ValetId),
+                    ClientId = Convert.ToInt32(orderObj.customerId),
+                    OrderId = orderId,
+                    PayByPackage = true
+                };
+
+                DateTime startDate = Convert.ToDateTime(orderObj.FromDateTime);
+                DateTime endDate = Convert.ToDateTime(orderObj.ToDateTime);
+                int sessions = PayPalPaymentHelper.CalculateSessions(startDate, endDate);
+
+                var valet = await _userService.GetUserById(Convert.ToInt32(orderObj.ValetId));
+                orderCK.OrderPrice = PayPalPaymentHelper.CalculateOrderPrice(sessions, (decimal)valet.PricePerHour);
+
+                bool orderCreated = await _payPalGateWayService.AddPayPalOrderForPackage(orderCK);
+
+                if (orderCreated)
+                {
+                    bool packageUpdated = await UpdatePackageSessions(orderObj.PackageId.Value, sessions);
+
+                    if (packageUpdated)
+                    {
+                        bool orderUpdated = await UpdateOrder(orderCK.OrderPrice, orderId);
+
+                        if (orderUpdated)
+                        {
+                            var orderOBJ = await _orderService.GetOrderById(orderId);
+
+                            if (orderOBJ.OfferId != null)
+                            {
+                                await _offerService.UpdateOfferStatus(orderOBJ.Id, orderOBJ.OfferId);
+                            }
+
+                            return Ok(new ResponseDto
+                            {
+                                Id = StringCipher.EncryptId(orderId),
+                                Status = true,
+                                StatusCode = "200",
+                                Message = GlobalMessages.SuccessMessage
+                            });
+                        }
+                    }
+                }
+
+                return Ok(PayPalPaymentHelper.CreateErrorResponse("Session Not Updated"));
+            }
+            catch (Exception ex)
+            {
+                await LogError(ex, projectVariables.BaseUrl);
+                return Ok(PayPalPaymentHelper.CreateErrorResponse(GlobalMessages.SystemFailureMessage));
+            }
+        }
+
+        private async Task<bool> UpdateOrder(decimal price, int orderId)
+        {
+            var orderObj = await _orderService.GetOrderById(orderId);
+            orderObj.IsActive = 1;
+            orderObj.OrderPrice = price;
+            return await _orderService.UpdateOrder(orderObj);
+        }
+
+        private PackageDetails GetPackageDetails(string selectedPackage)
+        {
+            return selectedPackage switch
+            {
+                "IYear" => new PackageDetails
+                {
+                    Price = 100.00m,
+                    Description = "1 Year (6 Sessions) Package",
+                    StartDate = DateTime.Now,
+                    EndDate = DateTime.Now.AddYears(1),
+                    TotalSessions = 6,
+                    RemainingSessions = 6,
+                    PackageType = 1,
+                    PackageName = "IYear"
+                },
+                "2Year" => new PackageDetails
+                {
+                    Price = 200.00m,
+                    Description = "2 Years (12 Sessions) Package",
+                    StartDate = DateTime.Now,
+                    EndDate = DateTime.Now.AddYears(2),
+                    TotalSessions = 12,
+                    RemainingSessions = 12,
+                    PackageType = 2,
+                    PackageName = "2Year"
+                },
+                _ => null
+            };
+        }
+
         private async Task<bool> UpdateOrderDetails(OrderCheckOutViewModel orderObj, CaptureResponse captureResponse, string paymentId)
         {
             orderObj.PayableAmount = captureResponse.TransactionFee;
@@ -813,6 +718,43 @@ namespace ITValet.Controllers
             return isPayPalOrderUpdated && orderUpdate != null;
         }
 
+        private async Task<bool> UpdatePackageSessions(int packageId, int sessionsUsed)
+        {
+            var packageObj = await _userPackageService.GetUserPackageById(packageId);
+            if (packageObj.RemainingSessions < sessionsUsed) return false;
+
+            packageObj.RemainingSessions -= sessionsUsed;
+            return await _userPackageService.UpdateUserPackageSession(packageObj);
+        }
+
+        private async Task LogError(Exception ex, string baseUrl)
+        {
+            string message = $"{baseUrl} ----------<br>{ex.Message}---------------{ex.StackTrace}";
+            await MailSender.SendErrorMessage(message);
+        }
+
+        private Models.Order ModelBinding(CheckOutDTO order)
+        {
+            return new Models.Order
+            {
+                OrderTitle = order.PaymentTitle,
+                OrderDescription = order.PaymentDescription,
+                StartDateTime = Convert.ToDateTime(order.FromDateTime),
+                EndDateTime = Convert.ToDateTime(order.ToDateTime),
+                ValetId = Convert.ToInt32(order.ValetId),
+                CustomerId = Convert.ToInt32(order.customerId),
+                OfferId = order.OfferId,
+                PackageId = order.PackageId,
+                PackageBuyFrom = "PAYPAL",
+                StripeStatus = (int)StripePaymentStatus.SessionUsed,
+                IsActive = 0,
+                OrderStatus = 0,
+                IsDelivered = 0,
+                OrderPrice = 0,
+                TotalAmountIncludedFee = 0,
+                CreatedAt = GeneralPurpose.DateTimeNow()
+            };
+        }
         #endregion
 
     }
