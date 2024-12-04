@@ -5,7 +5,6 @@ using ITValet.Models;
 using ITValet.NotificationHub;
 using ITValet.Services;
 using ITValet.Utils.Helpers;
-using MailKit.Search;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Options;
@@ -339,7 +338,6 @@ namespace ITValet.Controllers
             }
         }
 
-        
         private async Task<bool> AddUserRatingAgainstOrder(AcceptOrder order)
         {
             try
@@ -483,9 +481,9 @@ namespace ITValet.Controllers
                     PaymentStatus = "success",
                     PaymentMethod = "PayPal"
                 };
-                
 
-                return Ok(new ResponseDto { Data = orderStatus, Status = true, StatusCode = "200" });
+                var getOrder = await _orderService.GetOrderById(orderObj.OrderId);
+                return Ok(new ResponseDto { Data = getOrder, Status = true, StatusCode = "200" });
             }
             catch (Exception ex)
             {
@@ -577,13 +575,13 @@ namespace ITValet.Controllers
                 {
                     return StatusCode(500, new ResponseDto { Status = false, StatusCode = "500", Message = "Failed to update package record" });
                 }
-
+                var getPackage = await _userPackageService.GetUserPackageById(packageObj.UserPackageId);
                 return Ok(new ResponseDto()
                 {
                     Status = true,
                     StatusCode = "200",
                     Message = "Payment Completed",
-                    Data = packageObj
+                    Data = getPackage
                 });
             }
             catch (Exception ex)
