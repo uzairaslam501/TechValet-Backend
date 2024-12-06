@@ -25,7 +25,7 @@ namespace ITValet.JWTAuthentication
 
         public string GenerateToken(User user)
         {
-            // generate token that is valid for 7 days
+            // generate token that is valid for 1 days
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(_projectVariables.JwtSecret);
             var tokenDescriptor = new SecurityTokenDescriptor
@@ -42,7 +42,7 @@ namespace ITValet.JWTAuthentication
                 new Claim("timeZone", user.Timezone!),
                 new Claim("userStatus", Enum.GetName(typeof(EnumActiveStatus), user.IsActive!)!)
             }),
-                Expires = DateTime.UtcNow.AddDays(7),
+                Expires = GeneralPurpose.DateTimeNow().AddDays(1),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
             var token = tokenHandler.CreateToken(tokenDescriptor);

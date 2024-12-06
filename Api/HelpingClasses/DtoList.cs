@@ -65,6 +65,33 @@ namespace ITValet.HelpingClasses
         public string? Description { get; set; }
     }
 
+    public class UserViewModel
+    {
+        public string? UserEncId { get; set; }
+        public string? FirstName { get; set; }
+        public string? LastName { get; set; }
+        public string? UserName { get; set; }
+        public string? Email { get; set; }
+        public string? Contact { get; set; }
+        public string? BirthDate { get; set; }
+        public string? ProfilePicture { get; set; }
+        public string? Country { get; set; }
+        public string? State { get; set; }
+        public string? City { get; set; }
+        public string? ZipCode { get; set; }
+        public string? Timezone { get; set; }
+        public string? Availability { get; set; }
+        public string? Status { get; set; }
+        public string? Language { get; set; }
+        public string? Gender { get; set; }
+        public string? PricePerHour { get; set; }
+        public string? Role { get; set; }
+        public string? AvailabilityType { get; set; }
+        public string? SelectedDays { get; set; }
+        public string? AvailableTimeSlots { get; set; }
+        public string? Description { get; set; }
+    }
+
     public class UserListDto
     {
         public int? Id { get; set; }
@@ -218,6 +245,7 @@ namespace ITValet.HelpingClasses
         public string? PricePerHour { get; set; }
         public string? Token { get; set; }
         public string? IsActive { get; set; }
+        public string? TokenExpire { get; set; }
     }
 
     public class ResponseDto

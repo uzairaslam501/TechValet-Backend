@@ -3,8 +3,10 @@ using ITValet.HelpingClasses;
 using ITValet.JWTAuthentication;
 using ITValet.JwtAuthorization;
 using ITValet.Models;
+using ITValet.NotificationHub;
 using ITValet.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Options;
 using Stripe;
 using System.Diagnostics.Eventing.Reader;
@@ -24,10 +26,12 @@ namespace ITValet.Controllers
         private readonly IUserEducationRepo userEducationRepo;
         private readonly IUserSkillRepo userSkillRepo;
         private readonly IUserAvailableSlotRepo userAvailableSlotRepo;
+        private readonly IHubContext<NotificationHubSocket> _notificationHubSocket;
 
         public AuthController(IUserEducationRepo _userEducationRepo, IUserExperienceRepo _userExperienceRepo,
             IUserSkillRepo _userSkillRepo, IPayPalGateWayService payPalGateWayService,
-            IUserRepo _userRepo, IUserAvailableSlotRepo _userAvailableSlotRepo, IJwtUtils _jwtUtils, IOptions<ProjectVariables> options)
+            IUserRepo _userRepo, IUserAvailableSlotRepo _userAvailableSlotRepo, IJwtUtils _jwtUtils, IOptions<ProjectVariables> options,
+            IHubContext<NotificationHubSocket> notificationHubSocket)
         {
             userRepo = _userRepo;
             jwtUtils = _jwtUtils;
@@ -37,51 +41,46 @@ namespace ITValet.Controllers
             userSkillRepo = _userSkillRepo;
             userEducationRepo = _userEducationRepo;
             userAvailableSlotRepo = _userAvailableSlotRepo;
+            _notificationHubSocket = notificationHubSocket;
         }
 
         [HttpPost("Login")]
-        public async Task<ActionResult<UserClaims>> PostLogin(LoginDto loginDto)
+        public async Task<ActionResult<ResponseDto>> PostLogin(LoginDto loginDto)
         {
-            if(string.IsNullOrEmpty(loginDto.Email) || string.IsNullOrEmpty(loginDto.Password))
+            if (string.IsNullOrWhiteSpace(loginDto.Email) || string.IsNullOrWhiteSpace(loginDto.Password))
             {
-                return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = GlobalMessages.EmailPassword });
+                return BadRequest(new ResponseDto
+                {
+                    Status = false,
+                    StatusCode = "400",
+                    Message = GlobalMessages.EmailPassword
+                });
             }
-            User? user = await userRepo.GetUserByLogin(loginDto.Email, loginDto.Password);
 
+            var user = await userRepo.GetUserByLogin(loginDto.Email, loginDto.Password);
             if (user == null)
             {
-                return NotFound(new ResponseDto() { Status = false, StatusCode = "404", Message = GlobalMessages.LoginNotFound });
-            }
-            int IsCompleteValetAccount = 1;
-            if (user.Role == 4)
-            {
-                IsCompleteValetAccount = await GeneralPurpose.CheckValuesNotEmpty(user, userExperienceRepo, userSkillRepo, _payPalGateWayService, userEducationRepo);
-                if (IsCompleteValetAccount == 1)
+                return NotFound(new ResponseDto
                 {
-                    var record = await userAvailableSlotRepo.GetUserAvailableSlotByUserId((int)user.Id);
-                    if (record.Count() <= 0)
-                    {
-                        await userAvailableSlotRepo.CreateEntriesForCurrentMonth(user.Id);
-                    }
-                }
+                    Status = false,
+                    StatusCode = "404",
+                    Message = GlobalMessages.LoginNotFound
+                });
             }
 
-            UserClaims obj = new UserClaims()
-            {
-                Id = user.Id,
-                UserEncId = StringCipher.EncryptId(user.Id),
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                UserName = user.UserName,
-                Email = user.Email,
-                IsActive = Enum.GetName(typeof(EnumActiveStatus), user.IsActive),
-                Role = Enum.GetName(typeof(EnumRoles), user.Role),
-                Token = jwtUtils.GenerateToken(user),
-                ProfilePicture = user.ProfilePicture != null ? projectVariables.BaseUrl + user.ProfilePicture : null,
-                IsCompleteValetAccount = IsCompleteValetAccount.ToString(),
-            };
+            var isCompleteValetAccount = user.Role == 4
+                ? await HandleValetAccountLogic(user)
+                : 1;
 
-            return Ok(new ResponseDto() { Data = obj, Status = true, StatusCode = "200" });
+            var loggedin = CreateUserClaims(user);
+            loggedin.IsCompleteValetAccount = isCompleteValetAccount.ToString();
+
+            return Ok(new ResponseDto
+            {
+                Data = loggedin,
+                Status = true,
+                StatusCode = "200"
+            });
         }
 
         [CustomAuthorize]
@@ -121,7 +120,7 @@ namespace ITValet.Controllers
                 ProfilePicture = user.ProfilePicture != null ? baseUri + user.ProfilePicture : null,
             };
 
-            return Ok(new ResponseDto() { Data = obj , Status = true, StatusCode = "200"});
+            return Ok(new ResponseDto() { Data = obj, Status = true, StatusCode = "200" });
         }
 
         #region Registeration
@@ -179,73 +178,54 @@ namespace ITValet.Controllers
         #endregion
 
         #region Manage Profile
-        [CustomAuthorize]
         [HttpPut]
-        [Route("UpdateProfile")]
-        public async Task<ActionResult> PostUpdateProfile(PostUpdateUserDto user)
+        [Route("UpdateProfile/{id}")]
+        public async Task<ActionResult> PostUpdateProfile(string id, UserViewModel user)
         {
-            UserClaims? getUsetFromToken = jwtUtils.ValidateToken(Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last());
-            User? obj = await userRepo.GetUserById((int)getUsetFromToken.Id!);
+            var obj = await userRepo.GetUserById(Convert.ToInt32(id));
 
             if (obj == null)
             {
-                return Ok(new ResponseDto() { Status = false, StatusCode = "404", Message = GlobalMessages.RecordNotFound });
+                return Ok(new ResponseDto
+                {
+                    Status = false,
+                    StatusCode = "404",
+                    Message = GlobalMessages.RecordNotFound
+                });
             }
 
-            obj.FirstName = !string.IsNullOrEmpty(user.FirstName)  ? user.FirstName : obj.FirstName;
-            obj.LastName = !string.IsNullOrEmpty(user.LastName) ? user.LastName : obj.LastName;
-            obj.Contact = !string.IsNullOrEmpty(user.Contact) ? user.Contact : obj.Contact;
-            obj.BirthDate = !string.IsNullOrEmpty(user.BirthDate) ? Convert.ToDateTime(user.BirthDate) : obj.BirthDate;
-            obj.Country = !string.IsNullOrEmpty(user.Country) ? user.Country : obj.Country;
-            obj.State = !string.IsNullOrEmpty(user.State) ? user.State : obj.State;
-            obj.City = !string.IsNullOrEmpty(user.City) ? user.City : obj.City;
-            obj.ZipCode = !string.IsNullOrEmpty(user.ZipCode) ? user.ZipCode : obj.ZipCode;
-            obj.Timezone = !string.IsNullOrEmpty(user.Timezone) ? user.Timezone : obj.Timezone;
-            obj.Availability = !string.IsNullOrEmpty(user.Availability) ? Convert.ToInt32(user.Availability) : obj.Availability;
-            obj.Status = !string.IsNullOrEmpty(user.Status) ? Convert.ToInt32(user.Status) : obj.Status;
-            obj.Gender = !string.IsNullOrEmpty(user.Gender) ? user.Gender : obj.Gender;
-            obj.PricePerHour = !string.IsNullOrEmpty(user.PricePerHour) ? Convert.ToDecimal(user.PricePerHour) : obj.PricePerHour;
-            obj.Language = !string.IsNullOrEmpty(user.Language) ? user.Language : obj.Language;
+            UpdateUserProperties(user, obj);
 
-            if (!await userRepo.ValidateEmail(obj.Email, obj.Id))
+            if (!await userRepo.ValidateEmail(obj.Email!, obj.Id))
             {
-                return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = GlobalMessages.DuplicateEmail });
+                return Ok(new ResponseDto
+                {
+                    Status = false,
+                    StatusCode = "400",
+                    Message = GlobalMessages.DuplicateEmail
+                });
             }
 
             if (!await userRepo.UpdateUser(obj))
             {
-                return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
+                return Ok(new ResponseDto
+                {
+                    Status = false,
+                    StatusCode = "400",
+                    Message = GlobalMessages.SystemFailureMessage
+                });
             }
-            var baseUri = $"{Request.Scheme}://{Request.Host}/profiles/";
 
-            UserClaims loggedin = new UserClaims()
+            var loggedin = CreateUserClaims(obj);
+
+            return Ok(new ResponseDto
             {
-                Id = obj.Id,
-                UserEncId = StringCipher.EncryptId((int)obj.Id),
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                UserName = obj.UserName,
-                Email = obj.Email,
-                Role = Enum.GetName(typeof(EnumRoles), obj.Role!),
-                Token = jwtUtils.GenerateToken(obj),
-                ProfilePicture = user.ProfilePicture != null ? baseUri + user.ProfilePicture : obj.ProfilePicture,
-                Contact = obj.Contact,
-                BirthDate = obj.BirthDate.ToString(),
-                Country = obj.Country,
-                State = obj.State,
-                City = obj.City,
-                ZipCode = obj.ZipCode,
-                Timezone = obj.Timezone,
-                Availability = obj.Availability,
-                Gender = obj.Gender,
-                StripeId = obj.StripeId,
-                PricePerHour = obj.PricePerHour.ToString(),
-                IsActive = Enum.GetName(typeof(EnumActiveStatus), obj.IsActive!),
-            };
-
-            return Ok(new ResponseDto() { Data = loggedin,  Status = true, StatusCode = "200", Message = GlobalMessages.UpdateMessage});
+                Data = loggedin,
+                Status = true,
+                StatusCode = "200",
+                Message = GlobalMessages.UpdateMessage
+            });
         }
-
 
         [CustomAuthorize]
         [HttpPut]
@@ -258,8 +238,8 @@ namespace ITValet.Controllers
             {
                 return Ok(new ResponseDto() { Status = false, StatusCode = "404", Message = GlobalMessages.RecordNotFound });
             }
-            
-            var getLoggedInUser= await userRepo.GetUserById((int)obj.Id);
+
+            var getLoggedInUser = await userRepo.GetUserById((int)obj.Id);
 
             if (StringCipher.Decrypt(getLoggedInUser.Password) != user.OldPassword)
             {
@@ -324,7 +304,7 @@ namespace ITValet.Controllers
         }
         #endregion
 
-        #region
+        #region Account
         [HttpGet("ConfirmAccount")]
         public async Task<IActionResult> ConfirmAccount(string Id, long t)
         {
@@ -346,7 +326,7 @@ namespace ITValet.Controllers
             }
             return Ok(new ResponseDto() { Status = true, StatusCode = "200", Message = "Your Account Activated Successfully" });
         }
-            
+
         [HttpGet("PostForgotPassword")]
         public async Task<IActionResult> PostForgotPassword(string Email)
         {
@@ -363,10 +343,10 @@ namespace ITValet.Controllers
             {
                 return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = "Failed to Send Forget Password Recovery Mail" });
             }
-           
+
             return Ok(new ResponseDto() { Status = true, StatusCode = "200", Message = "Password Recovery Mail Sent Successfully" });
         }
-            
+
         [HttpGet("PostRenewPassword")]
         public async Task<IActionResult> PostRenewPassword(string Id, string Password, long t)
         {
@@ -390,5 +370,114 @@ namespace ITValet.Controllers
         }
 
         #endregion
+
+        #region UserActivityStatus
+        [HttpPut("user-activity-status/{userId}")]
+        public async Task<IActionResult> UpdateUserAccountActivityStatus(string userId, string activityStatus)
+        {
+            var decryptId = StringCipher.DecryptId(userId);
+            if (activityStatus == "true")
+                activityStatus = "1";
+            else
+                activityStatus = "0";
+
+            var obj = await userRepo.UpdateUserAccountActivityStatus(decryptId, Convert.ToInt32(activityStatus));
+            if (!obj)
+                return Ok(new ResponseDto() { Data = activityStatus, Status = false, StatusCode = "406", Message = "Database Updation Failed" });
+            
+            await _notificationHubSocket.Clients.All.SendAsync("UpdateUserStatus", decryptId, activityStatus);
+            return Ok(new ResponseDto() { Data = activityStatus, Status = true, StatusCode = "200", Message = "Record Updated Successfully" });
+        }
+
+        [HttpPut("user-availability/{userId}")]
+        public async Task<IActionResult> UpdateUserAccountAvailabilityStatus(string userId, string availabilityOption)
+        {
+            var decryptId = StringCipher.DecryptId(userId);
+            if(availabilityOption == "true")
+                availabilityOption = "1";
+            else
+                availabilityOption = "0";
+            
+            var obj = await userRepo.UpdateUserAccountAvailabilityStatus(decryptId, Convert.ToInt32(availabilityOption));
+
+            if (!obj)
+                return Ok(new ResponseDto() { Data = obj, Status = false, StatusCode = "406", Message = "Database Updation Failed" });
+            
+            return Ok(new ResponseDto() { Data = availabilityOption, Status = true, StatusCode = "200", Message = "Record Updated Successfully" });
+        }
+
+        #endregion
+
+        #region Helpers
+        private async Task<int> HandleValetAccountLogic(User user)
+        {
+            var isCompleteValetAccount = await GeneralPurpose.CheckValuesNotEmpty(
+                user, userExperienceRepo, userSkillRepo, _payPalGateWayService, userEducationRepo);
+
+            if (isCompleteValetAccount == 1)
+            {
+                var availableSlots = await userAvailableSlotRepo.GetUserAvailableSlotByUserId(user.Id);
+                if (!availableSlots.Any())
+                {
+                    await userAvailableSlotRepo.CreateEntriesForCurrentMonth(user.Id);
+                }
+            }
+
+            return isCompleteValetAccount;
+        }
+
+        private void UpdateUserProperties(UserViewModel user, User obj)
+        {
+            obj.FirstName = !string.IsNullOrEmpty(user.FirstName) ? user.FirstName : obj.FirstName;
+            obj.LastName = !string.IsNullOrEmpty(user.LastName) ? user.LastName : obj.LastName;
+            obj.Contact = !string.IsNullOrEmpty(user.Contact) ? user.Contact : obj.Contact;
+            obj.BirthDate = !string.IsNullOrEmpty(user.BirthDate) ? Convert.ToDateTime(user.BirthDate) : obj.BirthDate;
+            obj.Country = !string.IsNullOrEmpty(user.Country) ? user.Country : obj.Country;
+            obj.State = !string.IsNullOrEmpty(user.State) ? user.State : obj.State;
+            obj.City = !string.IsNullOrEmpty(user.City) ? user.City : obj.City;
+            obj.ZipCode = !string.IsNullOrEmpty(user.ZipCode) ? user.ZipCode : obj.ZipCode;
+            obj.Timezone = !string.IsNullOrEmpty(user.Timezone) ? user.Timezone : obj.Timezone;
+            obj.Availability = !string.IsNullOrEmpty(user.Availability) ? Convert.ToInt32(user.Availability) : obj.Availability;
+            obj.Status = !string.IsNullOrEmpty(user.Status) ? Convert.ToInt32(user.Status) : obj.Status;
+            obj.Gender = !string.IsNullOrEmpty(user.Gender) ? user.Gender : obj.Gender;
+            obj.PricePerHour = !string.IsNullOrEmpty(user.PricePerHour) ? Convert.ToDecimal(user.PricePerHour) : obj.PricePerHour;
+            obj.Language = !string.IsNullOrEmpty(user.Language) ? user.Language : obj.Language;
+            obj.Description = !string.IsNullOrEmpty(user.Description) ? user.Description : obj.Description;
+        }
+
+        private UserClaims CreateUserClaims(User obj)
+        {
+            var baseUri = $"{projectVariables.BaseUrl}/profiles/";
+            return new UserClaims
+            {
+                Id = obj.Id,
+                UserEncId = StringCipher.EncryptId((int)obj.Id),
+                FirstName = obj.FirstName,
+                LastName = obj.LastName,
+                UserName = obj.UserName,
+                Email = obj.Email,
+                Role = Enum.GetName(typeof(EnumRoles), obj.Role!),
+                Token = jwtUtils.GenerateToken(obj),
+                TokenExpire = GeneralPurpose.DateTimeNow().AddDays(1).ToString(),
+                ProfilePicture = !string.IsNullOrEmpty(obj.ProfilePicture)
+                    ? baseUri + obj.ProfilePicture
+                    : "",
+                Contact = obj.Contact,
+                BirthDate = obj.BirthDate?.ToString(),
+                Country = obj.Country,
+                State = obj.State,
+                City = obj.City,
+                ZipCode = obj.ZipCode,
+                Timezone = obj.Timezone,
+                Availability = obj.Availability,
+                Gender = obj.Gender,
+                StripeId = obj.StripeId,
+                PricePerHour = obj.PricePerHour?.ToString(),
+                IsActive = Enum.GetName(typeof(EnumActiveStatus), obj.IsActive!)
+            };
+        }
+
+        #endregion
     }
 }
+

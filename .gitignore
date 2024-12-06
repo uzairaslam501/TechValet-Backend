@@ -86,11 +86,13 @@ msbuild.wrn
 project.lock.json
 project.fragment.lock.json
 artifacts/
+logger.json
 
 # custom Files
 api/.vs/
 api/bin/
 api/obj/
 api/wwwroot/
+api/logger.json
 api/appSettings.Development.json
 api/appSettings.Production.json
