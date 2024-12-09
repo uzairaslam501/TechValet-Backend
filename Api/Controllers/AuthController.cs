@@ -227,6 +227,33 @@ namespace ITValet.Controllers
             });
         }
 
+        [HttpPut("update-profile-image/{id}")]
+        public async Task<IActionResult> UploadPicture(string id, [FromForm] IFormFile file)
+        {
+            if (!string.IsNullOrEmpty(id))
+            {
+                var user = await userRepo.GetUserById(Convert.ToInt32(id));
+                if (user == null)
+                    return BadRequest(new ResponseDto() { Status = false, StatusCode = "404", Message = "User Not Found" });
+                
+                user.ProfilePicture = await UploadFiles(file, "profiles");
+                if (!await userRepo.UpdateUser(user))
+                    return BadRequest(new ResponseDto() { Status = false, StatusCode = "406", Message = "Database Update Failed" });
+                
+                var isCompleteValetAccount = user.Role == 4
+                    ? await GeneralPurpose.CheckValuesNotEmpty(user, userExperienceRepo, userSkillRepo, _payPalGateWayService, userEducationRepo)
+                    : 1;
+
+                var loggedIn = CreateUserClaims(user);
+                loggedIn.IsCompleteValetAccount = isCompleteValetAccount.ToString();
+
+                return Ok(new ResponseDto() { Data = loggedIn, Status = true, StatusCode = "200", Message = "Image Updated Successfully" });
+            }
+
+            return Ok(new ResponseDto() { Status = false, StatusCode = "406", Message = "Invalid Request" });
+        }
+
+
         [CustomAuthorize]
         [HttpPut]
         [Route("UpdatePassword")]
@@ -477,6 +504,27 @@ namespace ITValet.Controllers
             };
         }
 
+        private async Task<string> UploadFiles(IFormFile file, string? uploadedFiles = "")
+        {
+            string profileImagesPath = Path.Combine(Directory.GetCurrentDirectory(), @"wwwroot\" + uploadedFiles);
+            if (!Directory.Exists(profileImagesPath))
+            {
+                DirectoryInfo di = Directory.CreateDirectory(profileImagesPath);
+            }
+            var getFileName = Path.GetFileNameWithoutExtension(file.FileName);
+            if (getFileName.Contains(" "))
+            {
+                getFileName = getFileName.Replace(" ", "-");
+            }
+            var getFileExtentions = Path.GetExtension(file.FileName);
+            string imgName = getFileName + "_" + DateTime.Now.Ticks.ToString() + getFileExtentions;
+            var rootDir = Path.Combine(Directory.GetCurrentDirectory(), @"wwwroot\" + uploadedFiles, imgName);
+            using (var stream = new FileStream(rootDir, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+            return uploadedFiles + "/" + imgName;
+        }
         #endregion
     }
 }

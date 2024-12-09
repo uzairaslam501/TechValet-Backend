@@ -165,39 +165,6 @@ namespace ITValet.Controllers
             }
         }
 
-
-        [HttpPut("UpdateUserAccountActivityStatus")]
-        public async Task<IActionResult> UpdateUserAccountActivityStatus(string ActivityStatus = "")
-        {
-            bool chkRole = false;
-            UserClaims? getUsetFromToken = jwtUtils.ValidateToken(Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last());
-            
-            chkRole = await userRepo.UpdateUserAccountActivityStatus((int)getUsetFromToken.Id, Convert.ToInt32(ActivityStatus));
-
-            if (!chkRole)
-            {
-                return Ok(new ResponseDto() { Status = false, StatusCode = "406", Message = "Database Updation Failed" });
-            }
-            await _notificationHubSocket.Clients.All.SendAsync("UpdateUserStatus", (int)getUsetFromToken.Id, ActivityStatus);
-            return Ok(new ResponseDto() { Status = true, StatusCode = "200", Message = "Record Updated Successfully" });
-        }
-
-        [HttpPut("UpdateUserAccountAvailabilityStatus")]
-        public async Task<IActionResult> UpdateUserAccountAvailabilityStatus(string AvailabilityStatus = "")
-        {
-            bool chkRole = false;
-            UserClaims? getUsetFromToken = jwtUtils.ValidateToken(Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last());
-
-            chkRole = await userRepo.UpdateUserAccountAvailabilityStatus((int)getUsetFromToken.Id, Convert.ToInt32(AvailabilityStatus));
-
-            if (!chkRole)
-            {
-                return Ok(new ResponseDto() { Status = false, StatusCode = "406", Message = "Database Updation Failed" });
-            }
-
-            return Ok(new ResponseDto() { Status = true, StatusCode = "200", Message = "Record Updated Successfully" });
-        }
-
         [HttpGet("GetUserListAsync")]
         public async Task<IActionResult> GetUserListAsync()
         {
