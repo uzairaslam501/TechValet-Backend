@@ -916,6 +916,13 @@ namespace ITValet.HelpingClasses
         public bool IsPayPalAuthorized { get; set; }
         public int IsActive { get; set; }
     }
+    public class AddPayPalAccountViewModel
+    {
+        public string? ValetId { get; set; }
+        public string? PayPalEmail { get; set; }
+        public bool IsPayPalAuthorized { get; set; }
+        public int IsActive { get; set; }
+    }
     public class AddPayPalResult
     {
         public bool Success { get; }

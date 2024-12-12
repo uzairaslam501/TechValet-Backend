@@ -247,6 +247,16 @@ namespace ITValet.HelpingClasses
         #endregion
 
         #region Responses 
+        public static string ConversionEncryptedId(string encryptedId)
+        {
+            var lowerValue = "%2F";
+            if (encryptedId.Contains(lowerValue))
+            {
+                encryptedId = encryptedId.Replace(lowerValue, "/");
+            }
+            return encryptedId;
+        }
+
         public static ResponseViewModel NotFoundResponse(string message, Object? data = null)
         {
             return new ResponseViewModel()

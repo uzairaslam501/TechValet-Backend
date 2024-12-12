@@ -1,13 +1,6 @@
 using ITValet.HelpingClasses;
 using ITValet.Models;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Org.BouncyCastle.Utilities.IO.Pem;
-using PayoutsSdk.Payouts;
-using PayPal.Api;
-using Stripe;
-using System.Collections.Specialized;
-using System.Net;
 
 namespace ITValet.Services
 {
@@ -26,7 +19,7 @@ namespace ITValet.Services
         Task<bool> PaymentRefunding(string captureId);
         Task<CaptureAmountViewModel> CapturedAmount(string capturedId);
         Task<string> GetPayPalAccount(int valetId);
-        Task<AddPayPalResult> AddPayPalAccountInformation(PayPalAccountViewModel paypalAccount);
+        Task<ResponseDto> AddPayPalAccountInformation(string userId, AddPayPalAccountViewModel paypalAccount);
         Task<bool> AddPayPalTransactionAdminToValet(PayPalFundToValetViewModel transferToValet);
         Task<PayPalFundToValetViewModel> GetPayPalTransactionRecord(string payOutItemId);
         Task<List<PayPalUnclaimedTransactionDetailsForAdminDB>> GetPayPalUnclaimedRecord();
@@ -40,6 +33,43 @@ namespace ITValet.Services
         Task<bool> OrderCreatedByPayPalPackage(OrderAcceptedOfPackage packageOrder);
         Task<PayPalEarningInCome> GetPayPalEarnings(int valetId);
     }
+
+
+    public interface IPayPalGatewayWriteService : IPayPalGatewayReadService
+    {
+        Task<bool> AddPayPalPackage(PackageCheckOutViewModel package);
+        Task<bool> UpdatePackageRecord(PackageCheckOutViewModel package);
+        Task<bool> DeleteCheckOutOrderOfPackages(int orderId);
+        Task<bool> UpdateOrderCheckOut(PayPalOrderCheckOut checkout);
+        Task<bool> AddPayPalOrder(OrderCheckOutViewModel order);
+        Task<bool> CancelOrderAndRevertSessionAsync(int orderId);
+        Task<bool> UpdateOrderRecord(OrderCheckOutViewModel order);
+        Task<bool> PaymentRefunding(string captureId);
+        Task<bool> AddPayPalAccountInformation(AddPayPalAccountViewModel paypalAccount);
+        Task<bool> AddPayPalTransactionAdminToValet(PayPalFundToValetViewModel transferToValet);
+        Task<bool> CancelUnclaimedPayment(string payoutItemId, PaymentCancelViewModel cancelObj);
+        Task<bool> DeletePayPalAccount(int id);
+        Task<bool> PayPalOrderCheckoutAccepted(OrderCheckOutAccepted orderCheckout);
+        Task<bool> AddPayPalOrderForPackage(PayPalOrderCheckOutViewModel order);
+        Task<bool> OrderCreatedByPayPalPackage(OrderAcceptedOfPackage packageOrder);
+    }
+
+    public interface IPayPalGatewayReadService
+    {
+        Task<PayPalOrderCheckOut?> GetOrderCheckOutById(int id);
+        Task<PackageCheckOutViewModel> GetPackageByPaymentId(string paymentId);
+        Task<OrderCheckOutViewModel> GetOrderByPaymentId(string paymentId);
+        Task<CaptureAmountViewModel> CapturedAmount(string capturedId);
+        Task<string> GetPayPalAccount(int valetId);
+        Task<PayPalFundToValetViewModel> GetPayPalTransactionRecord(string payOutItemId);
+        Task<List<PayPalUnclaimedTransactionDetailsForAdminDB>> GetPayPalUnclaimedRecord();
+        Task<List<PayPalTransactionDetailsForAdminDB>> GetPayPalTransactionsRecord();
+        Task<List<PayPalOrderCheckOut>> FindValetForTransferringFundRecord();
+        Task<List<PayPalOrderDetailsForAdminDB>> GetPayPalOrdersRecord();
+        Task<PayPalEarningInCome> GetPayPalEarnings(int valetId);
+    }
+
+
 
     public class PayPalGateWayService : IPayPalGateWayService
     {
@@ -312,23 +342,22 @@ namespace ITValet.Services
             return null;
         }
 
-        public async Task<AddPayPalResult> AddPayPalAccountInformation(PayPalAccountViewModel paypalAccount)
+        public async Task<ResponseDto> AddPayPalAccountInformation(string userId, AddPayPalAccountViewModel paypalAccount)
         {
             try
             {
-                // Check if the PayPal email already exists in the database for an active account
+                paypalAccount.ValetId = GeneralPurpose.ConversionEncryptedId(userId);
+                var decrypt = StringCipher.DecryptId(paypalAccount.ValetId);
+                
                 bool emailExists = await _context.PayPalAccount
                     .AnyAsync(p => p.PayPalEmail == paypalAccount.PayPalEmail && p.IsActive == 1);
 
-                // Find the existing PayPal account for the user (if any)
                 var existingPayPalAccount = await _context.PayPalAccount
-                    .FirstOrDefaultAsync(p => p.ValetId == paypalAccount.ValetId && p.IsActive == (int)EnumActiveStatus.Deleted);
+                    .FirstOrDefaultAsync(p => p.ValetId == decrypt && p.IsActive == (int)EnumActiveStatus.Deleted);
 
                 if (emailExists)
-                {
-                    return new AddPayPalResult(false, "Email already exists.");
-                }
-
+                    return GeneralPurpose.GenerateResponseCode(false, "204", "Email already exists.");
+                
                 if (existingPayPalAccount != null)
                 {
                     // Update the existing PayPal account with the new data
@@ -336,7 +365,7 @@ namespace ITValet.Services
                     existingPayPalAccount.IsPayPalAuthorized = paypalAccount.IsPayPalAuthorized;
                     existingPayPalAccount.IsActive = paypalAccount.IsActive;
                     existingPayPalAccount.DeletedAt = null;
-                    existingPayPalAccount.CreatedAt = DateTime.Now;
+                    existingPayPalAccount.CreatedAt = GeneralPurpose.DateTimeNow();
 
                     _context.PayPalAccount.Update(existingPayPalAccount);
                 }
@@ -345,24 +374,23 @@ namespace ITValet.Services
                     // Create a new PayPal account record
                     PayPalAccountInformation obj = new PayPalAccountInformation()
                     {
-                        ValetId = paypalAccount.ValetId,
+                        ValetId = decrypt,
                         PayPalEmail = paypalAccount.PayPalEmail,
                         IsPayPalAuthorized = paypalAccount.IsPayPalAuthorized,
                         IsActive = paypalAccount.IsActive,
-                        CreatedAt = DateTime.Now,
+                        CreatedAt = GeneralPurpose.DateTimeNow(),
                     };
 
                     _context.PayPalAccount.Add(obj);
                 }
 
                 await _context.SaveChangesAsync();
-                bool updateUser = await UpdateUserWithPayPalAccount(paypalAccount.ValetId, false);
-                return new AddPayPalResult(true, "Account information added/updated successfully.");
+                bool updateUser = await UpdateUserWithPayPalAccount(decrypt, false);
+                return GeneralPurpose.GenerateResponseCode(true, "200", "Account information added/updated successfully.");
             }
             catch (Exception ex)
             {
-                // Handle the exception if needed and return an error message
-                return new AddPayPalResult(false, "An error occurred while adding/updating account information.");
+                return GeneralPurpose.GenerateResponseCode(false, "400", "An error occurred while adding/updating account information.");
             }
         }
 

@@ -802,6 +802,7 @@ namespace ITValet.Controllers
         [HttpPost("postAddSkills/{userId}")]
         public async Task<IActionResult> PostAddUserSkill(string userId, string? skillsName)
         {
+            userId = GeneralPurpose.ConversionEncryptedId(userId);
             var decryptedUserId = DecryptionId(userId);
             if (string.IsNullOrEmpty(skillsName))
                 return BadRequest(new ResponseDto { Status = false, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
@@ -826,14 +827,17 @@ namespace ITValet.Controllers
             if (!await userSkillRepo.SaveChangesAsync())
                 return BadRequest(new ResponseDto { Status = false, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
             
-            return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Skills have been added to your account."));
+            return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Skills have been added to your account.", skillsName));
         }
 
 
         [HttpGet("get-user-skill-by-id/{userSkillId}")]
         public async Task<IActionResult> GetUserSkillById(string userSkillId)
         {
-            var obj = await userSkillRepo.GetUserSkillByIdAsync(StringCipher.DecryptId(userSkillId));
+            userSkillId = GeneralPurpose.ConversionEncryptedId(userSkillId);
+
+            var decrypt = DecryptionId(userSkillId);
+            var obj = await userSkillRepo.GetUserSkillByIdAsync(decrypt);
             var userSkill = MapToUserSkillDto(obj);
 
             return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Skill fetch successfully.", userSkill));
@@ -842,6 +846,8 @@ namespace ITValet.Controllers
         [HttpGet("GetSkills/{userId}")]
         public async Task<IActionResult> GetSkills(string userId)
         {
+            userId = GeneralPurpose.ConversionEncryptedId(userId);
+
             var decrypt = DecryptionId(userId);
             var listOfSkill = await userSkillRepo.GetUserSkillsByUserIdAsync(decrypt);
             
@@ -853,6 +859,8 @@ namespace ITValet.Controllers
         [HttpDelete("Delete/{skillId}")]
         public async Task<IActionResult> DeleteUserSkillByUserId(string skillId)
         {
+            skillId = GeneralPurpose.ConversionEncryptedId(skillId);
+
             var decrypt = DecryptionId(skillId);
 
             if (!await userSkillRepo.SoftDeleteUserSkillAsync(decrypt) || !await userSkillRepo.SaveChangesAsync())

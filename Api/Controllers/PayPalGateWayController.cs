@@ -190,21 +190,13 @@ namespace ITValet.Controllers
             }
         }
 
-        [HttpPost("addPayPalAccount")]
-        public async Task<IActionResult> AddPayPalAccount(PayPalAccountViewModel paypalAcc)
+        [HttpPost("AddAccount/{userId}")]
+        public async Task<IActionResult> AddPayPalAccount(string userId, AddPayPalAccountViewModel account)
         {
             try
             {
-                var response = await _payPalGateWayService.AddPayPalAccountInformation(paypalAcc);
-                if (response.Success==true)
-                {
-                    return Ok(new ResponseDto() { Data = response, Status = true, StatusCode = "200" });
-                }
-                else if(response.Message == "Email already exists.")
-                {
-                    return Ok(new ResponseDto() { Message = response.Message, Status = false, StatusCode = "204" });
-                }
-                return Ok(new ResponseDto() { Data = response, Status = false, StatusCode = "400" });
+                var response = await _payPalGateWayService.AddPayPalAccountInformation(userId, account);
+                return Ok(response);
             }
             catch (Exception ex)
             {
