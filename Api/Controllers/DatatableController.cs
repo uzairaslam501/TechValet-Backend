@@ -1327,7 +1327,7 @@ namespace ITValet.Controllers
         {
             try
             {
-                var listOfSkill = await _userSkillRepo.GetUserSkillList();
+                var listOfSkill = await _userSkillRepo.GetAllActiveUserSkillsAsync();
 
                 if (!string.IsNullOrEmpty(SkillName))
                 {

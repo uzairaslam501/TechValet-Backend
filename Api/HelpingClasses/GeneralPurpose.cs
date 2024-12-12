@@ -19,13 +19,14 @@ namespace ITValet.HelpingClasses
             return nextOccurrence.ToString();
         }
 
-        public static ResponseDto GenerateResponseCode(bool status, string stsCode, string stsMsg)
+        public static ResponseDto GenerateResponseCode(bool status, string statusCode, string message, object? data = null)
         {
             ResponseDto obj = new ResponseDto()
             {
                 Status = status,
-                StatusCode = stsCode,
-                Message = stsMsg
+                StatusCode = statusCode,
+                Message = message,
+                Data = data
             };
 
             return obj;
@@ -232,7 +233,7 @@ namespace ITValet.HelpingClasses
                 var account = await payPalGateWayService.GetPayPalAccount(UserRecord.Id);
                 int UserExperienceCount = await _userExperienceRepo.GetUserExperienceCountByUserId(UserRecord.Id);
                 int UserEducationCount = await _userEducationRepo.GetUserEducationCountByUserId(UserRecord.Id);
-                int UserSkillCount = (int)await _userSkillRepo.GetUserSkillCountById(UserRecord.Id);
+                int UserSkillCount = (int)await _userSkillRepo.GetUserSkillCountByIdAsync(UserRecord.Id);
                 UserSkillCount = UserSkillCount == 0 ? IsCompleteValetAccount = 0 : IsCompleteValetAccount = IsCompleteValetAccount;
                 UserExperienceCount = UserExperienceCount == 0 ? IsCompleteValetAccount = 0 : IsCompleteValetAccount = IsCompleteValetAccount;
                 UserEducationCount = UserEducationCount == 0 ? IsCompleteValetAccount = 0 : IsCompleteValetAccount = IsCompleteValetAccount;

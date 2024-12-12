@@ -799,158 +799,82 @@ namespace ITValet.Controllers
         #endregion
 
         #region UserSkill
-        [HttpPost("PostAddUserSkill")]
-        public async Task<IActionResult> PostAddUserSkill(string? SkillName, int? UserId)
+        [HttpPost("postAddSkills/{userId}")]
+        public async Task<IActionResult> PostAddUserSkill(string userId, string? skillsName)
         {
-            if (!await DeleteUserSkillByUserId((int)UserId))
-            {
-                return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
-            }
-            var userSkills = SkillName.Split(",");
-            foreach (var skills in userSkills)
-            {
-                var obj = new UserSkill();
-                obj.SkillName = skills;
-                obj.UserId = UserId;
-                obj.IsActive = 1;
-                obj.CreatedAt = GeneralPurpose.DateTimeNow();
+            var decryptedUserId = DecryptionId(userId);
+            if (string.IsNullOrEmpty(skillsName))
+                return BadRequest(new ResponseDto { Status = false, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
 
-                if (!await userSkillRepo.AddUserSkill2(obj))
+            // Add new skills.
+            var skillsArray = skillsName?.Split(",") ?? Array.Empty<string>();
+            foreach (var skill in skillsArray)
+            {
+                var userSkill = new UserSkill
                 {
-                    return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
-                }
+                    SkillName = skill,
+                    UserId = decryptedUserId,
+                    IsActive = 1,
+                    CreatedAt = GeneralPurpose.DateTimeNow()
+                };
+
+                if (!await userSkillRepo.AddUserSkillAsync(userSkill))
+                    return BadRequest(new ResponseDto { Status = false, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
             }
-            if (!await userSkillRepo.saveChangesFunction())
-            {
-                return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
-            }
-            return Ok(new ResponseDto() { Status = true, StatusCode = "200", Message = "Skill has been added to your account" });
+
+            // Save changes to the database.
+            if (!await userSkillRepo.SaveChangesAsync())
+                return BadRequest(new ResponseDto { Status = false, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
+            
+            return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Skills have been added to your account."));
         }
 
-        [HttpPut("PostUpdateUserSkill")]
-        public async Task<IActionResult> PostUpdateUserSkill(PostUpdateUserSkill userSkill)
-        {
-            var obj = await userSkillRepo.GetUserSkillById(StringCipher.DecryptId(userSkill.UserSkillEncId));
 
-            obj.SkillName = !string.IsNullOrEmpty(userSkill.SkillName) ? userSkill.SkillName : obj.SkillName;
-            obj.UpdatedAt = GeneralPurpose.DateTimeNow();
-
-            if (!await userSkillRepo.AddUserSkill(obj))
-            {
-                return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
-            }
-
-            return Ok(new ResponseDto() { Status = true, StatusCode = "200", Message = "Skill has been added to your account" });
-        }
-
-        [HttpGet("GetUserSkillById")]
+        [HttpGet("get-user-skill-by-id/{userSkillId}")]
         public async Task<IActionResult> GetUserSkillById(string userSkillId)
         {
-            var obj = await userSkillRepo.GetUserSkillById(StringCipher.DecryptId(userSkillId));
-            UserSkillDto userSkillDto = new UserSkillDto()
-            {
-                Id = obj.Id,
-                UserSkillEncId = StringCipher.EncryptId(obj.Id),
-                SkillName = obj.SkillName,
-                UserId = obj.UserId
-            };
+            var obj = await userSkillRepo.GetUserSkillByIdAsync(StringCipher.DecryptId(userSkillId));
+            var userSkill = MapToUserSkillDto(obj);
 
-            return Ok(new ResponseDto() { Data = userSkillDto, Status = true, StatusCode = "200", Message = "Skill Fetch Successfully" });
+            return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Skill fetch successfully.", userSkill));
         }
 
-        [HttpGet("GetUserSkillByUserId")]
-        public async Task<IActionResult> GetUserSkillByUserId(string userId)
+        [HttpGet("GetSkills/{userId}")]
+        public async Task<IActionResult> GetSkills(string userId)
         {
-            var listOfSkill = await userSkillRepo.GetUserSkillByUserId(Convert.ToInt32(userId));
-            List<UserSkillDto> dtos = new List<UserSkillDto>();
-            foreach (var obj in listOfSkill)
-            {
-                UserSkillDto userSkillDto = new UserSkillDto()
-                {
-                    Id = obj.Id,
-                    UserSkillEncId = StringCipher.EncryptId(obj.Id),
-                    SkillName = obj.SkillName,
-                    UserId = obj.UserId
-                };
-                dtos.Add(userSkillDto);
-            }
+            var decrypt = DecryptionId(userId);
+            var listOfSkill = await userSkillRepo.GetUserSkillsByUserIdAsync(decrypt);
+            
+            var userSkills = listOfSkill.Select(skill => MapToUserSkillDto(skill)).ToList();
 
-            return Ok(new ResponseDto() { Data = dtos, Status = true, StatusCode = "200", Message = "Skill Fetch Successfully" });
+            return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Skills fetched successfully.", userSkills));
         }
 
-        private async Task<bool> DeleteUserSkillByUserId(int userId)
+        [HttpDelete("Delete/{skillId}")]
+        public async Task<IActionResult> DeleteUserSkillByUserId(string skillId)
         {
-            var listOfSkill = await userSkillRepo.GetUserSkillByUserId(Convert.ToInt32(userId));
-            List<UserSkillDto> dtos = new List<UserSkillDto>();
-            foreach (var obj in listOfSkill)
-            {
-                if(!await userSkillRepo.DeleteUserSkill2(obj.Id))
-                {
-                    return false;
-                }
-            }
-            if (!await userSkillRepo.saveChangesFunction())
-            {
-                return false;
-            }
-            return true;
+            var decrypt = DecryptionId(skillId);
+
+            if (!await userSkillRepo.SoftDeleteUserSkillAsync(decrypt) || !await userSkillRepo.SaveChangesAsync())
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.SystemFailureMessage));
+            
+            return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Skill deleted successfully.", skillId));
         }
 
-        [HttpGet("GetUserSkillList")]
-        public async Task<IActionResult> GetUserSkillList(string? SkillName = "")
+        [HttpGet("DeleteSkills/{userId}")]
+        public async Task<IActionResult> DeleteSkills(string userId)
         {
-            var listOfSkill = await userSkillRepo.GetUserSkillList();
-
-            if (!string.IsNullOrEmpty(SkillName))
-            {
-                listOfSkill = listOfSkill.Where(x => x.SkillName.ToLower().Contains(SkillName.ToLower())).ToList();
-            }
-
-            var draw = Request.Form["draw"].FirstOrDefault();
-            var start = Request.Form["start"].FirstOrDefault();
-            var length = Request.Form["length"].FirstOrDefault();
-            var sortColumn = Request.Form["columns[" + Request.Form["order[0][column]"].FirstOrDefault() + "][name]"].FirstOrDefault();
-            var sortColumnDirection = Request.Form["order[0][dir]"].FirstOrDefault();
-            var searchValue = Request.Form["search[value]"].FirstOrDefault();
-            int pageSize = length != null ? Convert.ToInt32(length) : 0;
-            int skip = start != null ? Convert.ToInt32(start) : 0;
-            if (sortColumn != "" && sortColumn != null)
-            {
-                if (sortColumn != "0")
-                {
-                    if (sortColumnDirection == "asc")
-                    {
-                        listOfSkill = listOfSkill.OrderByDescending(x => x.GetType().GetProperty(sortColumn).GetValue(x)).ToList();
-                    }
-                    else
-                    {
-                        listOfSkill = listOfSkill.OrderBy(x => x.GetType().GetProperty(sortColumn).GetValue(x)).ToList();
-                    }
-                }
-            }
-            int totalrows = listOfSkill.Count();
-
-            if (!string.IsNullOrEmpty(searchValue))
-            {
-                listOfSkill = listOfSkill.Where(x => x.SkillName.Trim().ToLower().Contains(searchValue.Trim().ToLower())
-                                    ).ToList();
-            }
-            int totalrowsafterfilterinig = listOfSkill.Count();
-
-            listOfSkill = listOfSkill.Skip(skip).Take(pageSize).ToList();
-            List<UserSkillDto> dtos = new List<UserSkillDto>();
+            var decrypt = DecryptionId(userId);
+            var listOfSkill = await userSkillRepo.GetUserSkillsByUserIdAsync(decrypt);
             foreach (var obj in listOfSkill)
             {
-                UserSkillDto userSkillDto = new UserSkillDto()
-                {
-                    Id = obj.Id,
-                    UserSkillEncId = StringCipher.EncryptId(obj.Id),
-                    SkillName = obj.SkillName,
-                    UserId = obj.UserId
-                };
-                dtos.Add(userSkillDto);
+                if(!await userSkillRepo.SoftDeleteUserSkillAsync(obj.Id))
+                    return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.SystemFailureMessage));
             }
-            return Ok(new ResponseDto() { Data = new { data = dtos, draw = draw, recordsTotal = totalrows, recordsFiltered = totalrowsafterfilterinig }, Status = true, StatusCode = "200" });
+            if (!await userSkillRepo.SaveChangesAsync())
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.SystemFailureMessage));
+
+            return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "All skills deleted successfully."));
         }
         #endregion
 
@@ -2238,5 +2162,28 @@ namespace ITValet.Controllers
             return new ObjectResult(new { data = completedOrders, draw = draw, recordsTotal = totalrows, recordsFiltered = totalrowsafterfilterinig });
         }
         #endregion
+
+        #region Helpers
+
+        #region Skills
+        private UserSkillDto MapToUserSkillDto(UserSkill skill)
+        {
+            return new UserSkillDto
+            {
+                Id = skill.Id,
+                UserSkillEncId = StringCipher.EncryptId(skill.Id),
+                SkillName = skill.SkillName,
+                UserId = skill.UserId
+            };
+        }
+        #endregion
+
+        private int DecryptionId(string userId)
+        {
+            var decrypt = StringCipher.DecryptId(userId);
+            return decrypt;
+        }
+        #endregion
+
     }
 }

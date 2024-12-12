@@ -6,144 +6,114 @@ namespace ITValet.Services
 {
     public interface IUserSkillRepo
     {
-        Task<UserSkill?> GetUserSkillById(int id);
-        Task<IEnumerable<UserSkill>> GetUserSkillByUserId(int userId);
-        Task<IEnumerable<UserSkill>> GetUserSkillList();
-        Task<IEnumerable<UserSkill>> GetUserBySkillName(string skillName);
-        Task<bool> AddUserSkill(UserSkill userSkill);
-        Task<bool> AddUserSkill2(UserSkill userSkill);
-        Task<bool> UpdateUserSkill(UserSkill userSkill);
-        Task<bool> DeleteUserSkill(int id);
-        Task<bool> DeleteUserSkill2(int id);
-        Task<bool> saveChangesFunction();
-        Task<int?> GetUserSkillCountById(int id);
+        Task<UserSkill?> GetUserSkillByIdAsync(int id);
+        Task<IEnumerable<UserSkill>> GetUserSkillsByUserIdAsync(int userId);
+        Task<IEnumerable<UserSkill>> GetAllActiveUserSkillsAsync();
+        Task<IEnumerable<UserSkill>> GetUsersBySkillNameAsync(string skillName);
+        Task<bool> AddUserSkillAsync(UserSkill userSkill);
+        Task<bool> UpdateUserSkillAsync(UserSkill userSkill);
+        Task<bool> SoftDeleteUserSkillAsync(int id);
+        Task<int?> GetUserSkillCountByIdAsync(int id);
+        Task<bool> SaveChangesAsync();
     }
 
     public class UserSkillRepo : IUserSkillRepo
     {
         private readonly AppDbContext _context;
-        public UserSkillRepo(AppDbContext _appDbContext)
+
+        public UserSkillRepo(AppDbContext context)
         {
-            _context = _appDbContext;
-        }
-        public async Task<bool> AddUserSkill(UserSkill userSkill)
-        {
-            try
-            {
-                _context.UserSkill.Add(userSkill);
-                await _context.SaveChangesAsync();
-                return true;
-            }
-            catch (Exception ex)
-            {
-                return false;
-            }
-        }
-        public async Task<int?> GetUserSkillCountById(int id)
-        {
-            return await _context.UserSkill.Where(x => x.Id == id).CountAsync();
-        }
-        public async Task<bool> AddUserSkill2(UserSkill userSkill)
-        {
-            try
-            {
-                _context.UserSkill.Add(userSkill);
-                return true;
-            }
-            catch (Exception ex)
-            {
-                return false;
-            }
+            _context = context;
         }
 
-        public async Task<bool> DeleteUserSkill(int id)
-        {
-            try
-            {
-                UserSkill? Skill = await GetUserSkillById(id);
-
-                if (Skill != null)
-                {
-                    Skill.IsActive = 0;
-                    Skill.DeletedAt = GeneralPurpose.DateTimeNow();
-                    return await UpdateUserSkill(Skill);
-                }
-                return false;
-            }
-            catch (Exception ex)
-            {
-                MailSender.SendErrorMessage(ex.Message.ToString());
-                return false;
-            }
-        }
-
-        public async Task<bool> DeleteUserSkill2(int id)
-        {
-            try
-            {
-                UserSkill? userSkill = await GetUserSkillById(id);
-                userSkill.IsActive = 0;
-                userSkill.DeletedAt = GeneralPurpose.DateTimeNow();
-                _context.Entry(userSkill).State = EntityState.Modified;
-                return true;
-            }
-            catch (Exception ex)
-            {
-                MailSender.SendErrorMessage(ex.Message.ToString());
-                return false;
-            }
-        }
-
-        public async Task<UserSkill?> GetUserSkillById(int id)
+        public async Task<UserSkill?> GetUserSkillByIdAsync(int id)
         {
             return await _context.UserSkill.FindAsync(id);
         }
 
-        public async Task<IEnumerable<UserSkill>> GetUserSkillByUserId(int userId)
+        public async Task<IEnumerable<UserSkill>> GetUserSkillsByUserIdAsync(int userId)
         {
-            var getListOfSkills = await _context.UserSkill.Where(x => x.IsActive == (int)EnumActiveStatus.Active && x.UserId == userId).ToListAsync();
-            return getListOfSkills;
+            return await _context.UserSkill
+                .Where(x => x.IsActive == (int)EnumActiveStatus.Active && x.UserId == userId)
+                .ToListAsync();
         }
 
-        public async Task<IEnumerable<UserSkill>> GetUserBySkillName(string skillName)
+        public async Task<IEnumerable<UserSkill>> GetAllActiveUserSkillsAsync()
         {
-            var getListOfSkills = await _context.UserSkill.Where(x => x.IsActive == (int)EnumActiveStatus.Active && x.SkillName == skillName).ToListAsync();
-            return getListOfSkills;
+            return await _context.UserSkill
+                .Where(x => x.IsActive == (int)EnumActiveStatus.Active)
+                .ToListAsync();
         }
 
-        public async Task<IEnumerable<UserSkill>> GetUserSkillList()
+        public async Task<IEnumerable<UserSkill>> GetUsersBySkillNameAsync(string skillName)
         {
-            return await _context.UserSkill.Where(x => x.IsActive == (int)EnumActiveStatus.Active).ToListAsync();
+            return await _context.UserSkill
+                .Where(x => x.IsActive == (int)EnumActiveStatus.Active && x.SkillName == skillName)
+                .ToListAsync();
         }
 
-        public async Task<bool> UpdateUserSkill(UserSkill userSkill)
+        public async Task<bool> AddUserSkillAsync(UserSkill userSkill)
+        {
+            try
+            {
+                await _context.UserSkill.AddAsync(userSkill);
+                return await SaveChangesAsync();
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public async Task<bool> UpdateUserSkillAsync(UserSkill userSkill)
         {
             try
             {
                 _context.Entry(userSkill).State = EntityState.Modified;
-                await _context.SaveChangesAsync();
-                return true;
+                return await SaveChangesAsync();
             }
-            catch (Exception ex)
+            catch
             {
                 return false;
             }
         }
 
-        public async Task<bool> saveChangesFunction()
+        public async Task<bool> SoftDeleteUserSkillAsync(int id)
+        {
+            try
+            {
+                var userSkill = await GetUserSkillByIdAsync(id);
+                if (userSkill == null) return false;
+
+                userSkill.IsActive = 0;
+                userSkill.DeletedAt = GeneralPurpose.DateTimeNow();
+                return await UpdateUserSkillAsync(userSkill);
+            }
+            catch (Exception ex)
+            {
+                MailSender.SendErrorMessage(ex.Message);
+                return false;
+            }
+        }
+
+        public async Task<int?> GetUserSkillCountByIdAsync(int id)
+        {
+            return await _context.UserSkill
+                .Where(x => x.Id == id)
+                .CountAsync();
+        }
+
+        public async Task<bool> SaveChangesAsync()
         {
             try
             {
                 await _context.SaveChangesAsync();
                 return true;
             }
-            catch (Exception ex)
+            catch
             {
                 return false;
             }
         }
-
-
-
     }
 }

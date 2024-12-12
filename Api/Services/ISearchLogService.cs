@@ -36,7 +36,7 @@ namespace ITValet.Services
             try
             {
                 bool updateSearchLog = await InsertOrUpdateSearchValue(searchKeyword);
-                var findUsersFromSkills = await _userSkillService.GetUserBySkillName(searchKeyword);
+                var findUsersFromSkills = await _userSkillService.GetUsersBySkillNameAsync(searchKeyword);
 
                 List<SearchedUserList> searchedUsers = new List<SearchedUserList>();
 

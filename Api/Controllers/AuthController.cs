@@ -83,46 +83,6 @@ namespace ITValet.Controllers
             });
         }
 
-        [CustomAuthorize]
-        [HttpGet("GetLoggedinUser")]
-        public async Task<ActionResult<UserListDto>> LoggedinUser(int id)
-        {
-            var user = await userRepo.GetUserById(id);
-
-            if (user == null)
-            {
-                return NotFound(new ResponseDto() { Status = false, StatusCode = "404", Message = GlobalMessages.RecordNotFound });
-            }
-            var baseUri = $"{Request.Scheme}://{Request.Host}/profiles/";
-
-            UserListDto obj = new UserListDto()
-            {
-                Id = user.Id,
-                UserEncId = StringCipher.EncryptId(user.Id),
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                UserName = user.UserName,
-                Contact = user.Contact,
-                Email = user.Email,
-                Password = StringCipher.Decrypt(user.Password),
-                Gender = user.Gender,
-                Country = user.Country,
-                State = user.State,
-                City = user.City,
-                ZipCode = user.ZipCode,
-                Timezone = user.Timezone,
-                Availability = user.Availability.ToString(),
-                Status = user.Status.ToString(),
-                BirthDate = user.BirthDate.ToString(),
-                Role = Enum.GetName(typeof(EnumRoles), user.Role),
-                IsActive = Enum.GetName(typeof(EnumActiveStatus), user.IsActive),
-                Language = user.Language,
-                ProfilePicture = user.ProfilePicture != null ? baseUri + user.ProfilePicture : null,
-            };
-
-            return Ok(new ResponseDto() { Data = obj, Status = true, StatusCode = "200" });
-        }
-
         #region Registeration
         [HttpPost("UserRegisteration")]
         public async Task<ActionResult> UserRegisteration(PostAddUserDto user)
@@ -179,10 +139,11 @@ namespace ITValet.Controllers
 
         #region Manage Profile
         [HttpPut]
-        [Route("UpdateProfile/{id}")]
-        public async Task<ActionResult> PostUpdateProfile(string id, UserViewModel user)
+        [Route("UpdateProfile/{userId}")]
+        public async Task<ActionResult> PostUpdateProfile(string userId, UserViewModel user)
         {
-            var obj = await userRepo.GetUserById(Convert.ToInt32(id));
+            var decrypted = DecryptionId(userId);
+            var obj = await userRepo.GetUserById(decrypted);
 
             if (obj == null)
             {
@@ -227,12 +188,13 @@ namespace ITValet.Controllers
             });
         }
 
-        [HttpPut("update-profile-image/{id}")]
-        public async Task<IActionResult> UploadPicture(string id, [FromForm] IFormFile file)
+        [HttpPut("update-profile-image/{userId}")]
+        public async Task<IActionResult> UploadPicture(string userId, [FromForm] IFormFile file)
         {
-            if (!string.IsNullOrEmpty(id))
+            if (!string.IsNullOrEmpty(userId))
             {
-                var user = await userRepo.GetUserById(Convert.ToInt32(id));
+                var decrypt = DecryptionId(userId);
+                var user = await userRepo.GetUserById(decrypt);
                 if (user == null)
                     return BadRequest(new ResponseDto() { Status = false, StatusCode = "404", Message = "User Not Found" });
                 
@@ -256,8 +218,8 @@ namespace ITValet.Controllers
 
         [CustomAuthorize]
         [HttpPut]
-        [Route("UpdatePassword")]
-        public async Task<ActionResult> PostUpdatePassword(UpdatePasswordDto user)
+        [Route("UpdatePassword/{userId}")]
+        public async Task<ActionResult> PostUpdatePassword(string userId, UpdatePasswordDto user)
         {
             UserClaims? obj = jwtUtils.ValidateToken(Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last());
 
@@ -309,7 +271,7 @@ namespace ITValet.Controllers
         [HttpPost("ResetPassword")]
         public async Task<ActionResult> PostResetPassword(ResetPasswordDto reset)
         {
-            var obj = await userRepo.GetUserById(Convert.ToInt32(StringCipher.DecryptId(reset.UserId)));
+            var obj = await userRepo.GetUserById(Convert.ToInt32(DecryptionId(reset.UserId)));
             if (reset.NewPassword != reset.ConfirmPassword)
             {
                 return Ok(new ResponseDto() { Status = false, StatusCode = "404", Message = GlobalMessages.PasswordNotMatched });
@@ -338,7 +300,7 @@ namespace ITValet.Controllers
             var dt = DateTime.Now.Ticks;
             if (dt < t)
             {
-                User obj = await userRepo.GetUserById(StringCipher.DecryptId(Id));
+                User obj = await userRepo.GetUserById(DecryptionId(Id));
 
                 if (obj == null)
                 {
@@ -380,7 +342,7 @@ namespace ITValet.Controllers
             var dt = DateTime.Now.Ticks;
             if (dt < t)
             {
-                User obj = await userRepo.GetUserById(StringCipher.DecryptId(Id));
+                User obj = await userRepo.GetUserById(DecryptionId(Id));
 
                 if (obj == null)
                 {
@@ -402,7 +364,7 @@ namespace ITValet.Controllers
         [HttpPut("user-activity-status/{userId}")]
         public async Task<IActionResult> UpdateUserAccountActivityStatus(string userId, string activityStatus)
         {
-            var decryptId = StringCipher.DecryptId(userId);
+            var decryptId = DecryptionId(userId);
             if (activityStatus == "true")
                 activityStatus = "1";
             else
@@ -419,7 +381,7 @@ namespace ITValet.Controllers
         [HttpPut("user-availability/{userId}")]
         public async Task<IActionResult> UpdateUserAccountAvailabilityStatus(string userId, string availabilityOption)
         {
-            var decryptId = StringCipher.DecryptId(userId);
+            var decryptId = DecryptionId(userId);
             if(availabilityOption == "true")
                 availabilityOption = "1";
             else
@@ -524,6 +486,12 @@ namespace ITValet.Controllers
                 await file.CopyToAsync(stream);
             }
             return uploadedFiles + "/" + imgName;
+        }
+
+        private int DecryptionId(string userId)
+        {
+            var decrypt = StringCipher.DecryptId(userId);
+            return decrypt;
         }
         #endregion
     }
