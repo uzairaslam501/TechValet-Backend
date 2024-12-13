@@ -105,6 +105,7 @@ namespace ITValet.Services
             try
             {
                 var decrypt = DecryptionId(userId);
+                var data = new PayPalAccountInformation();
 
                 if (await IsPayPalEmailExists(paypalAccount.PayPalEmail!))
                     return GeneralPurpose.GenerateResponseCode(false, "204", "Email already exists.");
@@ -114,17 +115,19 @@ namespace ITValet.Services
                 if (existingPayPalAccount != null)
                 {
                     UpdatePayPalAccount(existingPayPalAccount, paypalAccount);
+                    data = existingPayPalAccount;
                 }
                 else
                 {
                     var newPayPalAccount = MapNewPayPalAccount(decrypt, paypalAccount);
+                    data = newPayPalAccount;
                     _context.PayPalAccount.Add(newPayPalAccount);
                 }
 
 
                 await _context.SaveChangesAsync();
                 bool updateUser = await UpdateUserWithPayPalAccount(decrypt, false);
-                return GeneralPurpose.GenerateResponseCode(true, "200", "Account information added/updated successfully.");
+                return GeneralPurpose.GenerateResponseCode(true, "200", "Account information added/updated successfully.", data);
             }
             catch (Exception ex)
             {
@@ -860,10 +863,10 @@ namespace ITValet.Services
         private void UpdatePayPalAccount(PayPalAccountInformation existingAccount, AddPayPalAccountViewModel paypalAccount)
         {
             existingAccount.PayPalEmail = paypalAccount.PayPalEmail;
-            existingAccount.IsPayPalAuthorized = paypalAccount.IsPayPalAuthorized;
-            existingAccount.IsActive = paypalAccount.IsActive;
-            existingAccount.DeletedAt = null;
             existingAccount.CreatedAt = GeneralPurpose.DateTimeNow();
+            existingAccount.IsPayPalAuthorized = paypalAccount.IsPayPalAuthorized;
+            existingAccount.IsActive = existingAccount.IsActive != 0 ? paypalAccount.IsActive : (int)EnumActiveStatus.Active;
+            existingAccount.DeletedAt = null;
             _context.PayPalAccount.Update(existingAccount);
         }
 

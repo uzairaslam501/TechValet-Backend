@@ -190,38 +190,7 @@ namespace ITValet.Controllers
             }
         }
 
-        [HttpPost("AddAccount/{userId}")]
-        public async Task<IActionResult> AddPayPalAccount(string userId, AddPayPalAccountViewModel account)
-        {
-            try
-            {
-                var response = await _payPalGateWayService.AddPayPalAccountInformation(userId, account);
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                await MailSender.SendErrorMessage(projectVariables.BaseUrl + " ----------<br>" + ex.Message.ToString() + "---------------" + ex.StackTrace);
-                return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
-            }
-        }
-
-        [HttpGet("GetPayPalAccount/{userId}")]
-        public async Task<IActionResult> GetPayPalAccount(string userId)
-        {
-            var account = await _payPalGateWayService.GetPayPalAccount(userId);
-            if (account == null)
-                return BadRequest(account);
-            return Ok(account);
-        }
-
-        [HttpDelete("Delete/{userId}")]
-        public async Task<IActionResult> DeletePayPalAccount(string userId)
-        {
-            var response = await _payPalGateWayService.DeletePayPalAccount(userId);
-            if (response.Status == false)
-                return BadRequest(response);
-            return Ok(response);
-        }
+        
 
         [HttpPost("OrderAccepted")]
         public async Task<IActionResult> OrderAccepted(AcceptOrder orderDetail)
@@ -348,6 +317,33 @@ namespace ITValet.Controllers
 
 
         #region Code Refactor
+
+        [HttpPost("AddAccount/{userId}")]
+        public async Task<IActionResult> AddPayPalAccount(string userId, AddPayPalAccountViewModel account)
+        {
+            var response = await _payPalGateWayService.AddPayPalAccountInformation(userId, account);
+            if (response.Status == false)
+                return BadRequest(response);
+            return Ok(response);
+        }
+
+        [HttpGet("GetPayPalAccount/{userId}")]
+        public async Task<IActionResult> GetPayPalAccount(string userId)
+        {
+            var account = await _payPalGateWayService.GetPayPalAccount(userId);
+            if (account == null)
+                return BadRequest(account);
+            return Ok(account);
+        }
+
+        [HttpDelete("Delete/{userId}")]
+        public async Task<IActionResult> DeletePayPalAccount(string userId)
+        {
+            var response = await _payPalGateWayService.DeletePayPalAccount(userId);
+            if (response.Status == false)
+                return BadRequest(response);
+            return Ok(response);
+        }
 
         [HttpPost("PayPalCheckoutForOrder")]
         public async Task<IActionResult> PayPalCheckoutForOrders(PayPalOrderCheckOutViewModel orderDto)
