@@ -230,14 +230,14 @@ namespace ITValet.HelpingClasses
             }
             if (IsCompleteValetAccount != 0)
             {
-                var account = await payPalGateWayService.GetPayPalAccount(UserRecord.Id);
+                var account = await payPalGateWayService.GetPayPalAccount(StringCipher.EncryptId(UserRecord.Id));
                 int UserExperienceCount = await _userExperienceRepo.GetUserExperienceCountByUserId(UserRecord.Id);
                 int UserEducationCount = await _userEducationRepo.GetUserEducationCountByUserId(UserRecord.Id);
                 int UserSkillCount = (int)await _userSkillRepo.GetUserSkillCountByIdAsync(UserRecord.Id);
                 UserSkillCount = UserSkillCount == 0 ? IsCompleteValetAccount = 0 : IsCompleteValetAccount = IsCompleteValetAccount;
                 UserExperienceCount = UserExperienceCount == 0 ? IsCompleteValetAccount = 0 : IsCompleteValetAccount = IsCompleteValetAccount;
                 UserEducationCount = UserEducationCount == 0 ? IsCompleteValetAccount = 0 : IsCompleteValetAccount = IsCompleteValetAccount;
-                if (account == null)
+                if (account.Status == false)
                 {
                     IsCompleteValetAccount = 0;
                 }

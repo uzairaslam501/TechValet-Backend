@@ -1,6 +1,7 @@
 using ITValet.HelpingClasses;
 using ITValet.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace ITValet.Services
 {
@@ -18,13 +19,14 @@ namespace ITValet.Services
         Task<bool> UpdateOrderRecord(OrderCheckOutViewModel order);
         Task<bool> PaymentRefunding(string captureId);
         Task<CaptureAmountViewModel> CapturedAmount(string capturedId);
-        Task<string> GetPayPalAccount(int valetId);
+        Task<ResponseDto> GetPayPalAccount(string userId);
+        Task<ResponseDto> DeletePayPalAccount(string userId);
         Task<ResponseDto> AddPayPalAccountInformation(string userId, AddPayPalAccountViewModel paypalAccount);
         Task<bool> AddPayPalTransactionAdminToValet(PayPalFundToValetViewModel transferToValet);
         Task<PayPalFundToValetViewModel> GetPayPalTransactionRecord(string payOutItemId);
         Task<List<PayPalUnclaimedTransactionDetailsForAdminDB>> GetPayPalUnclaimedRecord();
         Task<bool> CancelUnclaimedPayment(string payoutItemId, PaymentCancelViewModel cancelObj);
-        Task<bool> DeletePayPalAccount(int Id);
+        
         Task<bool> PayPalOrderCheckoutAccepted(OrderCheckOutAccepted orderCheckout);
         Task<List<PayPalTransactionDetailsForAdminDB>> GetPayPalTransactionsRecord();
         Task<List<PayPalOrderCheckOut>> FindValetForTransferringFundRecord();
@@ -33,43 +35,6 @@ namespace ITValet.Services
         Task<bool> OrderCreatedByPayPalPackage(OrderAcceptedOfPackage packageOrder);
         Task<PayPalEarningInCome> GetPayPalEarnings(int valetId);
     }
-
-
-    public interface IPayPalGatewayWriteService : IPayPalGatewayReadService
-    {
-        Task<bool> AddPayPalPackage(PackageCheckOutViewModel package);
-        Task<bool> UpdatePackageRecord(PackageCheckOutViewModel package);
-        Task<bool> DeleteCheckOutOrderOfPackages(int orderId);
-        Task<bool> UpdateOrderCheckOut(PayPalOrderCheckOut checkout);
-        Task<bool> AddPayPalOrder(OrderCheckOutViewModel order);
-        Task<bool> CancelOrderAndRevertSessionAsync(int orderId);
-        Task<bool> UpdateOrderRecord(OrderCheckOutViewModel order);
-        Task<bool> PaymentRefunding(string captureId);
-        Task<bool> AddPayPalAccountInformation(AddPayPalAccountViewModel paypalAccount);
-        Task<bool> AddPayPalTransactionAdminToValet(PayPalFundToValetViewModel transferToValet);
-        Task<bool> CancelUnclaimedPayment(string payoutItemId, PaymentCancelViewModel cancelObj);
-        Task<bool> DeletePayPalAccount(int id);
-        Task<bool> PayPalOrderCheckoutAccepted(OrderCheckOutAccepted orderCheckout);
-        Task<bool> AddPayPalOrderForPackage(PayPalOrderCheckOutViewModel order);
-        Task<bool> OrderCreatedByPayPalPackage(OrderAcceptedOfPackage packageOrder);
-    }
-
-    public interface IPayPalGatewayReadService
-    {
-        Task<PayPalOrderCheckOut?> GetOrderCheckOutById(int id);
-        Task<PackageCheckOutViewModel> GetPackageByPaymentId(string paymentId);
-        Task<OrderCheckOutViewModel> GetOrderByPaymentId(string paymentId);
-        Task<CaptureAmountViewModel> CapturedAmount(string capturedId);
-        Task<string> GetPayPalAccount(int valetId);
-        Task<PayPalFundToValetViewModel> GetPayPalTransactionRecord(string payOutItemId);
-        Task<List<PayPalUnclaimedTransactionDetailsForAdminDB>> GetPayPalUnclaimedRecord();
-        Task<List<PayPalTransactionDetailsForAdminDB>> GetPayPalTransactionsRecord();
-        Task<List<PayPalOrderCheckOut>> FindValetForTransferringFundRecord();
-        Task<List<PayPalOrderDetailsForAdminDB>> GetPayPalOrdersRecord();
-        Task<PayPalEarningInCome> GetPayPalEarnings(int valetId);
-    }
-
-
 
     public class PayPalGateWayService : IPayPalGateWayService
     {
@@ -77,13 +42,98 @@ namespace ITValet.Services
         private readonly IUserRepo _userService;
         private readonly IOrderRepo _orderService;
         private readonly INotificationService _userPackageService;
-        public PayPalGateWayService(AppDbContext context, IUserRepo userService, IOrderRepo orderService, INotificationService userPackageService)
+
+        private readonly ProjectVariables _projectVariables;
+        public PayPalGateWayService(AppDbContext context, IUserRepo userService, IOrderRepo orderService,
+            INotificationService userPackageService, IOptions<ProjectVariables> options)
         {
             _context = context;
             _userService = userService;
             _orderService = orderService;
             _userPackageService = userPackageService;
+            _projectVariables = options.Value;
         }
+
+        #region RefactorCode
+        public async Task<ResponseDto> GetPayPalAccount(string userId)
+        {
+            try
+            {
+                var decrypt = DecryptionId(userId);
+                if (decrypt <= 0)
+                    return GeneralPurpose.GenerateResponseCode(false, "404", "Record Not Found");
+                var obj = await _context.PayPalAccount.FirstOrDefaultAsync(x => x.ValetId == decrypt & x.IsActive == 1);
+                return GeneralPurpose.GenerateResponseCode(true, "200", "Record Found", obj);
+            }
+            catch (Exception ex)
+            {
+                CreateLogger(ex);
+                return GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.SystemFailureMessage);
+            }
+
+        }
+
+        public async Task<ResponseDto> DeletePayPalAccount(string userId)
+        {
+            try
+            {
+                var decrypt = DecryptionId(userId);
+                if (decrypt <= 0)
+                    return GeneralPurpose.GenerateResponseCode(false, "404", "Record Not Found");
+
+                var accountObj = _context.PayPalAccount.
+                    FirstOrDefault(x => x.ValetId == decrypt && x.IsActive == 1);
+                if (accountObj != null)
+                {
+                    DeactivatePayPalAccount(accountObj);
+                    await _context.SaveChangesAsync();
+                    if (!await UpdateUserWithPayPalAccount(accountObj.ValetId ?? 0, true))
+                        return GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.SystemFailureMessage);
+                }
+                return GeneralPurpose.GenerateResponseCode(true, "200", GlobalMessages.DeletedMessage, null);
+            }
+            catch (Exception ex)
+            {
+                CreateLogger(ex);
+                return GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.SystemFailureMessage);
+            }
+
+        }
+
+        public async Task<ResponseDto> AddPayPalAccountInformation(string userId, AddPayPalAccountViewModel paypalAccount)
+        {
+            try
+            {
+                var decrypt = DecryptionId(userId);
+
+                if (await IsPayPalEmailExists(paypalAccount.PayPalEmail!))
+                    return GeneralPurpose.GenerateResponseCode(false, "204", "Email already exists.");
+
+                var existingPayPalAccount = await GetExistingPayPalAccount(decrypt);
+
+                if (existingPayPalAccount != null)
+                {
+                    UpdatePayPalAccount(existingPayPalAccount, paypalAccount);
+                }
+                else
+                {
+                    var newPayPalAccount = MapNewPayPalAccount(decrypt, paypalAccount);
+                    _context.PayPalAccount.Add(newPayPalAccount);
+                }
+
+
+                await _context.SaveChangesAsync();
+                bool updateUser = await UpdateUserWithPayPalAccount(decrypt, false);
+                return GeneralPurpose.GenerateResponseCode(true, "200", "Account information added/updated successfully.");
+            }
+            catch (Exception ex)
+            {
+                CreateLogger(ex);
+                return GeneralPurpose.GenerateResponseCode(false, "400", "An error occurred while adding/updating account information.");
+            }
+        }
+        #endregion
+
 
         public async Task<bool> AddPayPalPackage(PackageCheckOutViewModel package)
         {
@@ -332,96 +382,7 @@ namespace ITValet.Services
             }
         }
 
-        public async Task<string> GetPayPalAccount(int valetId)
-        {
-            var obj = await _context.PayPalAccount.FirstOrDefaultAsync(x => x.ValetId == valetId & x.IsActive == 1);
-            if (obj != null)
-            {
-                return obj.PayPalEmail;
-            }
-            return null;
-        }
-
-        public async Task<ResponseDto> AddPayPalAccountInformation(string userId, AddPayPalAccountViewModel paypalAccount)
-        {
-            try
-            {
-                paypalAccount.ValetId = GeneralPurpose.ConversionEncryptedId(userId);
-                var decrypt = StringCipher.DecryptId(paypalAccount.ValetId);
-                
-                bool emailExists = await _context.PayPalAccount
-                    .AnyAsync(p => p.PayPalEmail == paypalAccount.PayPalEmail && p.IsActive == 1);
-
-                var existingPayPalAccount = await _context.PayPalAccount
-                    .FirstOrDefaultAsync(p => p.ValetId == decrypt && p.IsActive == (int)EnumActiveStatus.Deleted);
-
-                if (emailExists)
-                    return GeneralPurpose.GenerateResponseCode(false, "204", "Email already exists.");
-                
-                if (existingPayPalAccount != null)
-                {
-                    // Update the existing PayPal account with the new data
-                    existingPayPalAccount.PayPalEmail = paypalAccount.PayPalEmail;
-                    existingPayPalAccount.IsPayPalAuthorized = paypalAccount.IsPayPalAuthorized;
-                    existingPayPalAccount.IsActive = paypalAccount.IsActive;
-                    existingPayPalAccount.DeletedAt = null;
-                    existingPayPalAccount.CreatedAt = GeneralPurpose.DateTimeNow();
-
-                    _context.PayPalAccount.Update(existingPayPalAccount);
-                }
-                else
-                {
-                    // Create a new PayPal account record
-                    PayPalAccountInformation obj = new PayPalAccountInformation()
-                    {
-                        ValetId = decrypt,
-                        PayPalEmail = paypalAccount.PayPalEmail,
-                        IsPayPalAuthorized = paypalAccount.IsPayPalAuthorized,
-                        IsActive = paypalAccount.IsActive,
-                        CreatedAt = GeneralPurpose.DateTimeNow(),
-                    };
-
-                    _context.PayPalAccount.Add(obj);
-                }
-
-                await _context.SaveChangesAsync();
-                bool updateUser = await UpdateUserWithPayPalAccount(decrypt, false);
-                return GeneralPurpose.GenerateResponseCode(true, "200", "Account information added/updated successfully.");
-            }
-            catch (Exception ex)
-            {
-                return GeneralPurpose.GenerateResponseCode(false, "400", "An error occurred while adding/updating account information.");
-            }
-        }
-
-        private async Task<bool> UpdateUserWithPayPalAccount(int userId, bool Isdelete)
-        {
-            try
-            {
-                var userObj = await _context.User.Where(x=>x.Id == userId).FirstOrDefaultAsync();
-               // var userObj = await _userService.GetUserById(userId);
-                if (userObj != null)
-                {
-                    if (Isdelete)
-                    {
-                        userObj.IsPayPalAccount = 0;
-                    }
-                    else
-                    {
-                        userObj.IsPayPalAccount = 1;
-                    }
-                    userObj.UpdatedAt = GeneralPurpose.DateTimeNow();
-                    await _context.SaveChangesAsync();
-                    return true;
-                }
-                return false;
-            }
-            catch (Exception ex)
-            {
-                return false;
-            }
-        }
-
+        
         public async Task<bool> AddPayPalTransactionAdminToValet(PayPalFundToValetViewModel transferToValet)
         {
             try
@@ -509,28 +470,7 @@ namespace ITValet.Services
 
             return false;
         }
-        public async Task<bool> DeletePayPalAccount(int Id)
-        {
-            try
-            {
-                var accountObj = _context.PayPalAccount.FirstOrDefault(t => t.ValetId == Id && t.IsActive == 1);
-                if (accountObj != null)
-                {
-                    accountObj.IsActive = 0;
-                    accountObj.DeletedAt = DateTime.UtcNow;
-                    await _context.SaveChangesAsync();
-                    int valetId = accountObj.ValetId ?? 0;
-                    bool deletePayPalAccountFromUser = await UpdateUserWithPayPalAccount(valetId, true);
-                    return true;
-                }
-                return false;
-            }
-            catch (Exception ex)
-            {
-                return false;
-            }
-
-        }
+        
         public async Task<bool> OrderCreatedByPayPalPackage(OrderAcceptedOfPackage packageOrder)
         {
             try
@@ -903,5 +843,769 @@ namespace ITValet.Services
             }
             return 0;
         }
+
+        private async Task<bool> IsPayPalEmailExists(string email)
+        {
+            return await _context.PayPalAccount
+                .AnyAsync(p => p.PayPalEmail == email && p.IsActive == (int)EnumActiveStatus.Active);
+        }
+
+        private async Task<PayPalAccountInformation> GetExistingPayPalAccount(int valetId)
+        {
+            var accountFind = await _context.PayPalAccount
+                .FirstOrDefaultAsync(p => p.ValetId == valetId && p.IsActive == (int)EnumActiveStatus.Deleted);
+            return accountFind;
+        }
+
+        private void UpdatePayPalAccount(PayPalAccountInformation existingAccount, AddPayPalAccountViewModel paypalAccount)
+        {
+            existingAccount.PayPalEmail = paypalAccount.PayPalEmail;
+            existingAccount.IsPayPalAuthorized = paypalAccount.IsPayPalAuthorized;
+            existingAccount.IsActive = paypalAccount.IsActive;
+            existingAccount.DeletedAt = null;
+            existingAccount.CreatedAt = GeneralPurpose.DateTimeNow();
+            _context.PayPalAccount.Update(existingAccount);
+        }
+
+        private PayPalAccountInformation MapNewPayPalAccount(int valetId, AddPayPalAccountViewModel paypalAccount)
+        {
+            return new PayPalAccountInformation
+            {
+                ValetId = valetId,
+                PayPalEmail = paypalAccount.PayPalEmail,
+                IsPayPalAuthorized = paypalAccount.IsPayPalAuthorized,
+                IsActive = paypalAccount.IsActive,
+                CreatedAt = GeneralPurpose.DateTimeNow()
+            };
+        }
+
+        private async Task<bool> UpdateUserWithPayPalAccount(int userId, bool isDelete)
+        {
+            try
+            {
+                var userObj = await _context.User.FirstOrDefaultAsync(x => x.Id == userId);
+                if (userObj != null)
+                {
+                    userObj.IsPayPalAccount = isDelete ? 0 : 1;
+                    userObj.UpdatedAt = GeneralPurpose.DateTimeNow();
+                    await _context.SaveChangesAsync();
+                    return true;
+                }
+                return false;
+            }
+            catch (Exception ex)
+            {
+                CreateLogger(ex);
+                return false;
+            }
+        }
+
+        private PayPalOrderCheckOut MappingOrderCheckout(OrderCheckOutViewModel model)
+        {
+            return new PayPalOrderCheckOut
+            {
+                OrderId = model.OrderId,
+                ValetId = model.ValetId,
+                ClientId = model.ClientId,
+                OrderPrice = model.OrderPrice,
+                PaymentId = model.PaymentId,
+                CreatedAt = GeneralPurpose.DateTimeNow(),
+                IsActive = (int)EnumActiveStatus.Active
+            };
+        }
+
+        private PayPalOrderCheckOut MappingOrderCheckout(PayPalOrderCheckOutViewModel model)
+        {
+            return new PayPalOrderCheckOut
+            {
+                OrderId = model.OrderId,
+                ValetId = model.ValetId,
+                ClientId = model.ClientId,
+                PaymentStatus = "USED_SESSION",
+                OrderPrice = model.OrderPrice,
+                PaidByPackage = model.PayByPackage,
+                CreatedAt = GeneralPurpose.DateTimeNow(),
+                IsActive = (int)EnumActiveStatus.Active
+            };
+        }
+
+        private PayPalToValetTransactions MappingFundPaypal(PayPalFundToValetViewModel model)
+        {
+            return new PayPalToValetTransactions
+            {
+                OrderId = model.OrderId,
+                BatchId = model.BatchId,
+                ValetId = model.ValetId,
+                CustomerId = model.ClientId,
+                PaymentId = model.PaymentId,
+                OrderPrice = model.OrderPrice,
+                PlatformFee = model.PlatformFee,
+                SentPayment = model.SentPayment,
+                PayOutItemId = model.PayOutItemId,
+                RecipientEmail = model.PayPalAccEmail,
+                OrderCheckOutId = model.OrderCheckOutId,
+                IsActive = (int)EnumActiveStatus.Active,
+                TransactionStatus = model.TransactionStatus,
+                CreatedAt = GeneralPurpose.DateTimeNow()
+            };
+        }
+
+        private PayPalPackagesCheckOut MappingPaypal(PackageCheckOutViewModel model)
+        {
+            return new PayPalPackagesCheckOut
+            {
+                EndDate = model.EndDate,
+                ClientId = model.ClientId,
+                StartDate = model.StartDate,
+                PaymentId = model.PaymentId,
+                PackageType = model.PackageType,
+                PackagePrice = model.PackagePrice,
+                UserPackageId = model.UserPackageId,
+                CreatedAt = GeneralPurpose.DateTimeNow()
+            };
+        }
+
+        private PayPalToValetTransactions MappingUnClaimedPayments(PaymentCancelViewModel model)
+        {
+            return new PayPalToValetTransactions
+            {
+                CancelationReason = model.CancelationReason,
+                CancelByAdmin = model.CancelByAdmin,
+                ReturnedAmount = model.ReturnedAmount,
+                CancelationStatus = model.CancelationStatus,
+                TransactionStatus = "RETURNED",
+                UpdatedAt = GeneralPurpose.DateTimeNow(),
+                IsActive = (int)EnumActiveStatus.Active,
+            };
+        }
+
+        private CaptureAmountViewModel MapToCaptureAmountViewModel(PayPalOrderCheckOut capturedObj)
+        {
+            return new CaptureAmountViewModel
+            {
+                PayableAmount = capturedObj.PayableAmount,
+                Currency = capturedObj.Currency
+            };
+        }
+
+        private async Task<bool> AddPayPalOrderCore(PayPalOrderCheckOut order)
+        {
+            try
+            {
+                _context.PayPalOrderCheckOut.Add(order);
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                CreateLogger(ex);
+                return false;
+            }
+        }
+
+        private int CalculateRevertableSessions(DateTime? startDateTime, DateTime? endDateTime)
+        {
+            if (startDateTime == null || endDateTime == null)
+                throw new ArgumentException("Order start or end time cannot be null.");
+
+            TimeSpan orderDuration = endDateTime.Value - startDateTime.Value;
+            return (int)Math.Ceiling(orderDuration.TotalHours);
+        }
+
+        private async Task<bool> UpdateUserPackageAndCancelOrderAsync(UserPackage currentUserPackage, int orderId)
+        {
+            if (await _userPackageService.UpdateUserPackageSession(currentUserPackage))
+            {
+                return await _orderService.UpdateOrderStatusForCancel(orderId);
+            }
+            return false;
+        }
+
+        private async Task<bool> UpdateOrderStatus(int orderId, int isActiveStatus, bool isRefund,
+            string paymentStatus)
+        {
+            try
+            {
+                var orderObj = await _context.PayPalOrderCheckOut
+                    .FirstOrDefaultAsync(x => x.OrderId == orderId && x.IsActive == (int)EnumActiveStatus.Active);
+
+                if (orderObj != null)
+                {
+                    orderObj.IsActive = isActiveStatus;
+                    orderObj.IsRefund = isRefund;
+                    orderObj.PaymentStatus = paymentStatus;
+                    await _context.SaveChangesAsync();
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                CreateLogger(ex);
+            }
+            return false;
+        }
+
+        private int DecryptionId(string userId)
+        {
+            var validEncrypted = GeneralPurpose.ConversionEncryptedId(userId);
+            return StringCipher.DecryptId(validEncrypted);
+        }
+
+        private void DeactivatePayPalAccount(PayPalAccountInformation accountObj)
+        {
+            accountObj.IsActive = (int)EnumActiveStatus.Deleted;
+            accountObj.DeletedAt = GeneralPurpose.DateTimeNow();
+        }
+        
+        private async void CreateLogger(Exception ex)
+        {
+            await MailSender.SendErrorMessage($"URL: {_projectVariables.BaseUrl}<br/> Exception Message:  {ex.Message} <br/> Stack Trace: {ex.StackTrace}");
+        }
+    }
+
+    public interface IPayPalGatewayWriteService : IPayPalGatewayReadService
+    {
+        Task<bool> AddPayPalPackageAsync(PackageCheckOutViewModel package);
+        Task<bool> UpdatePackageRecord(PackageCheckOutViewModel package);
+        Task<bool> AddPayPalOrderForPackage(PayPalOrderCheckOutViewModel order);
+        Task<bool> DeleteCheckOutOrderOfPackages(int orderId);
+        Task<bool> OrderCreatedByPayPalPackage(OrderAcceptedOfPackage packageOrder);
+        
+        Task<bool> AddPayPalOrder(OrderCheckOutViewModel order);
+        Task<bool> UpdateOrderCheckOut(PayPalOrderCheckOut checkout);
+        
+        Task<bool> CancelOrderAndRevertSessionAsync(int orderId);
+        Task<bool> UpdateOrderRecord(OrderCheckOutViewModel order);
+        Task<bool> PaymentRefunding(string captureId);
+        
+        Task<ResponseDto> AddPayPalAccountInformation(string valetId, AddPayPalAccountViewModel paypalAccount);
+        Task<bool> AddPayPalTransactionAdminToValet(PayPalFundToValetViewModel transferToValet);
+        
+        Task<bool> CancelUnclaimedPayment(string payoutItemId, PaymentCancelViewModel cancelObj);
+        
+        Task<bool> DeletePayPalAccount(int id);
+        Task<bool> PayPalOrderCheckoutAccepted(OrderCheckOutAccepted orderCheckout);
+    }
+
+    public interface IPayPalGatewayReadService
+    {
+        Task<PayPalOrderCheckOut?> GetOrderCheckOutById(int id);
+        Task<PackageCheckOutViewModel> GetPackageByPaymentId(string paymentId);
+        Task<OrderCheckOutViewModel> GetOrderByPaymentId(string paymentId);
+        Task<CaptureAmountViewModel> CapturedAmount(string capturedId);
+        Task<string> GetPayPalAccount(int valetId);
+        Task<PayPalFundToValetViewModel> GetPayPalTransactionRecord(string payOutItemId);
+        Task<List<PayPalUnclaimedTransactionDetailsForAdminDB>> GetPayPalUnclaimedRecord();
+        Task<List<PayPalTransactionDetailsForAdminDB>> GetPayPalTransactionsRecord();
+        Task<List<PayPalOrderCheckOut>> FindValetForTransferringFundRecord();
+        Task<List<PayPalOrderDetailsForAdminDB>> GetPayPalOrdersRecord();
+        Task<PayPalEarningInCome> GetPayPalEarnings(int valetId);
+    }
+
+    public class IPaypalServices : IPayPalGatewayWriteService
+    {
+        private readonly AppDbContext _context;
+        private readonly IUserRepo _userService;
+        private readonly IOrderRepo _orderService;
+        private readonly INotificationService _userPackageService;
+        private readonly ProjectVariables _projectVariables;
+        public IPaypalServices(AppDbContext context, IUserRepo userService,
+            IOrderRepo orderService, INotificationService userPackageService,
+            IOptions<ProjectVariables> options)
+        {
+            _context = context;
+            _userService = userService;
+            _orderService = orderService;
+            _userPackageService = userPackageService;
+            _projectVariables = options.Value;
+        }
+
+
+        public async Task<ResponseDto> AddPayPalAccountInformation(string valetId, AddPayPalAccountViewModel paypalAccount)
+        {
+            try
+            {
+                var decrypt = DecryptionId(valetId);
+
+                if (await IsPayPalEmailExists(paypalAccount.PayPalEmail!))
+                    return GeneralPurpose.GenerateResponseCode(false, "204", "Email already exists.");
+
+                var existingPayPalAccount = await GetExistingPayPalAccount(decrypt);
+
+                if (existingPayPalAccount != null)
+                {
+                    UpdatePayPalAccount(existingPayPalAccount, paypalAccount);
+                }
+                else
+                {
+                    var newPayPalAccount = MapNewPayPalAccount(decrypt, paypalAccount);
+                    _context.PayPalAccount.Add(newPayPalAccount);
+                }
+                
+
+                await _context.SaveChangesAsync();
+                bool updateUser = await UpdateUserWithPayPalAccount(decrypt, false);
+                return GeneralPurpose.GenerateResponseCode(true, "200", "Account information added/updated successfully.");
+            }
+            catch (Exception ex)
+            {
+                CreateLogger(ex);
+                return GeneralPurpose.GenerateResponseCode(false, "400", "An error occurred while adding/updating account information.");
+            }
+        }
+
+        public async Task<bool> AddPayPalOrder(OrderCheckOutViewModel order)
+        {
+            return await AddPayPalOrderCore(MappingOrderCheckout(order));
+        }
+
+        public async Task<bool> AddPayPalOrderForPackage(PayPalOrderCheckOutViewModel order)
+        {
+            return await AddPayPalOrderCore(MappingOrderCheckout(order));
+        }
+
+        public async Task<bool> AddPayPalPackageAsync(PackageCheckOutViewModel package)
+        {
+            try
+            {
+                var obj = MappingPaypal(package);
+                _context.PayPalPackagesCheckOut.Add(obj);
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                CreateLogger(ex);
+                return false;
+            }
+        }
+
+        public async Task<bool> AddPayPalTransactionAdminToValet(PayPalFundToValetViewModel transferToValet)
+        {
+            try
+            {
+                var obj = MappingFundPaypal(transferToValet);
+                _context.PayPalToValetTransactions.Add(obj);
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                CreateLogger(ex);
+                return false;
+            }
+        }
+
+        public async Task<bool> CancelOrderAndRevertSessionAsync(int orderId)
+        {
+            try
+            {
+                var order = await _orderService.GetOrderById(orderId);
+                if (order == null)
+                    return false;
+
+                var currentUserPackage = await _userPackageService.GetCurrentUserPackageByUserId(order.CustomerId);
+                if (currentUserPackage == null)
+                    return false;
+
+                int sessionsToRevert = CalculateRevertableSessions(order.StartDateTime, order.EndDateTime);
+                currentUserPackage.RemainingSessions += sessionsToRevert;
+
+                if (await UpdateUserPackageAndCancelOrderAsync(currentUserPackage, orderId))
+                    return true;
+            }
+            catch (Exception ex)
+            {
+                CreateLogger(ex);
+            }
+            return false;
+        }
+
+        public async Task<bool> CancelUnclaimedPayment(string payoutItemId, PaymentCancelViewModel cancelObj)
+        {
+            try
+            {
+                var amountTransferObj = await _context.PayPalToValetTransactions.FirstOrDefaultAsync(t => t.PayOutItemId == payoutItemId);
+                if (amountTransferObj != null)
+                {
+                    amountTransferObj = MappingUnClaimedPayments(cancelObj);
+                    await _context.SaveChangesAsync();
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                CreateLogger(ex);
+            }
+
+            return false;
+        }
+
+        public async Task<CaptureAmountViewModel> CapturedAmount(string capturedId)
+        {
+            try
+            {
+                var capturedObj = await _context.PayPalOrderCheckOut
+                    .FirstOrDefaultAsync(c => c.CaptureId == capturedId);
+
+                return capturedObj != null ? 
+                    MapToCaptureAmountViewModel(capturedObj) : 
+                    throw new Exception("Record Not Found");
+            }
+            catch (Exception ex)
+            {
+                CreateLogger(ex);
+                return null;
+            }
+        }
+
+        public async Task<bool> DeleteCheckOutOrderOfPackages(int orderId)
+        {
+            return await UpdateOrderStatus(orderId, (int)EnumActiveStatus.Deleted, true, "SESSION_REVERTED");
+        }
+
+        public async Task<bool> DeletePayPalAccount(int id)
+        {
+            try
+            {
+                var accountObj = _context.PayPalAccount.
+                    FirstOrDefault(t => t.ValetId == id && t.IsActive == 1);
+                if (accountObj != null)
+                {
+                    DeactivatePayPalAccount(accountObj);
+                    await _context.SaveChangesAsync();
+                    await UpdateUserWithPayPalAccount(accountObj.ValetId ?? 0, true);
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                CreateLogger(ex);
+            }
+            return false;
+        }
+
+        public async Task<List<PayPalOrderCheckOut>> FindValetForTransferringFundRecord()
+        {
+            try
+            {
+                var currentDate = DateTime.Now.Date;
+
+                var valetRecords = await _context.PayPalOrderCheckOut
+                    .Where(record =>
+                        record.IsPaymentSentToValet == false && // Payment not sent to valet yet
+                        record.PaymentTransmitDateTime.HasValue && // Check for non-null value
+                        record.PaymentTransmitDateTime.Value.Date <= currentDate && // Compare with current date only
+                        record.IsActive == 1 && // Record is active
+                        (
+                            (record.PaymentStatus == "completed" && record.PaidByPackage == false) || // Payment completed without package
+                            (record.PaymentStatus == "USED_SESSION" && record.PaidByPackage == true) // Payment from package
+                        )
+                    )
+                    .ToListAsync();
+
+                return valetRecords;
+            }
+            catch (Exception ex)
+            {
+                CreateLogger(ex);
+                return null;
+            }
+        }
+
+        public Task<OrderCheckOutViewModel> GetOrderByPaymentId(string paymentId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<PayPalOrderCheckOut?> GetOrderCheckOutById(int id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<PackageCheckOutViewModel> GetPackageByPaymentId(string paymentId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<string> GetPayPalAccount(int valetId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<PayPalEarningInCome> GetPayPalEarnings(int valetId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<List<PayPalOrderDetailsForAdminDB>> GetPayPalOrdersRecord()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<PayPalFundToValetViewModel> GetPayPalTransactionRecord(string payOutItemId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<List<PayPalTransactionDetailsForAdminDB>> GetPayPalTransactionsRecord()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<List<PayPalUnclaimedTransactionDetailsForAdminDB>> GetPayPalUnclaimedRecord()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> OrderCreatedByPayPalPackage(OrderAcceptedOfPackage packageOrder)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> PaymentRefunding(string captureId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> PayPalOrderCheckoutAccepted(OrderCheckOutAccepted orderCheckout)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> UpdateOrderCheckOut(PayPalOrderCheckOut checkout)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> UpdateOrderRecord(OrderCheckOutViewModel order)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> UpdatePackageRecord(PackageCheckOutViewModel package)
+        {
+            throw new NotImplementedException();
+        }
+
+        #region Helpers
+
+        private int DecryptionId(string userId)
+        {
+            var validEncrypted = GeneralPurpose.ConversionEncryptedId(userId);
+            return StringCipher.DecryptId(validEncrypted);
+        }
+
+        private async Task<bool> IsPayPalEmailExists(string email)
+        {
+            return await _context.PayPalAccount
+                .AnyAsync(p => p.PayPalEmail == email && p.IsActive == (int)EnumActiveStatus.Active);
+        }
+
+        private async Task<PayPalAccountInformation> GetExistingPayPalAccount(int valetId)
+        {
+            var accountFind = await _context.PayPalAccount
+                .FirstOrDefaultAsync(p => p.ValetId == valetId && p.IsActive == (int)EnumActiveStatus.Deleted);
+            return accountFind;
+        }
+
+        private void UpdatePayPalAccount(PayPalAccountInformation existingAccount, AddPayPalAccountViewModel paypalAccount)
+        {
+            existingAccount.PayPalEmail = paypalAccount.PayPalEmail;
+            existingAccount.IsPayPalAuthorized = paypalAccount.IsPayPalAuthorized;
+            existingAccount.IsActive = paypalAccount.IsActive;
+            existingAccount.DeletedAt = null;
+            existingAccount.CreatedAt = GeneralPurpose.DateTimeNow();
+            _context.PayPalAccount.Update(existingAccount);
+        }
+
+        private PayPalAccountInformation MapNewPayPalAccount(int valetId, AddPayPalAccountViewModel paypalAccount)
+        {
+            return new PayPalAccountInformation
+            {
+                ValetId = valetId,
+                PayPalEmail = paypalAccount.PayPalEmail,
+                IsPayPalAuthorized = paypalAccount.IsPayPalAuthorized,
+                IsActive = paypalAccount.IsActive,
+                CreatedAt = GeneralPurpose.DateTimeNow()
+            };
+        }
+
+        private async Task<bool> UpdateUserWithPayPalAccount(int userId, bool isDelete)
+        {
+            try
+            {
+                var userObj = await _context.User.FirstOrDefaultAsync(x => x.Id == userId);
+                if (userObj != null)
+                {
+                    userObj.IsPayPalAccount = isDelete ? 0 : 1;
+                    userObj.UpdatedAt = GeneralPurpose.DateTimeNow();
+                    await _context.SaveChangesAsync();
+                    return true;
+                }
+                return false;
+            }
+            catch (Exception ex)
+            {
+                CreateLogger(ex);
+                return false;
+            }
+        }
+
+        private PayPalOrderCheckOut MappingOrderCheckout(OrderCheckOutViewModel model)
+        {
+            return new PayPalOrderCheckOut
+            {
+                OrderId = model.OrderId,
+                ValetId = model.ValetId,
+                ClientId = model.ClientId,
+                OrderPrice = model.OrderPrice,
+                PaymentId = model.PaymentId,
+                CreatedAt = GeneralPurpose.DateTimeNow(),
+                IsActive = (int)EnumActiveStatus.Active
+            };
+        }
+
+        private PayPalOrderCheckOut MappingOrderCheckout(PayPalOrderCheckOutViewModel model)
+        {
+            return new PayPalOrderCheckOut
+            {
+                OrderId = model.OrderId,
+                ValetId = model.ValetId,
+                ClientId = model.ClientId,
+                PaymentStatus = "USED_SESSION",
+                OrderPrice = model.OrderPrice,
+                PaidByPackage = model.PayByPackage,
+                CreatedAt = GeneralPurpose.DateTimeNow(),
+                IsActive = (int)EnumActiveStatus.Active
+            };
+        }
+
+        private PayPalToValetTransactions MappingFundPaypal(PayPalFundToValetViewModel model)
+        {
+            return new PayPalToValetTransactions
+            {
+                OrderId = model.OrderId,
+                BatchId = model.BatchId,
+                ValetId = model.ValetId,
+                CustomerId = model.ClientId,
+                PaymentId = model.PaymentId,
+                OrderPrice = model.OrderPrice,
+                PlatformFee = model.PlatformFee,
+                SentPayment = model.SentPayment,
+                PayOutItemId = model.PayOutItemId,
+                RecipientEmail = model.PayPalAccEmail,
+                OrderCheckOutId = model.OrderCheckOutId,
+                IsActive = (int)EnumActiveStatus.Active,
+                TransactionStatus = model.TransactionStatus,
+                CreatedAt = GeneralPurpose.DateTimeNow()
+            };
+        }
+
+        private PayPalPackagesCheckOut MappingPaypal(PackageCheckOutViewModel model)
+        {
+            return new PayPalPackagesCheckOut
+            {
+                EndDate = model.EndDate,
+                ClientId = model.ClientId,
+                StartDate = model.StartDate,
+                PaymentId = model.PaymentId,
+                PackageType = model.PackageType,
+                PackagePrice = model.PackagePrice,
+                UserPackageId = model.UserPackageId,
+                CreatedAt = GeneralPurpose.DateTimeNow()
+            };
+        }
+
+        private PayPalToValetTransactions MappingUnClaimedPayments(PaymentCancelViewModel model)
+        {
+            return new PayPalToValetTransactions {
+                CancelationReason = model.CancelationReason,
+                CancelByAdmin = model.CancelByAdmin,
+                ReturnedAmount = model.ReturnedAmount,
+                CancelationStatus = model.CancelationStatus,
+                TransactionStatus = "RETURNED",
+                UpdatedAt = GeneralPurpose.DateTimeNow(),
+                IsActive = (int)EnumActiveStatus.Active,
+            };
+        }
+
+        private CaptureAmountViewModel MapToCaptureAmountViewModel(PayPalOrderCheckOut capturedObj)
+        {
+            return new CaptureAmountViewModel
+            {
+                PayableAmount = capturedObj.PayableAmount,
+                Currency = capturedObj.Currency
+            };
+        }
+
+        private async Task<bool> AddPayPalOrderCore(PayPalOrderCheckOut order)
+        {
+            try
+            {
+                _context.PayPalOrderCheckOut.Add(order);
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                CreateLogger(ex);
+                return false;
+            }
+        }
+
+        private int CalculateRevertableSessions(DateTime? startDateTime, DateTime? endDateTime)
+        {
+            if (startDateTime == null || endDateTime == null)
+                throw new ArgumentException("Order start or end time cannot be null.");
+
+            TimeSpan orderDuration = endDateTime.Value - startDateTime.Value;
+            return (int)Math.Ceiling(orderDuration.TotalHours);
+        }
+
+        private async Task<bool> UpdateUserPackageAndCancelOrderAsync(UserPackage currentUserPackage, int orderId)
+        {
+            if (await _userPackageService.UpdateUserPackageSession(currentUserPackage))
+            {
+                return await _orderService.UpdateOrderStatusForCancel(orderId);
+            }
+            return false;
+        }
+
+        private async Task<bool> UpdateOrderStatus(int orderId, int isActiveStatus, bool isRefund,
+            string paymentStatus)
+        {
+            try
+            {
+                var orderObj = await _context.PayPalOrderCheckOut
+                    .FirstOrDefaultAsync(x => x.OrderId == orderId && x.IsActive == (int)EnumActiveStatus.Active);
+
+                if (orderObj != null)
+                {
+                    orderObj.IsActive = isActiveStatus;
+                    orderObj.IsRefund = isRefund;
+                    orderObj.PaymentStatus = paymentStatus;
+                    await _context.SaveChangesAsync();
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                CreateLogger(ex);
+            }
+            return false;
+        }
+
+        private void DeactivatePayPalAccount(PayPalAccountInformation accountObj)
+        {
+            accountObj.IsActive = (int)EnumActiveStatus.Deleted;
+            accountObj.DeletedAt = GeneralPurpose.DateTimeNow();
+        }
+
+        private async void CreateLogger(Exception ex)
+        {
+            await MailSender.SendErrorMessage($"URL: {_projectVariables.BaseUrl}<br/> Exception Message:  {ex.Message} <br/> Stack Trace: {ex.StackTrace}");
+        }
+        #endregion
     }
 }

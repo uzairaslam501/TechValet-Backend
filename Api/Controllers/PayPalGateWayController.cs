@@ -205,42 +205,22 @@ namespace ITValet.Controllers
             }
         }
 
-        [HttpGet("GetPayPalAccount")]
-        public async Task<IActionResult> GetPayPalAccount(string id)
+        [HttpGet("GetPayPalAccount/{userId}")]
+        public async Task<IActionResult> GetPayPalAccount(string userId)
         {
-            try
-            {
-                var account = await _payPalGateWayService.GetPayPalAccount(Convert.ToInt32(id));
-                if(account == null)
-                {
-                    return Ok(new ResponseDto() {Message = "Account not found", Status = false, StatusCode = "404" });
-                }
-                return Ok(new ResponseDto() { Data = account, Status = true, StatusCode = "200" });
-            }
-            catch (Exception ex)
-            {
-                await MailSender.SendErrorMessage(projectVariables.BaseUrl + " ----------<br>" + ex.Message.ToString() + "---------------" + ex.StackTrace);
-                return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
-            }
+            var account = await _payPalGateWayService.GetPayPalAccount(userId);
+            if (account == null)
+                return BadRequest(account);
+            return Ok(account);
         }
 
-        [HttpDelete("DeletePayPalAccount")]
-        public async Task<IActionResult> DeletePayPalAccount(int id)
+        [HttpDelete("Delete/{userId}")]
+        public async Task<IActionResult> DeletePayPalAccount(string userId)
         {
-            try
-            {
-                bool isAccountDeleted = await _payPalGateWayService.DeletePayPalAccount(id);
-                if (isAccountDeleted)
-                {
-                    return Ok(new ResponseDto() { Status = true, StatusCode = "200" });
-                }
-                return Ok(new ResponseDto() { Message= "Not Deleted", Status = false, StatusCode = "400" });
-            } 
-            catch (Exception ex)
-            {
-                await MailSender.SendErrorMessage(projectVariables.BaseUrl + " ----------<br>" + ex.Message.ToString() + "---------------" + ex.StackTrace);
-                return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
-            }
+            var response = await _payPalGateWayService.DeletePayPalAccount(userId);
+            if (response.Status == false)
+                return BadRequest(response);
+            return Ok(response);
         }
 
         [HttpPost("OrderAccepted")]
@@ -251,7 +231,7 @@ namespace ITValet.Controllers
                 UserClaims? getUserFromToken = jwtUtils.ValidateToken(Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last());
                 var orderObj = await _orderService.UpdateOrderStatusForPayPal(orderDetail);
                 var isUserRatingInserted = await AddUserRatingAgainstOrder(orderDetail);
-                var valetPayPalEmail = await _payPalGateWayService.GetPayPalAccount(Convert.ToInt32(orderDetail.ValetId));
+                var valetPayPalEmail = await _payPalGateWayService.GetPayPalAccount(StringCipher.EncryptId(Convert.ToInt32(orderDetail.ValetId)));
 
                 if (orderObj == null)
                 {
@@ -267,7 +247,7 @@ namespace ITValet.Controllers
                     orderObject.CustomerId = Convert.ToInt32(orderDetail.CustomerId);
                     orderObject.OrderId = orderObj.Id;
                     orderObject.OrderPrice = orderObj.OrderPrice;
-                    orderObject.PayPalAccount = valetPayPalEmail;
+                    orderObject.PayPalAccount = valetPayPalEmail.Data.Email;
 
                     bool isOrderAccepted = await _payPalGateWayService.OrderCreatedByPayPalPackage(orderObject);
 
@@ -287,7 +267,7 @@ namespace ITValet.Controllers
                     {
                         OrderId = orderObj.Id,
                         PaymentId = orderObj.PayPalPaymentId,
-                        PayPalAccount = valetPayPalEmail, // May be null, which is okay
+                        PayPalAccount = valetPayPalEmail.Data.Email, // May be null, which is okay
                     };
 
                     // Calculate HST fee and deduct it from the Order Price 

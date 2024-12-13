@@ -799,11 +799,9 @@ namespace ITValet.Controllers
         #endregion
 
         #region UserSkill
-        [HttpPost("postAddSkills/{userId}")]
+        [HttpPost("PostAddSkills/{userId}")]
         public async Task<IActionResult> PostAddUserSkill(string userId, string? skillsName)
         {
-            userId = GeneralPurpose.ConversionEncryptedId(userId);
-            var decryptedUserId = DecryptionId(userId);
             if (string.IsNullOrEmpty(skillsName))
                 return BadRequest(new ResponseDto { Status = false, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
 
@@ -811,33 +809,20 @@ namespace ITValet.Controllers
             var skillsArray = skillsName?.Split(",") ?? Array.Empty<string>();
             foreach (var skill in skillsArray)
             {
-                var userSkill = new UserSkill
-                {
-                    SkillName = skill,
-                    UserId = decryptedUserId,
-                    IsActive = 1,
-                    CreatedAt = GeneralPurpose.DateTimeNow()
-                };
-
-                if (!await userSkillRepo.AddUserSkillAsync(userSkill))
+                if (!await userSkillRepo.AddUserSkillAsync(userId, skill))
                     return BadRequest(new ResponseDto { Status = false, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
             }
 
-            // Save changes to the database.
             if (!await userSkillRepo.SaveChangesAsync())
                 return BadRequest(new ResponseDto { Status = false, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
             
             return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Skills have been added to your account.", skillsName));
         }
 
-
-        [HttpGet("get-user-skill-by-id/{userSkillId}")]
+        [HttpGet("GetSkill/{userSkillId}")]
         public async Task<IActionResult> GetUserSkillById(string userSkillId)
         {
-            userSkillId = GeneralPurpose.ConversionEncryptedId(userSkillId);
-
-            var decrypt = DecryptionId(userSkillId);
-            var obj = await userSkillRepo.GetUserSkillByIdAsync(decrypt);
+            var obj = await userSkillRepo.GetUserSkillByIdAsync(userSkillId);
             var userSkill = MapToUserSkillDto(obj);
 
             return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Skill fetch successfully.", userSkill));
@@ -859,30 +844,11 @@ namespace ITValet.Controllers
         [HttpDelete("Delete/{skillId}")]
         public async Task<IActionResult> DeleteUserSkillByUserId(string skillId)
         {
-            skillId = GeneralPurpose.ConversionEncryptedId(skillId);
-
-            var decrypt = DecryptionId(skillId);
-
-            if (!await userSkillRepo.SoftDeleteUserSkillAsync(decrypt) || !await userSkillRepo.SaveChangesAsync())
+            if (!await userSkillRepo.SoftDeleteUserSkillAsync(skillId) ||
+                !await userSkillRepo.SaveChangesAsync())
                 return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.SystemFailureMessage));
             
             return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Skill deleted successfully.", skillId));
-        }
-
-        [HttpGet("DeleteSkills/{userId}")]
-        public async Task<IActionResult> DeleteSkills(string userId)
-        {
-            var decrypt = DecryptionId(userId);
-            var listOfSkill = await userSkillRepo.GetUserSkillsByUserIdAsync(decrypt);
-            foreach (var obj in listOfSkill)
-            {
-                if(!await userSkillRepo.SoftDeleteUserSkillAsync(obj.Id))
-                    return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.SystemFailureMessage));
-            }
-            if (!await userSkillRepo.SaveChangesAsync())
-                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.SystemFailureMessage));
-
-            return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "All skills deleted successfully."));
         }
         #endregion
 
