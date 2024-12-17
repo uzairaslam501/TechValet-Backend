@@ -29,17 +29,18 @@ namespace ITValet.Controllers
 
         public StripePaymentController(IUserRepo userRepo, IOptions<ProjectVariables> options, IConfiguration configuration,
             IOrderRepo orderRepo, IPayPalGateWayService paypalGateWayService, INotificationService userPackageService, 
-            IOfferDetailsRepo offerDetailService, IHubContext<NotificationHubSocket> notificationHubSocket, IMessagesRepo messageService)
+            IOfferDetailsRepo offerDetailService, IHubContext<NotificationHubSocket> notificationHubSocket,
+            IMessagesRepo messageService)
         {
             _userRepo = userRepo;
             _orderRepo = orderRepo;
             _configuration = configuration;
+            _messageService = messageService;
+            _projectVariables = options.Value;
             _userPackageService = userPackageService;
             _offerDetailService = offerDetailService;
             _paypalGatewayService = paypalGateWayService;
-            _projectVariables = options.Value;
             _notificationHubSocket = notificationHubSocket;
-            _messageService = messageService;
         }
 
         [HttpPost("create-checkout-session/{userId}")]
@@ -135,25 +136,26 @@ namespace ITValet.Controllers
                         };
 
 
-                        return Ok(new ResponseDto() { Data = data, Status = true, StatusCode = "200", Message = "You Are Ready To Proceed, Hit Confirm CheckOut Button." });
+                        return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "You Are Ready To Proceed, Hit Confirm CheckOut Button.", data));
 
                     }
                     catch (StripeException e)
                     {
-                        Console.WriteLine(e.StripeError.Message);
-                        return Ok(new ResponseDto() { Data = null, Status = false, StatusCode = "500", Message = e.StripeError.Message });
+                        return BadRequest(GeneralPurpose.GenerateResponseCode(false, "500", e.StripeError.Message));
                     }
                 }
-                return Ok(new ResponseDto() { Data = null, Status = false, StatusCode = "500", Message = GlobalMessages.SystemFailureMessage });
+
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage));
 
             }
             catch (StripeException e)
             {
-                return Ok(new { Status = false, StatusCode = "500", Message = e.StripeError.Message });
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "500", e.StripeError.Message));
             }
             catch (Exception ex)
             {
-                return Ok(new { Status = false, StatusCode = "500", Message = ex.Message });
+                CreateLogger(ex);
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage));
             }
         }
 
@@ -174,7 +176,8 @@ namespace ITValet.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new { Error = ex.Message });
+                CreateLogger(ex);
+                return Ok(GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage));
             }
         }
 
@@ -225,7 +228,8 @@ namespace ITValet.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { Status = false, Message = ex.Message });
+                CreateLogger(ex);
+                return Ok(GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage));
             }
         }
 
@@ -309,13 +313,8 @@ namespace ITValet.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new ResponseDto()
-                {
-                    Status = false,
-                    StatusCode = "500",
-                    Message = "Error: " + ex.Message,
-                    Data = null
-                });
+                CreateLogger(ex);
+                return Ok(GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage));
             }
         }
 
@@ -346,13 +345,8 @@ namespace ITValet.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(404, new ResponseDto()
-                {
-                    Status = false,
-                    StatusCode = "404",
-                    Message = "Error: " + ex.Message,
-                    Data = null
-                });
+                CreateLogger(ex);
+                return Ok(GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage));
             }
         }
 
@@ -404,13 +398,8 @@ namespace ITValet.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new ResponseDto()
-                {
-                    Status = false,
-                    StatusCode = "500",
-                    Message = "Error: " + ex.Message,
-                    Data = null
-                });
+                CreateLogger(ex);
+                return Ok(GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage));
             }
         }
 
@@ -422,23 +411,132 @@ namespace ITValet.Controllers
                 var service = new AccountService();
                 service.Delete(account);
 
-                return Ok(new ResponseDto()
-                {
-                    Status=true,
-                    StatusCode="200",
-                    Message="Accounts Deleted",
-                    Data= null
-                });
+                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", GlobalMessages.DeletedMessage));
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new ResponseDto()
+                CreateLogger(ex);
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage));
+            }
+        }
+
+        [HttpPost("create-account/{userId}")]
+        public async Task<IActionResult> CreateAccount(string userId, string email = "")
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(email))
+                    return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = "Invalid input parameters." });
+                
+                var decrypt = DecryptionId(userId);
+                var user = await _userRepo.GetUserById(decrypt);
+                
+                var account = await StripeHelper.CreateStripeAccountUS(email, _projectVariables.ReactUrl); //This Function is For USD Payments will need to change in canadian;
+                var verificationResult = await StripeHelper.VerifyAccount(account.Id, _projectVariables.ReactUrl);
+                
+                user!.StripeId = account.Id;
+                user.IsVerify_StripeAccount = 0;
+                await _userRepo.UpdateUser(user);
+                
+                var responseList = new List<string>
                 {
-                    Status = false,
-                    StatusCode = "500",
-                    Message = "Error: " + ex.Message,
-                    Data = null
-                });
+                    verificationResult,
+                    account.Id
+                };
+
+                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Verify Your Account", responseList));
+            }
+            catch (Exception ex)
+            {
+                CreateLogger(ex);
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage));
+            }
+        }
+
+        [HttpGet("get-verified-account/{userId}")]
+        public async Task<IActionResult> GetVerified(string userId, string StripeAccountId)
+        {
+            try
+            {
+                var decrypt = DecryptionId(userId);
+                var getUrl = await StripeHelper.VerifyAccount(StripeAccountId, _projectVariables.ReactUrl);
+
+                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Account Verify successfully", getUrl));
+            }
+            catch (Exception ex)
+            {
+                CreateLogger(ex);
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage));
+            }
+        }
+
+        [HttpGet("account-verified/{userId}")]
+        public async Task<IActionResult> AccountVerification(string userId, string stripeId)
+        {
+            try
+            {
+                var decrypt = DecryptionId(userId);
+                var getUser = await _userRepo.GetUserById(decrypt);
+                if (getUser!.StripeId == stripeId)
+                {
+                    getUser!.IsVerify_StripeAccount = 1;
+                    await _userRepo.UpdateUser(getUser);
+                    return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Account Verify successfully", getUser));
+                }
+                throw new Exception(GlobalMessages.RecordNotFound);
+
+            }
+            catch (Exception ex)
+            {
+                CreateLogger(ex);
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "404", ex.Message));
+            }
+        }
+
+        [HttpPost("add-bank-account/{userId}")]
+        public async Task<IActionResult> AddExternalBankAccountToStripe(string userId, StripeBankAccountDto bankDto)
+        {
+            var response = new ResponseDto();
+            try
+            {
+                var decrypt = DecryptionId(userId);
+                var getUser = await _userRepo.GetUserById(decrypt);
+                response = await StripeHelper.StripeAccountStatus(bankDto.stripeAccountId);
+                if (response.Data != "Completed")
+                {
+                    if (bankDto.bankAccountNumber.Contains("\t"))
+                    {
+                        string keyword = "\t";
+                        string result = bankDto.bankAccountNumber.Replace(keyword, string.Empty);
+                        bankDto.bankAccountNumber = result;
+                    }
+
+                    var options = new ExternalAccountCreateOptions
+                    {
+                        ExternalAccount = new AccountBankAccountOptions
+                        {
+                            AccountNumber = bankDto.bankAccountNumber,
+                            AccountHolderName = bankDto.accountHolderName,
+                            AccountHolderType = "individual",
+                            Country = "US",
+                            RoutingNumber = bankDto.routingNo,
+                            Currency = "USD",
+                        }
+                    };
+
+                    var service = new ExternalAccountService();
+                    service.Create(bankDto.stripeAccountId, options);
+                }
+                getUser.IsBankAccountAdded = 1;
+                if (!await _userRepo.UpdateUser(getUser))
+                    return BadRequest(response);
+                
+                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", GlobalMessages.UpdateMessage, getUser));
+            }
+            catch(Exception ex)
+            {
+                CreateLogger(ex);
+                return BadRequest(GeneralPurpose.GenerateResponseCode(true, "400", GlobalMessages.SystemFailureMessage)); ;
             }
         }
 
@@ -678,6 +776,17 @@ namespace ITValet.Controllers
                 message.ReceiverId
             );
             return viewModelMessage;
+        }
+
+        private int DecryptionId(string userId)
+        {
+            var validEncrypted = GeneralPurpose.ConversionEncryptedId(userId);
+            return StringCipher.DecryptId(validEncrypted);
+        }
+
+        private async void CreateLogger(Exception ex)
+        {
+            await MailSender.SendErrorMessage($"Controller: Stripe Controller <br/> URL: {_projectVariables.BaseUrl}<br/> Exception Message:  {ex.Message} <br/> Stack Trace: {ex.StackTrace}");
         }
     }
 }

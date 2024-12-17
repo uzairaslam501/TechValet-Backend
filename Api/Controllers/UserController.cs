@@ -287,33 +287,31 @@ namespace ITValet.Controllers
         }
 
 
-        [HttpGet("postUpdateUserRecord")]
-        public async Task<IActionResult> postUpdateUserRecord(int? userId, int? IsDeleteStripeAccount = -1)
+        [HttpDelete("delete-stripe-account/{userId}")]
+        public async Task<IActionResult> DeleteStripeAccount(string? userId)
         {
-            var userObj = await userRepo.GetUserById(userId.Value);
-            if (IsDeleteStripeAccount == 1)
+            try
             {
+                var decrypt = DecryptionId(userId);
+                var userObj = await userRepo.GetUserById(decrypt);
+                
                 userObj.StripeId = null;
                 userObj.IsVerify_StripeAccount = null;
                 userObj.IsBankAccountAdded = null;
-                var getUserOrderStatus = await orderRepo.getInProgressUserOrders(userId.Value);
-                var getUserOrderStatusCount = getUserOrderStatus.Count();
-                if (getUserOrderStatusCount > 0)
-                {
-                    return Ok(new ResponseDto() { Data = getUserOrderStatusCount, Status = true, StatusCode = "200", Message = "Can't delete this account some orders are inprogress" });
-                }
-            }
-            else
-            {
-                userObj.IsVerify_StripeAccount = 1;
 
-            }
-            if (!await userRepo.UpdateUser(userObj))
-            {
-                return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = "Database Updation failed" });
+                var getUserOrderStatus = await orderRepo.getInProgressUserOrders(decrypt);
+                if (getUserOrderStatus.Count() > 0)
+                    return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Can't delete this account some orders are In-Progress", getUserOrderStatus.Count()));
 
+                if (!await userRepo.UpdateUser(userObj))
+                    throw new Exception(GlobalMessages.RecordNotFound);
+
+                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", GlobalMessages.UpdateMessage));
             }
-            return Ok(new ResponseDto() { Status = true, StatusCode = "200", Message = "Database Updated Successfully" });
+            catch (Exception ex)
+            {                
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", ex.Message));
+            }
         }
         #endregion
 
@@ -1691,7 +1689,7 @@ namespace ITValet.Controllers
 
         private async Task<Account> CreateStripeAccounts(string email)
         {
-            var url = projectVariables.BaseUrl;
+            var url = projectVariables.ReactUrl;
             var options = new AccountCreateOptions
             {
                 Type = "custom",
@@ -1722,8 +1720,7 @@ namespace ITValet.Controllers
                 BusinessType = "individual",
                 BusinessProfile = new AccountBusinessProfileOptions
                 {
-                    //Url = projectVariables.BaseUrl,
-                    Url = ProjectVariables.ForStripeUrl,
+                    Url = url,
                 }
             };
 
@@ -1927,7 +1924,6 @@ namespace ITValet.Controllers
                             AccountHolderName = bankDto.accountHolderName,
                             AccountHolderType = "individual",
                             Country = "US",
-                            //Country = region,
                             RoutingNumber = bankDto.routingNo,
                             Currency = "USD",
                         }
