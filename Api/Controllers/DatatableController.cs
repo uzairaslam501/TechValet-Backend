@@ -4,7 +4,9 @@ using ITValet.JWTAuthentication;
 using ITValet.JwtAuthorization;
 using ITValet.Models;
 using ITValet.Services;
+using ITValet.Utils.Helpers;
 using Microsoft.AspNetCore.Mvc;
+using System.Linq;
 using System.Reflection;
 
 namespace ITValet.Controllers
@@ -231,7 +233,63 @@ namespace ITValet.Controllers
             }
         }
 
-		[HttpGet("GetUserPackageDatatableAsync")]
+        [HttpGet("orders-by-userId")]
+        public async Task<IActionResult> GetOrderDatatableByUserId(int start, int length, string? sortColumnName, string? sortDirection, string? searchValue)
+        {
+            try
+            {
+                var userClaims = jwtUtils.ValidateToken(Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last());
+                var orders = await orderRepo.GetOrderByUserId((int)userClaims.Id);
+
+                // Initialize BaseService
+                var baseService = new DatatableHelper<Order>();
+
+                // Apply sorting
+                orders = baseService.ApplySorting(orders, sortColumnName, sortDirection);
+
+                // Apply filtering
+                if (!string.IsNullOrEmpty(searchValue))
+                {
+                    orders = baseService.ApplyFiltering(orders, o =>
+                        o.OrderTitle?.ToLower().Contains(searchValue.ToLower()) == true ||
+                        o.OrderReason != null && o.OrderReason.Any(r => r.ReasonExplanation.ToLower().Contains(searchValue.ToLower())));
+                }
+
+                // Record counts
+                int totalRows = orders.Count();
+                int totalRowsAfterFiltering = totalRows;
+
+                // Apply pagination
+                if (totalRowsAfterFiltering > 0 && start < totalRowsAfterFiltering)
+                {
+                    orders = baseService.ApplyPagination(orders, start, length);
+                }
+
+                // Map data to DTOs
+                var orderDtos = MappingHelper.MapOrdersToDtos(orders);
+
+                return Ok(new
+                {
+                    draw = (start / length) + 1,
+                    data = orderDtos,
+                    recordsTotal = totalRows,
+                    recordsFiltered = totalRowsAfterFiltering
+                });
+            }
+            catch (Exception ex)
+            {
+                await MailSender.SendErrorMessage(ex.Message);
+                return Ok(new ResponseDto
+                {
+                    Status = false,
+                    StatusCode = "500",
+                    Message = "Internal server error"
+                });
+            }
+        }
+
+
+        [HttpGet("GetUserPackageDatatableAsync")]
 		public async Task<IActionResult> GetUserPackageDatatableAsync(int start, int length, string? sortColumnName, string? sortDirection, string? searchValue, int? UserId)
 		{
 			try

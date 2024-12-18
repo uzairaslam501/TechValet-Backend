@@ -294,14 +294,13 @@ namespace ITValet.Controllers
             {
                 var decrypt = DecryptionId(userId);
                 var userObj = await userRepo.GetUserById(decrypt);
-                
                 userObj.StripeId = null;
                 userObj.IsVerify_StripeAccount = null;
                 userObj.IsBankAccountAdded = null;
 
                 var getUserOrderStatus = await orderRepo.getInProgressUserOrders(decrypt);
                 if (getUserOrderStatus.Count() > 0)
-                    return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Can't delete this account some orders are In-Progress", getUserOrderStatus.Count()));
+                    return Conflict(GeneralPurpose.GenerateResponseCode(false, "409", "Can't delete this account some orders are In-Progress"));
 
                 if (!await userRepo.UpdateUser(userObj))
                     throw new Exception(GlobalMessages.RecordNotFound);
