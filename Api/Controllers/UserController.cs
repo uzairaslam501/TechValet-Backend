@@ -288,7 +288,7 @@ namespace ITValet.Controllers
 
 
         [HttpDelete("delete-stripe-account/{userId}")]
-        public async Task<IActionResult> DeleteStripeAccount(string? userId)
+        public async Task<IActionResult> DeleteStripeAccount(string userId)
         {
             try
             {
@@ -489,83 +489,91 @@ namespace ITValet.Controllers
         #endregion
 
         #region UserExperience
-        [HttpPost("PostAddUserExperience")]
-        public async Task<IActionResult> PostAddUserExperience(string? UserId, string? Description)
+        [HttpPost("add-service-experience/{userId}")]
+        public async Task<IActionResult> PostAddUserExperience(string userId, string? Description)
         {
-            var obj = new UserExperience();
-
-            obj.Description = Description;
-            obj.UserId = Convert.ToInt32(UserId);
-            obj.IsActive = 1;
-            obj.CreatedAt = GeneralPurpose.DateTimeNow();
-
-            if (!await userExperienceRepo.AddUserExperience(obj))
+            try
             {
-                return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
+                var decrypt = DecryptionId(userId);
+                var obj = new UserExperience();
+
+                obj.Description = Description;
+                obj.UserId = decrypt;
+                obj.IsActive = 1;
+                obj.CreatedAt = GeneralPurpose.DateTimeNow();
+
+                if (!await userExperienceRepo.AddUserExperience(obj))
+                    throw new Exception(GlobalMessages.SystemFailureMessage);
+                
+                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Experience has been added to your account", obj));
             }
-
-            return Ok(new ResponseDto() { Status = true, StatusCode = "200", Message = "Experience has been added to your account" });
-        }
-
-        [HttpPut("PostUpdateUserExperience")]
-        public async Task<IActionResult> PostUpdateUserExperience(string? Description, string? userExperienceId)
-        {
-            var obj = await userExperienceRepo.GetUserExperienceById(Convert.ToInt32(userExperienceId));
-
-            obj.Description = !string.IsNullOrEmpty(Description) ? Description : obj.Description;
-            obj.UpdatedAt = GeneralPurpose.DateTimeNow();
-
-            if (!await userExperienceRepo.UpdateUserExperience(obj))
+            catch (Exception ex)
             {
-                return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
+                
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", ex.Message));
             }
-
-            return Ok(new ResponseDto() { Status = true, StatusCode = "200", Message = "Experience has been added to your account" });
         }
 
-        [HttpGet("GetUserExperienceById")]
-        public async Task<IActionResult> GetUserExperienceById(string userExperienceId)
+        [HttpPut("update-service-experience/{serviceId}")]
+        public async Task<IActionResult> PostUpdateUserExperience(string serviceId, string? Description)
         {
-            var obj = await userExperienceRepo.GetUserExperienceById(Convert.ToInt32(userExperienceId));
-            UserExperienceDto userExperienceDto = new UserExperienceDto()
+            try
             {
-                Id = obj.Id,
-                UserExperienceEncId = StringCipher.EncryptId(obj.Id),
-                Title = obj.Title,
-                Description = obj.Description,
-                ExperienceFrom = obj.ExperienceFrom != null ? obj.ExperienceFrom.ToString() : null,
-                ExperienceTo = obj.ExperienceTo !=null ? obj.ExperienceTo.ToString() : null,
-                Organization = obj.Organization,
-                Website = obj.Website,
-                UserId = obj.UserId
-            };
+                var decrypt = DecryptionId(serviceId);
+                var obj = await userExperienceRepo.GetUserExperienceById(decrypt);
 
-            return Ok(new ResponseDto() { Data = userExperienceDto, Status = true, StatusCode = "200", Message = "Experience Fetch Successfully" });
+                obj.Description = !string.IsNullOrEmpty(Description) ? Description : obj.Description;
+                obj.UpdatedAt = GeneralPurpose.DateTimeNow();
+
+                if (!await userExperienceRepo.UpdateUserExperience(obj))
+                    throw new Exception(GlobalMessages.SystemFailureMessage);
+
+                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", GlobalMessages.UpdateMessage, obj));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", ex.Message));
+            }
         }
 
-        [HttpGet("GetUserExperienceByUserId")]
+        [HttpGet("GetUserExperienceById/{serviceId}")]
+        public async Task<IActionResult> GetUserExperienceById(string serviceId)
+        {
+            try
+            {
+                var decrypt = DecryptionId(serviceId);
+                var obj = await userExperienceRepo.GetUserExperienceById(decrypt);
+                var userExperienceDto = MapToUserExperienceDto(obj);
+
+                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Experience Fetch Successfully", userExperienceDto));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", ex.Message));
+            }
+        }
+
+        [HttpGet("user-services/{userId}")]
         public async Task<IActionResult> GetUserExperienceByUserId(string userId)
         {
-            var listOfExperience = await userExperienceRepo.GetUserExperienceByUserId(Convert.ToInt32(userId));
-            List<UserExperienceDto> dtos = new List<UserExperienceDto>();
-            foreach (var obj in listOfExperience)
+            try
             {
-                UserExperienceDto userExperienceDto = new UserExperienceDto()
-                {
-                    Id = obj.Id,
-                    UserExperienceEncId = StringCipher.EncryptId(obj.Id),
-                    Title = obj.Title,
-                    Description = obj.Description,
-                    ExperienceFrom = obj.ExperienceFrom != null ? obj.ExperienceFrom.ToString(): null,
-                    ExperienceTo = obj.ExperienceTo != null ? obj.ExperienceTo.ToString():null,
-                    Organization = obj.Organization,
-                    Website = obj.Website,
-                    UserId = obj.UserId
-                };
-                dtos.Add(userExperienceDto);
-            }
+                if (string.IsNullOrEmpty(userId))
+                    throw new Exception(GlobalMessages.RecordNotFound);
 
-            return Ok(new ResponseDto() { Data = dtos, Status = true, StatusCode = "200", Message = "Experience Fetch Successfully" });
+                var decrypt = DecryptionId(userId);
+                var listOfExperience = await userExperienceRepo.GetUserExperienceByUserId(decrypt);
+                List<UserExperienceDto> dtos = new List<UserExperienceDto>();
+                foreach (var obj in listOfExperience)
+                {
+                    dtos.Add(MapToUserExperienceDto(obj));
+                }
+                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Experience Fetch Successfully", dtos));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", ex.Message));
+            }
         }
 
         [HttpGet("GetUserExperienceList")]
@@ -641,20 +649,24 @@ namespace ITValet.Controllers
             return Ok(new ResponseDto() { Data = new { data = dtos, draw = draw, recordsTotal = totalrows, recordsFiltered = totalrowsafterfilterinig }, Status = true, StatusCode = "200" });
         }
 
-        [HttpDelete("DeleteUserExperience")]
-        public async Task<IActionResult> DeleteUserExperience(string userExperienceId)
+        [HttpDelete("delete-service/{serviceId}")]
+        public async Task<IActionResult> DeleteUserExperience(string serviceId)
         {
-            if (string.IsNullOrEmpty(userExperienceId))
+            try
             {
-                return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = GlobalMessages.RecordNotFound });
-            }
+                if (string.IsNullOrEmpty(serviceId))
+                    throw new Exception(GlobalMessages.RecordNotFound);
 
-            if (!await userExperienceRepo.DeleteUserExperience(Convert.ToInt32(userExperienceId)))
+                var decrypt = DecryptionId(serviceId);
+                if (!await userExperienceRepo.DeleteUserExperience(decrypt))
+                    throw new Exception(GlobalMessages.SystemFailureMessage);
+
+                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", GlobalMessages.DeletedMessage, serviceId));
+            }
+            catch (Exception ex)
             {
-                return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", ex.Message));
             }
-
-            return Ok(new ResponseDto() { Status = true, StatusCode = "200", Message = GlobalMessages.DeletedMessage });
         }
         #endregion
 
@@ -1653,157 +1665,7 @@ namespace ITValet.Controllers
 
         #region Create Stripe Connect Account
 
-        [HttpPost("CreateAccount")]
-        public async Task<IActionResult> CreateAccount(string email = "", string LoggedInUserId = "")
-        {
-            try
-            {
-                if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(LoggedInUserId))
-                {
-                    return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = "Invalid input parameters." });
-                }
-
-                int userId = Convert.ToInt32(LoggedInUserId);
-                User? user = await userRepo.GetUserById(userId);
-                // Create account asynchronously
-                var account = await CreateStripeAccounts(email); //This Function is For USD Payments will need to change in canadian;
-                var verificationResult = await VerifyAccount(account.Id);
-                // use incase we have to get response as response dto object
-                //var verificationLink = JToken.Parse(JsonConvert.SerializeObject(verificationResult)).Value<string>("Value") ?? "";
-                user.StripeId = account.Id;
-                user.IsVerify_StripeAccount = 0;
-                await userRepo.UpdateUser(user);
-                var responseList = new List<string>
-                {
-                    verificationResult,
-                    account.Id
-                };
-                return Ok(responseList);
-            }
-            catch (Exception ex)
-            {
-                await MailSender.SendErrorMessage(ex.Message.ToString());
-                return Ok(new ResponseDto() { Status = false, StatusCode = "500", Message = "An error occurred while creating the account." });
-            }
-        }
-
-        private async Task<Account> CreateStripeAccounts(string email)
-        {
-            var url = projectVariables.ReactUrl;
-            var options = new AccountCreateOptions
-            {
-                Type = "custom",
-                Country = "US",
-                Email = email,
-                DefaultCurrency = "USD",
-                Capabilities = new AccountCapabilitiesOptions
-                {
-                    CardPayments = new AccountCapabilitiesCardPaymentsOptions
-                    {
-                        Requested = true,
-                    },
-                    Transfers = new AccountCapabilitiesTransfersOptions
-                    {
-                        Requested = true,
-                    },
-                },
-                Settings = new AccountSettingsOptions()
-                {
-                    Payouts = new AccountSettingsPayoutsOptions()
-                    {
-                        Schedule = new AccountSettingsPayoutsScheduleOptions()
-                        {
-                            Interval = "manual",
-                        },
-                    }
-                },
-                BusinessType = "individual",
-                BusinessProfile = new AccountBusinessProfileOptions
-                {
-                    Url = url,
-                }
-            };
-
-            var service = new AccountService();
-            return await service.CreateAsync(options);
-        }
-
-        private async Task<Account> CreateStripeAccount(string email)
-        {
-            var options = new AccountCreateOptions
-            {
-                Type = "custom",
-                Country = "CA",  // Set the country to Canada (CA).
-                Email = email,
-                DefaultCurrency = "CAD",  // Set the default currency to Canadian Dollars (CAD).
-                Capabilities = new AccountCapabilitiesOptions
-                {
-                    CardPayments = new AccountCapabilitiesCardPaymentsOptions
-                    {
-                        Requested = true,
-                    },
-                    Transfers = new AccountCapabilitiesTransfersOptions
-                    {
-                        Requested = true,
-                    },
-                },
-                Settings = new AccountSettingsOptions()
-                {
-                    Payouts = new AccountSettingsPayoutsOptions()
-                    {
-                        Schedule = new AccountSettingsPayoutsScheduleOptions()
-                        {
-                            Interval = "daily",
-                            DelayDays = 14,  // Set the delay to 14 days
-                        },
-                    }
-                },
-                BusinessType = "individual",
-                BusinessProfile = new AccountBusinessProfileOptions
-                {
-                    Url = "http://your-website-url.com",  // Replace with your actual website URL.
-                }
-            };
-
-            var service = new AccountService();
-            return await service.CreateAsync(options);
-        }
-
-        [HttpGet("GetVerified")]
-        public async Task<IActionResult> GetVerified(string StripeAccountId, string verifytype = "", int Userid = -1)
-        {
-            try
-            {
-                var getUrl = await VerifyAccount(StripeAccountId);
-                var responseDto = new ResponseDto();
-                responseDto.Data = getUrl;
-                responseDto.Status = true;
-                responseDto.StatusCode = "200";
-                responseDto.Message = "Account Verify successfully.";
-
-                return Ok(responseDto);
-            }
-            catch (Exception ex)
-            {
-                await MailSender.SendErrorMessage("Environment: " + projectVariables.BaseUrl +
-                    "<br/> Message: " + ex.Message.ToString() + "<br/> Path: " + ex.StackTrace);
-                return BadRequest(ex.Message);
-            }
-        }
-
-        private async Task<string> VerifyAccount(string StripeAccountId)
-        {
-            var AccountLinkService = new AccountLinkService();
-            var result = AccountLinkService.Create(new AccountLinkCreateOptions
-            {
-                Account = StripeAccountId,
-                RefreshUrl = projectVariables.BaseUrl + ProjectVariables.StripeAccountVerifyFailedUrl,
-                ReturnUrl = projectVariables.BaseUrl + ProjectVariables.StripeAccountVerifySuccessUrl,
-                Type = "account_onboarding",
-                Collect = "eventually_due",
-            });
-            return result.Url;
-        }
+        
         
         [HttpPost("ValidateStripeAccount")]
         public async Task<bool> ValidateStripeAccount(string val = "")
@@ -1895,53 +1757,6 @@ namespace ITValet.Controllers
                 await MailSender.SendErrorMessage("Environment: " + projectVariables.BaseUrl +
                 "<br/> Message: " + ex.Message.ToString() + "<br/> Path: " + ex.StackTrace);
                 return response;
-            }
-        }
-
-        [HttpPost("AddExternalBankAccountToStripe")]
-        public async Task<bool> AddExternalBankAccountToStripe(StripeBankAccountDto bankDto)
-        {
-            var response = new ResponseDto();
-            try
-            {
-                var UserId = Convert.ToInt32(bankDto.Userid);
-                var getUser = await userRepo.GetUserById(UserId);
-                response = await StripeAccountStatus(getUser.StripeId);
-                if (response.Data != "Completed")
-                {
-                    if (bankDto.bankAccountNumber.Contains("\t"))
-                    {
-                        string keyword = "\t";
-                        string result = bankDto.bankAccountNumber.Replace(keyword, string.Empty);
-                        bankDto.bankAccountNumber = result;
-                    }
-
-                    var options = new ExternalAccountCreateOptions
-                    {
-                        ExternalAccount = new AccountBankAccountOptions
-                        {
-                            AccountNumber = bankDto.bankAccountNumber,
-                            AccountHolderName = bankDto.accountHolderName,
-                            AccountHolderType = "individual",
-                            Country = "US",
-                            RoutingNumber = bankDto.routingNo,
-                            Currency = "USD",
-                        }
-                    };
-
-                    var service = new ExternalAccountService();
-                    service.Create(bankDto.stripeAccountId, options);
-                }
-                getUser.IsBankAccountAdded = 1;
-                if (!await userRepo.UpdateUser(getUser))
-                {
-                    return false;
-                }
-                return true;
-            }
-            catch
-            {
-                return false;
             }
         }
 
@@ -2148,8 +1963,28 @@ namespace ITValet.Controllers
         }
         #endregion
 
+        #region Experience/Service
+
+        private UserExperienceDto MapToUserExperienceDto(UserExperience obj)
+        {
+            return new UserExperienceDto
+            {
+                Id = obj.Id,
+                UserExperienceEncId = StringCipher.EncryptId(obj.Id),
+                Title = obj.Title,
+                Description = obj.Description,
+                ExperienceFrom = obj.ExperienceFrom != null ? obj.ExperienceFrom.ToString() : null,
+                ExperienceTo = obj.ExperienceTo != null ? obj.ExperienceTo.ToString() : null,
+                Organization = obj.Organization,
+                Website = obj.Website,
+                UserId = obj.UserId
+            };
+        }
+        #endregion
+
         private int DecryptionId(string userId)
         {
+            userId = GeneralPurpose.ConversionEncryptedId(userId);
             var decrypt = StringCipher.DecryptId(userId);
             return decrypt;
         }
