@@ -11,6 +11,7 @@ using System.Text;
 using ITValet.NotificationHub;
 using Microsoft.AspNetCore.SignalR;
 using System.Net;
+using ITValet.ViewModel;
 
 namespace ITValet.Controllers
 {
@@ -315,17 +316,17 @@ namespace ITValet.Controllers
         #endregion
 
         #region UserEducation
-        [HttpPost("PostAddUserEducation")]
-        public async Task<IActionResult> PostAddUserEducation(string? DegreeName, string? InstituteName, string? StartDate, string? EndDate,
-            int? UserId)
+        [HttpPost("add-education/{userId}")]
+        public async Task<IActionResult> PostAddUserEducation(string userId, EducationViewModel model)
         {
+            var decrypt = DecryptionId(userId);
             var obj = new UserEducation();
 
-            obj.DegreeName = DegreeName;
-            obj.InstituteName = InstituteName;
-            obj.StartDate = Convert.ToDateTime(StartDate);
-            obj.EndDate = Convert.ToDateTime(EndDate);
-            obj.UserId = UserId;
+            obj.DegreeName = model.DegreeName;
+            obj.InstituteName = model.InstituteName;
+            obj.StartDate = Convert.ToDateTime(model.StartDate);
+            obj.EndDate = Convert.ToDateTime(model.EndDate);
+            obj.UserId = decrypt;
             obj.IsActive = 1;
             obj.CreatedAt = GeneralPurpose.DateTimeNow();
 
@@ -337,16 +338,19 @@ namespace ITValet.Controllers
             return Ok(new ResponseDto() { Status = true, StatusCode = "200", Message = "Education has been added to your account" });
         }
 
-        [HttpPut("PostUpdateUserEducation")]
-        public async Task<IActionResult> PostUpdateUserEducation(string? userEducationId, string? DegreeName, string? InstituteName,
-            string? StartDate, string? EndDate)
+        [HttpPut("update-education/{educationId}")]
+        public async Task<IActionResult> PostUpdateUserEducation(string educationId, EducationViewModel model)
         {
-            var obj = await userEducationRepo.GetUserEducationById(Convert.ToInt32(userEducationId));
+            if (string.IsNullOrEmpty(educationId))
+                throw new Exception(GlobalMessages.RecordNotFound);
+
+            var decrypt = DecryptionId(educationId);
+            var obj = await userEducationRepo.GetUserEducationById(decrypt);
             
-            obj.DegreeName = !string.IsNullOrEmpty(DegreeName) ? DegreeName : obj.DegreeName;
-            obj.InstituteName = !string.IsNullOrEmpty(InstituteName) ? InstituteName : obj.DegreeName;
-            obj.StartDate = !string.IsNullOrEmpty(StartDate) ? Convert.ToDateTime(StartDate) : obj.StartDate;
-            obj.EndDate = !string.IsNullOrEmpty(EndDate) ? Convert.ToDateTime(EndDate) : obj.EndDate;
+            obj.DegreeName = !string.IsNullOrEmpty(model.DegreeName) ? model.DegreeName : obj.DegreeName;
+            obj.InstituteName = !string.IsNullOrEmpty(model.InstituteName) ? model.InstituteName : obj.DegreeName;
+            obj.StartDate = !string.IsNullOrEmpty(model.StartDate) ? Convert.ToDateTime(model.StartDate) : obj.StartDate;
+            obj.EndDate = !string.IsNullOrEmpty(model.EndDate) ? Convert.ToDateTime(model.EndDate) : obj.EndDate;
             obj.UpdatedAt = GeneralPurpose.DateTimeNow();
 
             if (!await userEducationRepo.UpdateUserEducation(obj))
@@ -357,47 +361,53 @@ namespace ITValet.Controllers
             return Ok(new ResponseDto() { Status = true, StatusCode = "200", Message = GlobalMessages.UpdateMessage });
         }
 
-        [HttpDelete("DeleteUserEducation")]
-        public async Task<IActionResult> DeleteUserEducation(string userEducationId)
+        [HttpDelete("delete/{educationId}")]
+        public async Task<IActionResult> DeleteUserEducation(string educationId)
         {
-            if (string.IsNullOrEmpty(userEducationId))
-            {
-                return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = GlobalMessages.RecordNotFound});
-            }
+            if (string.IsNullOrEmpty(educationId))
+                return NotFound(GeneralPurpose.GenerateResponseCode( false, "400", GlobalMessages.RecordNotFound));
 
-            if (!await userEducationRepo.DeleteUserEducation(Convert.ToInt32(userEducationId)))
-            {
-                return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
-            }
-
-            return Ok(new ResponseDto() { Status = true, StatusCode = "200", Message = GlobalMessages.DeletedMessage });
+            var decrypt = DecryptionId(educationId);
+            if (!await userEducationRepo.DeleteUserEducation(decrypt))
+                return NotFound(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.SystemFailureMessage));
+                
+            return Ok(GeneralPurpose.GenerateResponseCode(true, "200", GlobalMessages.DeletedMessage));
         }
 
-        [HttpGet("GetUserEducationById")]
-        public async Task<IActionResult> GetUserEducationById(string userEducationId)
+        [HttpGet("education/{educationId}")]
+        public async Task<IActionResult> GetUserEducationById(string educationId)
         {
-            var obj = await userEducationRepo.GetUserEducationById(Convert.ToInt32(userEducationId));
+            if (string.IsNullOrEmpty(educationId))
+                return NotFound(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.RecordNotFound));
+
+            var decrypt = DecryptionId(educationId);
+            var obj = await userEducationRepo.GetUserEducationById(decrypt);
             if (obj != null) { 
-            UserEducationDto userEducationDto = new UserEducationDto()
-            {
-                Id = obj.Id,
-                UserEducationEncId = StringCipher.EncryptId(obj.Id),
-                DegreeName = obj.DegreeName,
-                InstituteName = obj.InstituteName,
-                StartDate = obj.StartDate.Value.ToString("yyyy-MM-dd"),
-                EndDate = obj.EndDate.Value.ToString("yyyy-MM-dd"),
-                UserId = obj.UserId
-            };
+                UserEducationDto userEducationDto = new UserEducationDto()
+                {
+                    Id = obj.Id,
+                    UserEducationEncId = StringCipher.EncryptId(obj.Id),
+                    DegreeName = obj.DegreeName,
+                    InstituteName = obj.InstituteName,
+                    StartDate = obj.StartDate.Value.ToString("yyyy-MM-dd"),
+                    EndDate = obj.EndDate.Value.ToString("yyyy-MM-dd"),
+                    UserId = obj.UserId
+                };
 
-                return Ok(new ResponseDto() { Data = userEducationDto, Status = true, StatusCode = "200", Message = "Education Fetch Successfully" });
+                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Education Fetch Successfully"));
             }
-                return Ok(new ResponseDto() { Status = true, StatusCode = "200", Message = "Education Fetch Successfully" });
+            return BadRequest(GeneralPurpose.GenerateResponseCode (false, "400", GlobalMessages.RecordNotFound));
         }
 
-        [HttpGet("GetUserEducationByUserId")]
+        [HttpGet("education-by-userId/{userId}")]
         public async Task<IActionResult> GetUserEducationByUserId(string userId)
         {
-            var listOfEducation = await userEducationRepo.GetUserEducationByUserId(Convert.ToInt32(userId));
+            if (string.IsNullOrEmpty(userId))
+                return NotFound(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.RecordNotFound));
+
+            var decrypt = DecryptionId(userId);
+
+            var listOfEducation = await userEducationRepo.GetUserEducationByUserId(decrypt);
             List<UserEducationDto> dtos = new List<UserEducationDto>();
             foreach (var obj in listOfEducation)
             {
@@ -413,77 +423,7 @@ namespace ITValet.Controllers
                 };
                 dtos.Add(userEducationDto);
             }
-
-            return Ok(new ResponseDto() { Data = dtos, Status = true, StatusCode = "200", Message = "Education Fetch Successfully" });
-        }
-
-        [HttpGet("GetUserEducationList")]
-        public async Task<IActionResult> GetUserEducationList(string? DegreeName = "", string? InstituteName = "", string? User = "")
-        {
-            var listOfEducation = await userEducationRepo.GetUserEducationList();
-
-            if (!string.IsNullOrEmpty(DegreeName))
-            {
-                listOfEducation = listOfEducation.Where(x => x.DegreeName.ToLower().Contains(DegreeName.ToLower())).ToList();
-            }
-            if (!string.IsNullOrEmpty(InstituteName))
-            {
-                listOfEducation = listOfEducation.Where(x => x.InstituteName.ToLower().Contains(InstituteName.ToLower())).ToList();
-            }
-            if (!string.IsNullOrEmpty(User))
-            {
-                listOfEducation = listOfEducation.Where(x => x.UserId == StringCipher.DecryptId(User)).ToList();
-            }
-
-            var draw = Request.Form["draw"].FirstOrDefault();
-            var start = Request.Form["start"].FirstOrDefault();
-            var length = Request.Form["length"].FirstOrDefault();
-            var sortColumn = Request.Form["columns[" + Request.Form["order[0][column]"].FirstOrDefault() + "][name]"].FirstOrDefault();
-            var sortColumnDirection = Request.Form["order[0][dir]"].FirstOrDefault();
-            var searchValue = Request.Form["search[value]"].FirstOrDefault();
-            int pageSize = length != null ? Convert.ToInt32(length) : 0;
-            int skip = start != null ? Convert.ToInt32(start) : 0;
-            if (sortColumn != "" && sortColumn != null)
-            {
-                if (sortColumn != "0")
-                {
-                    if (sortColumnDirection == "asc")
-                    {
-                        listOfEducation = listOfEducation.OrderByDescending(x => x.GetType().GetProperty(sortColumn).GetValue(x)).ToList();
-                    }
-                    else
-                    {
-                        listOfEducation = listOfEducation.OrderBy(x => x.GetType().GetProperty(sortColumn).GetValue(x)).ToList();
-                    }
-                }
-            }
-            int totalrows = listOfEducation.Count();
-
-            if (!string.IsNullOrEmpty(searchValue))
-            {
-                listOfEducation = listOfEducation.Where(x => x.DegreeName.Trim().ToLower().Contains(searchValue.Trim().ToLower()) ||
-                                    x.InstituteName != null && x.InstituteName.Trim().ToLower().Contains(searchValue.Trim().ToLower())
-                                    ).ToList();
-            }
-            int totalrowsafterfilterinig = listOfEducation.Count();
-
-            listOfEducation = listOfEducation.Skip(skip).Take(pageSize).ToList();
-            List<UserEducationDto> dtos = new List<UserEducationDto>();
-            foreach (var obj in listOfEducation)
-            {
-                UserEducationDto userEducationDto = new UserEducationDto()
-                {
-                    Id = obj.Id,
-                    UserEducationEncId = StringCipher.EncryptId(obj.Id),
-                    DegreeName = obj.DegreeName,
-                    InstituteName = obj.DegreeName,
-                    StartDate = obj.StartDate.ToString(),
-                    EndDate = obj.EndDate.ToString(),
-                    UserId = obj.UserId
-                };
-                dtos.Add(userEducationDto);
-            }
-            return Ok(new ResponseDto() { Data = new { data = dtos, draw = draw, recordsTotal = totalrows, recordsFiltered = totalrowsafterfilterinig }, Status = true, StatusCode = "200" });
+            return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Education Fetch Successfully", dtos));
         }
         #endregion
 
