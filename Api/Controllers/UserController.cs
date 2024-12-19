@@ -997,34 +997,44 @@ namespace ITValet.Controllers
             return Ok(new ResponseDto() { Data = userAvailableSlotDto, Status = true, StatusCode = "200", Message = "AvailableSlot Fetch Successfully" });
         }
         
-        [HttpGet("GetUserAvailableSlotByUserId")]
+        [HttpGet("user-availability/{userId}")]
         public async Task<IActionResult> GetUserAvailableSlotByUserId(string userId)
         {
-            int id = Convert.ToInt32(userId);
-            var listOfAvailableSlot = await userAvailableSlotRepo.GetUserAvailableSlotByUserId(id);
-            List<UserAvailableSlotDto> dtos = new List<UserAvailableSlotDto>();
-
-            foreach (var obj in listOfAvailableSlot)
+            try
             {
-                DateTime? dateTimeOfDay = obj.DateTimeOfDay;
-                string dayName = dateTimeOfDay.HasValue ? dateTimeOfDay.Value.DayOfWeek.ToString() : string.Empty;
+                if (string.IsNullOrEmpty(userId))
+                    return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.RecordNotFound));
 
-                UserAvailableSlotDto userAvailableSlotDto = new UserAvailableSlotDto()
+                var decrypt = DecryptionId(userId);
+                var listOfAvailableSlot = await userAvailableSlotRepo.GetUserAvailableSlotByUserId(decrypt);
+
+                List<UserAvailableSlotDto> dtos = new List<UserAvailableSlotDto>();
+
+                foreach (var obj in listOfAvailableSlot)
                 {
-                    Id = obj.Id,
-                    UserAvailableSlotEncId = StringCipher.EncryptId(obj.Id),
-                    DateTimeOfDay = dateTimeOfDay.Value.ToString("d"),
-                    DayName = dayName, // Extract day name
-                    Slot1 = obj.Slot1.ToString(),
-                    Slot2 = obj.Slot2.ToString(),
-                    Slot3 = obj.Slot3.ToString(),
-                    Slot4 = obj.Slot4.ToString(),
-                    UserId = obj.UserId
-                };
-                dtos.Add(userAvailableSlotDto);
-            }
+                    DateTime? dateTimeOfDay = obj.DateTimeOfDay;
+                    string dayName = dateTimeOfDay.HasValue ? dateTimeOfDay.Value.DayOfWeek.ToString() : string.Empty;
 
-            return Ok(new ResponseDto() { Data = dtos, Status = true, StatusCode = "200", Message = "AvailableSlot Fetch Successfully" });
+                    UserAvailableSlotDto userAvailableSlotDto = new UserAvailableSlotDto()
+                    {
+                        Id = obj.Id,
+                        UserAvailableSlotEncId = StringCipher.EncryptId(obj.Id),
+                        DateTimeOfDay = dateTimeOfDay.Value.ToString("MMM-dd-yyyy"),
+                        DayName = dayName, // Extract day name
+                        Slot1 = obj.Slot1.ToString(),
+                        Slot2 = obj.Slot2.ToString(),
+                        Slot3 = obj.Slot3.ToString(),
+                        Slot4 = obj.Slot4.ToString(),
+                        UserId = obj.UserId
+                    };
+                    dtos.Add(userAvailableSlotDto);
+                }
+                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Record Found", dtos));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage));
+            }
         }
 
         [HttpGet("GetUserAvailableSlotList")]
