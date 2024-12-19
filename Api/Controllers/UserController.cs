@@ -319,111 +319,146 @@ namespace ITValet.Controllers
         [HttpPost("add-education/{userId}")]
         public async Task<IActionResult> PostAddUserEducation(string userId, EducationViewModel model)
         {
-            var decrypt = DecryptionId(userId);
-            var obj = new UserEducation();
-
-            obj.DegreeName = model.DegreeName;
-            obj.InstituteName = model.InstituteName;
-            obj.StartDate = Convert.ToDateTime(model.StartDate);
-            obj.EndDate = Convert.ToDateTime(model.EndDate);
-            obj.UserId = decrypt;
-            obj.IsActive = 1;
-            obj.CreatedAt = GeneralPurpose.DateTimeNow();
-
-            if (!await userEducationRepo.AddUserEducation(obj))
+            try
             {
-                return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
-            }
+                if (string.IsNullOrEmpty(userId))
+                    return NotFound(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.SystemFailureMessage));
 
-            return Ok(new ResponseDto() { Status = true, StatusCode = "200", Message = "Education has been added to your account" });
+                var decrypt = DecryptionId(userId);
+                var obj = new UserEducation();
+
+                obj.DegreeName = model.DegreeName;
+                obj.InstituteName = model.InstituteName;
+                obj.StartDate = Convert.ToDateTime(model.StartDate);
+                obj.EndDate = Convert.ToDateTime(model.EndDate);
+                obj.UserId = decrypt;
+                obj.IsActive = 1;
+                obj.CreatedAt = GeneralPurpose.DateTimeNow();
+
+                if (!await userEducationRepo.AddUserEducation(obj))
+                    return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.RecordNotFound));
+
+                model.EducationId = StringCipher.EncryptId(obj.Id);
+                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", GlobalMessages.SuccessMessage, obj));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage));
+            }
         }
 
         [HttpPut("update-education/{educationId}")]
         public async Task<IActionResult> PostUpdateUserEducation(string educationId, EducationViewModel model)
         {
-            if (string.IsNullOrEmpty(educationId))
-                throw new Exception(GlobalMessages.RecordNotFound);
-
-            var decrypt = DecryptionId(educationId);
-            var obj = await userEducationRepo.GetUserEducationById(decrypt);
-            
-            obj.DegreeName = !string.IsNullOrEmpty(model.DegreeName) ? model.DegreeName : obj.DegreeName;
-            obj.InstituteName = !string.IsNullOrEmpty(model.InstituteName) ? model.InstituteName : obj.DegreeName;
-            obj.StartDate = !string.IsNullOrEmpty(model.StartDate) ? Convert.ToDateTime(model.StartDate) : obj.StartDate;
-            obj.EndDate = !string.IsNullOrEmpty(model.EndDate) ? Convert.ToDateTime(model.EndDate) : obj.EndDate;
-            obj.UpdatedAt = GeneralPurpose.DateTimeNow();
-
-            if (!await userEducationRepo.UpdateUserEducation(obj))
+            try
             {
-                return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
-            }
+                if (string.IsNullOrEmpty(educationId))
+                    throw new Exception(GlobalMessages.RecordNotFound);
 
-            return Ok(new ResponseDto() { Status = true, StatusCode = "200", Message = GlobalMessages.UpdateMessage });
+                var decrypt = DecryptionId(educationId);
+                var obj = await userEducationRepo.GetUserEducationById(decrypt);
+
+                obj.DegreeName = !string.IsNullOrEmpty(model.DegreeName) ? model.DegreeName : obj.DegreeName;
+                obj.InstituteName = !string.IsNullOrEmpty(model.InstituteName) ? model.InstituteName : obj.DegreeName;
+                obj.StartDate = !string.IsNullOrEmpty(model.StartDate) ? Convert.ToDateTime(model.StartDate) : obj.StartDate;
+                obj.EndDate = !string.IsNullOrEmpty(model.EndDate) ? Convert.ToDateTime(model.EndDate) : obj.EndDate;
+                obj.UpdatedAt = GeneralPurpose.DateTimeNow();
+
+                if (!await userEducationRepo.UpdateUserEducation(obj))
+                    return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.SystemFailureMessage));
+
+                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", GlobalMessages.UpdateMessage, model));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage));
+            }
         }
 
-        [HttpDelete("delete/{educationId}")]
+        [HttpDelete("delete-education/{educationId}")]
         public async Task<IActionResult> DeleteUserEducation(string educationId)
         {
-            if (string.IsNullOrEmpty(educationId))
-                return NotFound(GeneralPurpose.GenerateResponseCode( false, "400", GlobalMessages.RecordNotFound));
+            try
+            {
+                if (string.IsNullOrEmpty(educationId))
+                    return NotFound(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.RecordNotFound));
 
-            var decrypt = DecryptionId(educationId);
-            if (!await userEducationRepo.DeleteUserEducation(decrypt))
-                return NotFound(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.SystemFailureMessage));
-                
-            return Ok(GeneralPurpose.GenerateResponseCode(true, "200", GlobalMessages.DeletedMessage));
+                var decrypt = DecryptionId(educationId);
+                if (!await userEducationRepo.DeleteUserEducation(decrypt))
+                    return NotFound(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.SystemFailureMessage));
+
+                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", GlobalMessages.DeletedMessage, educationId));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage));
+            }
         }
 
         [HttpGet("education/{educationId}")]
         public async Task<IActionResult> GetUserEducationById(string educationId)
         {
-            if (string.IsNullOrEmpty(educationId))
-                return NotFound(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.RecordNotFound));
+            try
+            {
+                if (string.IsNullOrEmpty(educationId))
+                    return NotFound(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.RecordNotFound));
 
-            var decrypt = DecryptionId(educationId);
-            var obj = await userEducationRepo.GetUserEducationById(decrypt);
-            if (obj != null) { 
-                UserEducationDto userEducationDto = new UserEducationDto()
+                var decrypt = DecryptionId(educationId);
+                var obj = await userEducationRepo.GetUserEducationById(decrypt);
+                if (obj != null)
                 {
-                    Id = obj.Id,
-                    UserEducationEncId = StringCipher.EncryptId(obj.Id),
-                    DegreeName = obj.DegreeName,
-                    InstituteName = obj.InstituteName,
-                    StartDate = obj.StartDate.Value.ToString("yyyy-MM-dd"),
-                    EndDate = obj.EndDate.Value.ToString("yyyy-MM-dd"),
-                    UserId = obj.UserId
-                };
+                    EducationViewModel userEducationDto = new EducationViewModel()
+                    {
+                        Id = obj.Id.ToString(),
+                        EducationId = StringCipher.EncryptId(obj.Id),
+                        DegreeName = obj.DegreeName,
+                        InstituteName = obj.InstituteName,
+                        StartDate = obj.StartDate.Value.ToString("yyyy-MM-dd"),
+                        EndDate = obj.EndDate.Value.ToString("yyyy-MM-dd"),
+                        UserId = obj.UserId.ToString()
+                    };
 
-                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Education Fetch Successfully"));
+                    return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Education Fetch Successfully"));
+                }
             }
-            return BadRequest(GeneralPurpose.GenerateResponseCode (false, "400", GlobalMessages.RecordNotFound));
+            catch (Exception ex)
+            {
+            }
+            return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.RecordNotFound));
         }
 
         [HttpGet("education-by-userId/{userId}")]
         public async Task<IActionResult> GetUserEducationByUserId(string userId)
         {
-            if (string.IsNullOrEmpty(userId))
-                return NotFound(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.RecordNotFound));
-
-            var decrypt = DecryptionId(userId);
-
-            var listOfEducation = await userEducationRepo.GetUserEducationByUserId(decrypt);
-            List<UserEducationDto> dtos = new List<UserEducationDto>();
-            foreach (var obj in listOfEducation)
+            try
             {
-                UserEducationDto userEducationDto = new UserEducationDto()
+                if (string.IsNullOrEmpty(userId))
+                    return NotFound(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.RecordNotFound));
+
+                var decrypt = DecryptionId(userId);
+
+                var listOfEducation = await userEducationRepo.GetUserEducationByUserId(decrypt);
+                List<EducationViewModel> dtos = new List<EducationViewModel>();
+                foreach (var obj in listOfEducation)
                 {
-                    Id = obj.Id,
-                    UserEducationEncId = StringCipher.EncryptId(obj.Id),
-                    DegreeName = obj.DegreeName,
-                    InstituteName = obj.InstituteName,
-                    StartDate = obj.StartDate.Value.ToString("MM/dd/yyyy"),
-                    EndDate = obj.EndDate.Value.ToString("MM/dd/yyyy"),
-                    UserId = obj.UserId
-                };
-                dtos.Add(userEducationDto);
+                    EducationViewModel userEducationDto = new EducationViewModel()
+                    {
+                        Id = obj.Id.ToString(),
+                        EducationId = StringCipher.EncryptId(obj.Id),
+                        DegreeName = obj.DegreeName,
+                        InstituteName = obj.InstituteName,
+                        StartDate = obj.StartDate.Value.ToString("yyyy-MM-dd"),
+                        EndDate = obj.EndDate.Value.ToString("yyyy-MM-dd"),
+                        UserId = obj.UserId.ToString()
+                    };
+                    dtos.Add(userEducationDto);
+                }
+                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Education Fetch Successfully", dtos));
             }
-            return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Education Fetch Successfully", dtos));
+            catch (Exception ex)
+            {
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage));
+            }
         }
         #endregion
 
@@ -513,79 +548,6 @@ namespace ITValet.Controllers
             {
                 return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", ex.Message));
             }
-        }
-
-        [HttpGet("GetUserExperienceList")]
-        public async Task<IActionResult> GetUserExperienceList(string? Title = "", string? Description = "", string? Organization = "")
-        {
-            var listOfExperience = await userExperienceRepo.GetUserExperienceList();
-
-            if (!string.IsNullOrEmpty(Title))
-            {
-                listOfExperience = listOfExperience.Where(x => x.Title.ToLower().Contains(Title.ToLower())).ToList();
-            }
-            if (!string.IsNullOrEmpty(Description))
-            {
-                listOfExperience = listOfExperience.Where(x => x.Description.ToLower().Contains(Description.ToLower())).ToList();
-            }
-            if (!string.IsNullOrEmpty(Organization))
-            {
-                listOfExperience = listOfExperience.Where(x => x.Organization.ToLower().Contains(Organization.ToLower())).ToList();
-            }
-
-            var draw = Request.Form["draw"].FirstOrDefault();
-            var start = Request.Form["start"].FirstOrDefault();
-            var length = Request.Form["length"].FirstOrDefault();
-            var sortColumn = Request.Form["columns[" + Request.Form["order[0][column]"].FirstOrDefault() + "][name]"].FirstOrDefault();
-            var sortColumnDirection = Request.Form["order[0][dir]"].FirstOrDefault();
-            var searchValue = Request.Form["search[value]"].FirstOrDefault();
-            int pageSize = length != null ? Convert.ToInt32(length) : 0;
-            int skip = start != null ? Convert.ToInt32(start) : 0;
-            if (sortColumn != "" && sortColumn != null)
-            {
-                if (sortColumn != "0")
-                {
-                    if (sortColumnDirection == "asc")
-                    {
-                        listOfExperience = listOfExperience.OrderByDescending(x => x.GetType().GetProperty(sortColumn).GetValue(x)).ToList();
-                    }
-                    else
-                    {
-                        listOfExperience = listOfExperience.OrderBy(x => x.GetType().GetProperty(sortColumn).GetValue(x)).ToList();
-                    }
-                }
-            }
-            int totalrows = listOfExperience.Count();
-
-            if (!string.IsNullOrEmpty(searchValue))
-            {
-                listOfExperience = listOfExperience.Where(x => x.Title.Trim().ToLower().Contains(searchValue.Trim().ToLower()) ||
-                                    x.Description != null && x.Description.Trim().ToLower().Contains(searchValue.Trim().ToLower()) ||
-                                    x.Organization != null && x.Organization.Trim().ToLower().Contains(searchValue.Trim().ToLower()) ||
-                                    x.Website != null && x.Website.Trim().ToLower().Contains(searchValue.Trim().ToLower())
-                                    ).ToList();
-            }
-            int totalrowsafterfilterinig = listOfExperience.Count();
-
-            listOfExperience = listOfExperience.Skip(skip).Take(pageSize).ToList();
-            List<UserExperienceDto> dtos = new List<UserExperienceDto>();
-            foreach (var obj in listOfExperience)
-            {
-                UserExperienceDto userExperienceDto = new UserExperienceDto()
-                {
-                    Id = obj.Id,
-                    UserExperienceEncId = StringCipher.EncryptId(obj.Id),
-                    Title = obj.Title,
-                    Description = obj.Description,
-                    ExperienceFrom = obj.ExperienceFrom.ToString(),
-                    ExperienceTo = obj.ExperienceTo.ToString(),
-                    Organization = obj.Organization,
-                    Website = obj.Website,
-                    UserId = obj.UserId
-                };
-                dtos.Add(userExperienceDto);
-            }
-            return Ok(new ResponseDto() { Data = new { data = dtos, draw = draw, recordsTotal = totalrows, recordsFiltered = totalrowsafterfilterinig }, Status = true, StatusCode = "200" });
         }
 
         [HttpDelete("delete-service/{serviceId}")]
