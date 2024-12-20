@@ -132,6 +132,10 @@ namespace ITValet.Utils.Helpers
                 {
                     Url = reactUrl,
                 },
+                Individual = new AccountIndividualOptions // Include Individual email
+                {
+                    Email = email,
+                }
             };
 
             var service = new AccountService();
@@ -173,6 +177,10 @@ namespace ITValet.Utils.Helpers
                 {
                     Url = reactUrl,
                 },
+                Individual = new AccountIndividualOptions // Include Individual email
+                {
+                    Email = email,
+                }
             };
 
             var service = new AccountService();
@@ -185,8 +193,8 @@ namespace ITValet.Utils.Helpers
             var result = accountLinkService.Create(new AccountLinkCreateOptions
             {
                 Account = stripeAccountId,
-                RefreshUrl = reactUrl + "verification-failed",
-                ReturnUrl = reactUrl + "account-verified",
+                RefreshUrl = $"{reactUrl}/verification-failed",
+                ReturnUrl = $"{reactUrl}/account-verified",
                 Type = "account_onboarding",
                 Collect = "eventually_due",
             });

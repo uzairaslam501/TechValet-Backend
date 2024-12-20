@@ -188,10 +188,8 @@ namespace ITValet.Controllers
             try
             {
                 if (string.IsNullOrEmpty(session_id))
-                {
-                    return BadRequest(new { Status = false, Message = "Session ID is required." });
-                }
-
+                    return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", "Session ID is required."));
+                
                 var sessionService = new SessionService();
                 var session = await sessionService.GetAsync(session_id);
 
@@ -215,16 +213,10 @@ namespace ITValet.Controllers
                     };
 
                     // Return the metadata as part of the response
-                    return Ok(new ResponseDto()
-                    {
-                        Status = true,
-                        Message = "Payment successful!",
-                        StatusCode = "200",
-                        Data = data
-                    });
+                    return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Payment successful", data));
                 }
 
-                return BadRequest(new { Status = false, Message = "Invalid session or session not found." });
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", "Invalid session or session not found."));
             }
             catch (Exception ex)
             {
