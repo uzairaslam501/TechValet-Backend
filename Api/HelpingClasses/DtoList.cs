@@ -1,8 +1,6 @@
-﻿using ITValet.Models;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
+﻿using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Drawing;
 
 namespace ITValet.HelpingClasses
 {
@@ -213,6 +211,7 @@ namespace ITValet.HelpingClasses
         public string? JoinUrl { get; set; } = "";
         public string? StartUrl { get; set; } = "";
     }
+    
     public class ZoomMeetingResponse
     {
         public string start_url { get; set; }
@@ -473,7 +472,7 @@ namespace ITValet.HelpingClasses
         public string? Slot2 { get; set; }
         public string? Slot3 { get; set; }
         public string? Slot4 { get; set; }
-        public int? UserId { get; set; }
+        public string? UserId { get; set; }
     }
 
     public class UserAvailableSlotDto
@@ -1090,6 +1089,7 @@ namespace ITValet.HelpingClasses
         public string? UserId { get; set; }
     }
     #endregion
+    
     public class UserRatingListDto
     {
         [Column(TypeName = " nvarchar(1000)")]
@@ -1100,6 +1100,7 @@ namespace ITValet.HelpingClasses
         public string? UserName { get; set; }
         public int? OrderId { get; set; }
     }
+    
     public class StripeBankAccountDto
     {
         public string? Userid { get; set; }
@@ -1108,6 +1109,7 @@ namespace ITValet.HelpingClasses
         public string? routingNo { get; set; }
         public string? accountHolderName { get; set; }
     }
+    
     public class CreateNotificationDto
     {
 
@@ -1117,6 +1119,7 @@ namespace ITValet.HelpingClasses
         public string Description { get; set; }
         public string Url { get; set; }
     }
+    
     public class ViewNotificationDto
     {
         public string NotificationId { get; set; }
@@ -1139,4 +1142,9 @@ namespace ITValet.HelpingClasses
         public string? CompletedAt { get; set; }
     }
 
+    public class StripeEarnings
+    {
+        public decimal BalanceAvailable { get; set; }
+        public decimal BalancePending { get; set; }
+    }
 }

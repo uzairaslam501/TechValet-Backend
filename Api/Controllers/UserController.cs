@@ -329,8 +329,8 @@ namespace ITValet.Controllers
 
                 obj.DegreeName = model.DegreeName;
                 obj.InstituteName = model.InstituteName;
-                obj.StartDate = Convert.ToDateTime(model.StartDate);
-                obj.EndDate = Convert.ToDateTime(model.EndDate);
+                obj.StartDate = !string.IsNullOrEmpty(model.StartDate) ? Convert.ToDateTime(model.StartDate) : null;
+                obj.EndDate = !string.IsNullOrEmpty(model.EndDate) ? Convert.ToDateTime(model.EndDate) : null;
                 obj.UserId = decrypt;
                 obj.IsActive = 1;
                 obj.CreatedAt = GeneralPurpose.DateTimeNow();
@@ -338,8 +338,9 @@ namespace ITValet.Controllers
                 if (!await userEducationRepo.AddUserEducation(obj))
                     return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.RecordNotFound));
 
-                model.EducationId = StringCipher.EncryptId(obj.Id);
-                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", GlobalMessages.SuccessMessage, obj));
+                var educationDto = MapToUserEducationDto(obj);
+
+                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", GlobalMessages.SuccessMessage, educationDto));
             }
             catch (Exception ex)
             {
@@ -364,10 +365,12 @@ namespace ITValet.Controllers
                 obj.EndDate = !string.IsNullOrEmpty(model.EndDate) ? Convert.ToDateTime(model.EndDate) : obj.EndDate;
                 obj.UpdatedAt = GeneralPurpose.DateTimeNow();
 
+                var educationDto = MapToUserEducationDto(obj);
+                
                 if (!await userEducationRepo.UpdateUserEducation(obj))
                     return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.SystemFailureMessage));
 
-                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", GlobalMessages.UpdateMessage, model));
+                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", GlobalMessages.UpdateMessage, educationDto));
             }
             catch (Exception ex)
             {
@@ -387,6 +390,7 @@ namespace ITValet.Controllers
                 if (!await userEducationRepo.DeleteUserEducation(decrypt))
                     return NotFound(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.SystemFailureMessage));
 
+                educationId = GeneralPurpose.ConversionEncrypted(educationId);
                 return Ok(GeneralPurpose.GenerateResponseCode(true, "200", GlobalMessages.DeletedMessage, educationId));
             }
             catch (Exception ex)
@@ -407,17 +411,7 @@ namespace ITValet.Controllers
                 var obj = await userEducationRepo.GetUserEducationById(decrypt);
                 if (obj != null)
                 {
-                    EducationViewModel userEducationDto = new EducationViewModel()
-                    {
-                        Id = obj.Id.ToString(),
-                        EducationId = StringCipher.EncryptId(obj.Id),
-                        DegreeName = obj.DegreeName,
-                        InstituteName = obj.InstituteName,
-                        StartDate = obj.StartDate.Value.ToString("yyyy-MM-dd"),
-                        EndDate = obj.EndDate.Value.ToString("yyyy-MM-dd"),
-                        UserId = obj.UserId.ToString()
-                    };
-
+                    var educationDto = MapToUserEducationDto(obj);
                     return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Education Fetch Successfully"));
                 }
             }
@@ -441,17 +435,8 @@ namespace ITValet.Controllers
                 List<EducationViewModel> dtos = new List<EducationViewModel>();
                 foreach (var obj in listOfEducation)
                 {
-                    EducationViewModel userEducationDto = new EducationViewModel()
-                    {
-                        Id = obj.Id.ToString(),
-                        EducationId = StringCipher.EncryptId(obj.Id),
-                        DegreeName = obj.DegreeName,
-                        InstituteName = obj.InstituteName,
-                        StartDate = obj.StartDate.Value.ToString("yyyy-MM-dd"),
-                        EndDate = obj.EndDate.Value.ToString("yyyy-MM-dd"),
-                        UserId = obj.UserId.ToString()
-                    };
-                    dtos.Add(userEducationDto);
+                    var educationDto = MapToUserEducationDto(obj);
+                    dtos.Add(educationDto);
                 }
                 return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Education Fetch Successfully", dtos));
             }
@@ -478,8 +463,10 @@ namespace ITValet.Controllers
 
                 if (!await userExperienceRepo.AddUserExperience(obj))
                     throw new Exception(GlobalMessages.SystemFailureMessage);
-                
-                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Experience has been added to your account", obj));
+
+                var userExperienceDto = MapToUserExperienceDto(obj);
+
+                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Experience has been added to your account", userExperienceDto));
             }
             catch (Exception ex)
             {
@@ -498,11 +485,12 @@ namespace ITValet.Controllers
 
                 obj.Description = !string.IsNullOrEmpty(Description) ? Description : obj.Description;
                 obj.UpdatedAt = GeneralPurpose.DateTimeNow();
+                var userExperienceDto = MapToUserExperienceDto(obj);
 
                 if (!await userExperienceRepo.UpdateUserExperience(obj))
                     throw new Exception(GlobalMessages.SystemFailureMessage);
 
-                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", GlobalMessages.UpdateMessage, obj));
+                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", GlobalMessages.UpdateMessage, userExperienceDto));
             }
             catch (Exception ex)
             {
@@ -561,7 +549,9 @@ namespace ITValet.Controllers
                 var decrypt = DecryptionId(serviceId);
                 if (!await userExperienceRepo.DeleteUserExperience(decrypt))
                     throw new Exception(GlobalMessages.SystemFailureMessage);
-
+                
+                serviceId = GeneralPurpose.ConversionEncrypted(serviceId);
+                
                 return Ok(GeneralPurpose.GenerateResponseCode(true, "200", GlobalMessages.DeletedMessage, serviceId));
             }
             catch (Exception ex)
@@ -892,41 +882,6 @@ namespace ITValet.Controllers
         #endregion
 
         #region UserAvailableSlot
-        private async Task<bool> PostAddUserAvailableSlot(PostAddUserAvailableSlot userAvailableSlot)
-        {
-            var obj = new UserAvailableSlot();
-
-            obj.DateTimeOfDay = Convert.ToDateTime(userAvailableSlot.DateTimeOfDay);
-            obj.Slot1 = Convert.ToInt32(userAvailableSlot.Slot1);
-            obj.Slot2 = Convert.ToInt32(userAvailableSlot.Slot2);
-            obj.Slot3 = Convert.ToInt32(userAvailableSlot.Slot3);
-            obj.Slot4 = Convert.ToInt32(userAvailableSlot.Slot4);
-            obj.UserId = userAvailableSlot.UserId;
-            obj.IsActive = 1;
-            obj.CreatedAt = GeneralPurpose.DateTimeNow();
-
-            if (!await userAvailableSlotRepo.AddUserAvailableSlot(obj))
-            {
-                return false;
-            }
-            return true;
-        }
-
-        private async Task<bool> DeleteUserAvailableSlots(int UserId)
-        {
-            var listOfAvailableSlot = await userAvailableSlotRepo.GetUserAvailableSlotByUserId(UserId);
-
-            if (listOfAvailableSlot.Count() > 0)
-            {
-                foreach (var item in listOfAvailableSlot)
-                {
-                    await userAvailableSlotRepo.DeleteUserAvailableSlotWithoutSavingDatabase(item.Id);
-                }
-            }
-            return true;
-        }
-
-
         [HttpPost("PostAddUserAvailableSlots")]
         public async Task<bool> PostAddUserAvailableSlots(List<PostAddUserAvailableSlot> userAvailableSlots)
         {
@@ -957,21 +912,6 @@ namespace ITValet.Controllers
             return true;
         }
 
-        [HttpPut("PostUpdateUserAvailableSlot")]
-        public async Task<IActionResult> PostUpdateUserAvailableSlot(PostUpdateUserAvailableSlot userAvailableSlot)
-        {
-            var obj = await userAvailableSlotRepo.GetUserAvailableSlotById(StringCipher.DecryptId(userAvailableSlot.UserAvailableSlotEncId));
-            obj.Slot1 = !string.IsNullOrEmpty(userAvailableSlot.Slot1) ? Convert.ToInt32(userAvailableSlot.Slot1) : obj.Slot1;
-            obj.Slot2 = !string.IsNullOrEmpty(userAvailableSlot.Slot2) ? Convert.ToInt32(userAvailableSlot.Slot2) : obj.Slot2;
-            obj.Slot3 = !string.IsNullOrEmpty(userAvailableSlot.Slot3) ? Convert.ToInt32(userAvailableSlot.Slot3) : obj.Slot3;
-            obj.Slot4 = !string.IsNullOrEmpty(userAvailableSlot.Slot4) ? Convert.ToInt32(userAvailableSlot.Slot4) : obj.Slot4;
-            obj.UpdatedAt = GeneralPurpose.DateTimeNow();
-            if (!await userAvailableSlotRepo.UpdateUserAvailableSlot(obj))
-            {
-                return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
-            }
-            return Ok(new ResponseDto() { Status = true, StatusCode = "200", Message = GlobalMessages.UpdateMessage });
-        }
         
         private async Task<int> GetUserSlotByUserId(int userId)
         {
@@ -996,7 +936,28 @@ namespace ITValet.Controllers
             };
             return Ok(new ResponseDto() { Data = userAvailableSlotDto, Status = true, StatusCode = "200", Message = "AvailableSlot Fetch Successfully" });
         }
-        
+
+        [HttpPut("user-available-slots/{userId}")]
+        public async Task<IActionResult> PostUpdateUserAvailableSlot(string userId,
+            List<PostUpdateUserAvailableSlot> slots)
+        {
+            var decrypt = DecryptionId(userId);
+            foreach (var slot in slots)
+            {
+                var obj = await userAvailableSlotRepo.GetUserAvailableSlotById((int)slot.Id);
+                obj.Slot1 = !string.IsNullOrEmpty(slot.Slot1) ? Convert.ToInt32(slot.Slot1) : obj.Slot1;
+                obj.Slot2 = !string.IsNullOrEmpty(slot.Slot2) ? Convert.ToInt32(slot.Slot2) : obj.Slot2;
+                obj.Slot3 = !string.IsNullOrEmpty(slot.Slot3) ? Convert.ToInt32(slot.Slot3) : obj.Slot3;
+                obj.Slot4 = !string.IsNullOrEmpty(slot.Slot4) ? Convert.ToInt32(slot.Slot4) : obj.Slot4;
+                obj.UpdatedAt = GeneralPurpose.DateTimeNow();
+                if (!await userAvailableSlotRepo.UpdateUserAvailableSlot(obj))
+                {
+                    return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
+                }
+            }
+            return Ok(new ResponseDto() { Status = true, StatusCode = "200", Message = GlobalMessages.UpdateMessage });
+        }
+
         [HttpGet("user-availability/{userId}")]
         public async Task<IActionResult> GetUserAvailableSlotByUserId(string userId)
         {
@@ -1350,73 +1311,6 @@ namespace ITValet.Controllers
         #endregion
 
         #region Orders
-        [HttpPost("GetOrdersDatatableByUserId")]
-        public async Task<IActionResult> GetOrdersDatatableByUserId()
-        {
-            UserClaims? getUsetFromToken = jwtUtils.ValidateToken(Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last());
-            var ulist = await orderRepo.GetOrderByUserId((int)getUsetFromToken.Id);
-
-            var draw = Request.Form["draw"].FirstOrDefault();
-            var start = Request.Form["start"].FirstOrDefault();
-            var length = Request.Form["length"].FirstOrDefault();
-            var sortColumn = Request.Form["columns[" + Request.Form["order[0][column]"].FirstOrDefault() + "][name]"].FirstOrDefault();
-            var sortColumnDirection = Request.Form["order[0][dir]"].FirstOrDefault();
-            var searchValue = Request.Form["search[value]"].FirstOrDefault();
-            int pageSize = length != null ? Convert.ToInt32(length) : 0;
-            int skip = start != null ? Convert.ToInt32(start) : 0;
-
-            if (sortColumn != "" && sortColumn != null)
-            {
-                if (sortColumn != "0")
-                {
-                    if (sortColumnDirection == "asc")
-                    {
-                        ulist = ulist.OrderByDescending(x => x.GetType().GetProperty(sortColumn).GetValue(x)).ToList();
-                    }
-                    else
-                    {
-                        ulist = ulist.OrderBy(x => x.GetType().GetProperty(sortColumn).GetValue(x)).ToList();
-                    }
-                }
-            }
-            int totalrows = ulist.Count();
-
-
-            // pagination
-            int totalrowsafterfilterinig = ulist.Count();
-
-            ulist = ulist.Skip(skip).Take(pageSize).ToList();
-
-            List<OrderDtoList> udto = new List<OrderDtoList>();
-
-            foreach (Order item in ulist)
-            {
-                var order = new OrderDtoList
-                {
-                    Id = item.Id.ToString(),
-                    EncId = StringCipher.EncryptId(item.Id),
-                    OrderTitle = item.OrderTitle,
-                    StartDateTime = item.StartDateTime != null ? item.StartDateTime.ToString() : "",
-                    EndDateTime = item.EndDateTime != null ? item.EndDateTime.ToString() : "",
-                    OrderPrice = item.OrderPrice.ToString(),
-                    IsDelivered = item.IsDelivered.ToString(),
-                };
-                if (item.OrderReason != null && item.OrderReason.Count > 0)
-                {
-                    foreach (var reason in item.OrderReason)
-                    {
-                        order.OrderReasonId = reason.Id.ToString();
-                        order.OrderReasonExplanation = reason.ReasonExplanation;
-                        order.OrderReasonType = reason.ReasonType.ToString();
-                        order.OrderReasonIsActive = reason.IsActive.ToString();
-                    }
-                }
-                udto.Add(order);
-            }
-
-            return new ObjectResult(new { data = udto, draw = Request.Form["draw"].FirstOrDefault(), recordsTotal = totalrows, recordsFiltered = totalrowsafterfilterinig });
-        }
-
         [HttpGet("GetOrderById")]
         public async Task<IActionResult> GetOrderById(string? orderId = "")
         {
@@ -1478,56 +1372,59 @@ namespace ITValet.Controllers
             return Ok(new ResponseDto() { Data = order, Status = true, StatusCode = "200" });
         }
 
-        [HttpGet("GetEarnings")]
-        public async Task<IActionResult> GetEarnings()
+        [HttpGet("get-earnings/{userId}")]
+        public async Task<IActionResult> GetEarnings(string userId)
         {
             try
             {
-                
-                UserClaims? getUserFromToken = jwtUtils.ValidateToken(Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last());
-                var GetUser = await userRepo.GetUserById((int)getUserFromToken.Id);
-                var GetAllOrders = await orderRepo.GetOrderByUserId((int)getUserFromToken.Id);
-                long balance_available = 0, balance_pending = 0;
-                decimal availableBalance = 0 ;
-                var payPalTotalEarning = await _payPalGateWayService.GetPayPalEarnings((int)getUserFromToken.Id);
-                if (GetUser != null && GetUser.Role == 4 && GetUser.StripeId != null)
-                {
-                    var requestOptions = new RequestOptions();
-                    requestOptions.StripeAccount = GetUser.StripeId;
-                    var service = new BalanceService();
-                    Balance balance = service.Get(requestOptions);
-                    var pendingList = balance.Pending;
-                    var balanceList = balance.Available;
-                    foreach (var x in balanceList)
-                    {
-                        balance_available = balance_available + x.Amount;
-                        availableBalance = balance_available;
-                    }
-                    foreach (var x in pendingList)
-                    {
-                        balance_pending = balance_pending + x.Amount;
-                    }
-                    balance_pending = balance_pending / 100;
-                    balance_available = balance_available / 100;
-                    availableBalance = availableBalance / 100;
+                var decrypt = DecryptionId(userId);
 
-                }
+                // Extract user from id
+                var user = await userRepo.GetUserById(decrypt);
+                var orders = await orderRepo.GetOrderByUserId(decrypt);
+                if (user == null)
+                    return NotFound(new ResponseDto { Status = false, StatusCode = "404", Message = "User not found" });
 
+                // Get earnings
+                var stripeEarnings = GetStripeEarnings(user);
+                var payPalEarnings = await _payPalGateWayService.GetPayPalEarnings(decrypt);
+
+                // Prepare response
                 var response = new EarningsApiResponse
                 {
-                    BalancePending = balance_pending.ToString(),
-                    BalanceAvailable = availableBalance.ToString(),
-                    UserId = GetUser.Id,
-                    PayPalEarning = payPalTotalEarning,
+                    BalancePending = stripeEarnings.BalancePending.ToString(),
+                    BalanceAvailable = stripeEarnings.BalanceAvailable.ToString(),
+                    UserId = user.Id,
+                    PayPalEarning = payPalEarnings,
                 };
 
-                return Ok(new ResponseDto() { Data = response, Status = true, StatusCode = "200" });
+                return Ok(new ResponseDto { Data = response, Status = true, StatusCode = "200" });
             }
             catch (Exception ex)
             {
                 await MailSender.SendErrorMessage(ex.Message);
-                return Ok(new ResponseDto() { Status = true, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
+                return Ok(new ResponseDto { Status = true, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
             }
+        }
+
+        // Fetch Stripe earnings
+        private StripeEarnings GetStripeEarnings(User user)
+        {
+            if (user.Role != 4 || string.IsNullOrEmpty(user.StripeId))
+                return new StripeEarnings { BalancePending = 0, BalanceAvailable = 0 };
+
+            var requestOptions = new RequestOptions { StripeAccount = user.StripeId };
+            var balanceService = new BalanceService();
+            var balance = balanceService.Get(requestOptions);
+
+            var balanceAvailable = balance.Available.Sum(b => b.Amount) / 100;
+            var balancePending = balance.Pending.Sum(b => b.Amount) / 100;
+
+            return new StripeEarnings
+            {
+                BalanceAvailable = balanceAvailable,
+                BalancePending = balancePending,
+            };
         }
 
         #endregion
@@ -1889,6 +1786,24 @@ namespace ITValet.Controllers
                 Organization = obj.Organization,
                 Website = obj.Website,
                 UserId = obj.UserId
+            };
+        }
+
+        #endregion
+
+        #region Education
+
+        private EducationViewModel MapToUserEducationDto(UserEducation obj)
+        {
+            return new EducationViewModel()
+            {
+                Id = obj.Id.ToString(),
+                EducationId = StringCipher.EncryptId(obj.Id),
+                DegreeName = obj.DegreeName,
+                InstituteName = obj.InstituteName,
+                StartDate = obj.StartDate != null ? obj.StartDate.Value.ToString("yyyy-MM-dd") : "",
+                EndDate = obj.EndDate != null ? obj.EndDate.Value.ToString("yyyy-MM-dd") : "",
+                UserId = obj.UserId.ToString()
             };
         }
         #endregion

@@ -44,11 +44,13 @@ namespace ITValet.Utils.Extentions
             services.Configure<ProjectVariables>(configuration.GetSection("ProjectVariables"));
             services.Configure<StripeApiKeys>(configuration.GetSection("StripeApiKeys"));
             services.Configure<ReturnUrls>(configuration.GetSection("ReturnUrls"));
+            
             services.AddScoped<IJwtUtils, JwtUtils>();
-            services.AddTransient<NotificationHubSocket>();
-            services.AddScoped<LogApiRequestResponseFilter>();
             services.AddScoped<ISearchLogService, SearchLogService>();
             services.AddScoped<INotificationService, UserPackageService>();
+
+            services.AddTransient<NotificationHubSocket>();
+            services.AddTransient<LogApiRequestResponseFilter>();
             services.AddTransient<IFundTransferService, FundTransferService>();
             services.AddTransient<IPayPalGateWayService, PayPalGateWayService>();
         }

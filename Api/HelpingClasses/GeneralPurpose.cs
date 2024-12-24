@@ -257,6 +257,16 @@ namespace ITValet.HelpingClasses
             return encryptedId;
         }
 
+        public static string ConversionEncrypted(string encryptedId)
+        {
+            var lowerValue = "%2F";
+            if (encryptedId.Contains(lowerValue))
+            {
+                encryptedId = encryptedId.Replace(lowerValue, "/");
+            }
+            return encryptedId;
+        }
+
         public static ResponseViewModel NotFoundResponse(string message, Object? data = null)
         {
             return new ResponseViewModel()

@@ -7,7 +7,6 @@ using ITValet.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Options;
-using MimeKit;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using RestSharp;
