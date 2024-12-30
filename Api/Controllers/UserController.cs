@@ -166,6 +166,26 @@ namespace ITValet.Controllers
             }
         }
 
+        [HttpGet("user-by-id/{userId}")]
+        public async Task<ActionResult<UserListDto>> GetUserByIdEncryptedId(string userId)
+        {
+            var Id = DecryptionId(userId);
+            var user = await userRepo.GetUserById(Id);
+            if (user == null)
+                return NotFound(GeneralPurpose.GenerateResponseCode(false, "404", GlobalMessages.RecordNotFound));
+            
+            var userEducation = await userEducationRepo.UserEducationRecordById(Id);
+            var userExperience = await userExperienceRepo.UserExperiencedRecordById(Id);
+
+
+            var obj = MapToUserDto(user);
+            obj.UserEducations = userEducation;
+            obj.UserExperienced = userExperience;
+            MapTimeSlotsToUser(obj);
+
+            return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Record Fetch Successfully", obj));
+        }
+
         [HttpGet("GetUserListAsync")]
         public async Task<IActionResult> GetUserListAsync()
         {
@@ -912,7 +932,6 @@ namespace ITValet.Controllers
             return true;
         }
 
-        
         private async Task<int> GetUserSlotByUserId(int userId)
         {
             var obj = await userAvailableSlotRepo.GetUserAvailableSlotByUserId(userId);
@@ -1670,15 +1689,11 @@ namespace ITValet.Controllers
 
         #region UserRating
 
-        [HttpGet("GetValetRatingRecord")]
-        public async Task<IActionResult> GetValetRatingRecord(string ValetEncId)
+        [HttpGet("users-rating/{userId}")]
+        public async Task<IActionResult> GetValetRatingRecord(string userId)
         {
-            var valetRating = await ratingRepo.GetValetRatingRecords(ValetEncId);
-            if(valetRating.Rating.Count > 0)
-            {
-                return Ok(new ResponseDto() { Data = valetRating, Status = true, StatusCode = "200" });
-            }
-            return Ok(new ResponseDto() { Status = false, StatusCode = "500", Message = "Rating Record Not Found" });
+            var response = await ratingRepo.GetValetRatingRecords(userId);
+            return Ok(response);
         }        
         
         [HttpGet("GetValetRatingRecordByDecreaptedId")]
@@ -1757,6 +1772,47 @@ namespace ITValet.Controllers
         #endregion
 
         #region Helpers
+
+        #region Users
+        private UserListDto MapToUserDto(User user)
+        {
+            return new UserListDto()
+            {
+                Id = user.Id,
+                Email = user.Email,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                UserName = user.UserName,
+                Contact = user.Contact,
+                Gender = user.Gender,
+                Country = user.Country,
+                State = user.State,
+                City = user.City,
+                ZipCode = user.ZipCode,
+                Timezone = user.Timezone,
+                Language = user.Language,
+                StripeId = user.StripeId,
+                Description = user.Description,
+                Status = user.Status.ToString(),
+                Availability = user.Availability.ToString(),
+                UserEncId = StringCipher.EncryptId(user.Id),
+                Role = Enum.GetName(typeof(EnumRoles), user.Role!),
+                BirthDate = user.BirthDate?.ToString("yyyy-MM-dd"),
+                IsActive = Enum.GetName(typeof(EnumActiveStatus), user.IsActive!),
+                ProfilePicture = user.ProfilePicture != null ? projectVariables.BaseUrl + user.ProfilePicture : null,
+                CurrentTime = GeneralPurpose.regionChanged(Convert.ToDateTime(GeneralPurpose.DateTimeNow()), user.Timezone!)
+            };
+        }
+
+        private async void MapTimeSlotsToUser(UserListDto user)
+        {
+            var date = GeneralPurpose.DateTimeNow().Date;
+
+            var slot = await userAvailableSlotRepo.GetUserAvailableSlotByUserIdAndDateOrDay((int)user.Id!, date.ToString());
+            if (slot != null)
+                user.AvailabilitySlots = slot.Slot1 + "," + slot.Slot2 + "," + slot.Slot3 + "," + slot.Slot4;
+        }
+        #endregion
 
         #region Skills
         private UserSkillDto MapToUserSkillDto(UserSkill skill)

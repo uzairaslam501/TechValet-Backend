@@ -1,6 +1,7 @@
 ﻿using ITValet.HelpingClasses;
 using ITValet.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Stripe;
 
@@ -17,7 +18,7 @@ namespace ITValet.Services
         Task<bool> IsValetHasMoreBadReviews(int id);
         Task<bool> DeleteUserRating(int id);
         Task<OrderRating?> GetOrderRatingByOrderId(int orderId);
-        Task<ValetRatingReviewRecord> GetValetRatingRecords(string endId);
+        Task<ResponseDto> GetValetRatingRecords(string userId);
         string? CalculateAverageStars(int id);
         Task<double> GetValetStars(string endId);
         Task<string> GetValetStarsRatingForPayment(string encId);
@@ -27,10 +28,12 @@ namespace ITValet.Services
     {
         private readonly AppDbContext _context;
         private readonly IUserRepo _userRepo;
-        public UserRatingRepo(AppDbContext _appDbContext, IUserRepo userRepo)
+        private readonly ProjectVariables _projectVariables;
+        public UserRatingRepo(AppDbContext _appDbContext, IUserRepo userRepo, IOptions<ProjectVariables> options)
         {
             _context = _appDbContext;
             _userRepo = userRepo;
+            _projectVariables = options.Value;
         }
         
         public async Task<bool> AddUserRating(UserRating UserRating)
@@ -174,14 +177,22 @@ namespace ITValet.Services
             }
         }
 
-        public async Task<ValetRatingReviewRecord> GetValetRatingRecords(string endId)
+        public async Task<ResponseDto> GetValetRatingRecords(string userId)
         {
             try
             {
-                int valetId = StringCipher.DecryptId(endId);
-                var valetRatingList = await _context.UserRating.Where(x => x.ValetId == valetId).ToListAsync();
-                int? sumOfRatingStars = valetRatingList.Sum(x => x.Stars);
-                double averageRating = (double)sumOfRatingStars / valetRatingList.Count;
+                var Id = DecryptionId(userId);
+                var ratingList = await _context.UserRating.Where(x => x.ValetId == Id).ToListAsync();
+
+                // If no ratings exist, return early to avoid further processing
+                if (!ratingList.Any())
+                {
+                    throw new Exception();
+                }
+
+                int? sumOfRatingStars = ratingList.Sum(x => x.Stars);
+                double averageRating = (double)sumOfRatingStars / ratingList.Count;
+
                 string formattedRating = averageRating.ToString("F1");
 
                 var valetRatingReviewRecord = new ValetRatingReviewRecord
@@ -190,18 +201,18 @@ namespace ITValet.Services
                     Rating = new List<ValetRatingRecord>()
                 };
 
-                if (valetRatingList.Any())
+                if (ratingList.Any())
                 {
-                    List<int?> customerIds = valetRatingList.Select(x => x.CustomerId).ToList();
+                    List<int?> customerIds = ratingList.Select(x => x.CustomerId).ToList();
                     var customerRecords = await _userRepo.GetCustomerInfoRecord(customerIds);
 
-                    foreach (var rating in valetRatingList)
+                    foreach (var rating in ratingList)
                     {
                         var valetRating = new ValetRatingRecord
                         {
                             Reviews = rating.Reviews,
                             Stars = rating.Stars,
-                            PublishDate = rating.CreatedAt.Value.Date.ToString(),
+                            PublishDate = rating.CreatedAt.Value.Date.ToString("yyyy-MM-dd"),
                         };
 
                         var customerRecord = customerRecords.FirstOrDefault(c => c.Id == rating.CustomerId);
@@ -210,16 +221,17 @@ namespace ITValet.Services
                         valetRatingReviewRecord.Rating.Add(valetRating);
                     }
                 }
-
-                return valetRatingReviewRecord;
+                return GeneralPurpose.GenerateResponseCode(true, "200", "Record Found", valetRatingReviewRecord);
             }
             catch (Exception ex)
             {
-                return new ValetRatingReviewRecord
+                CreateLogger(ex);
+                var record = new ValetRatingReviewRecord
                 {
                     AverageStars = "0.0", // You can set a default value for average stars here
                     Rating = new List<ValetRatingRecord>()
                 };
+                return GeneralPurpose.GenerateResponseCode(true, "200", "Record Found", record);
             }
         }
         
@@ -325,6 +337,18 @@ namespace ITValet.Services
             {
                 return new List<ValetRatingRecord>();
             }     
+        }
+
+        private int DecryptionId(string userId)
+        {
+            userId = GeneralPurpose.ConversionEncryptedId(userId);
+            var decrypt = StringCipher.DecryptId(userId);
+            return decrypt;
+        }
+
+        private async void CreateLogger(Exception ex)
+        {
+            await MailSender.SendErrorMessage($"URL: {_projectVariables.BaseUrl}<br/> Exception Message:  {ex.Message} <br/> Stack Trace: {ex.StackTrace}");
         }
     }
 }
