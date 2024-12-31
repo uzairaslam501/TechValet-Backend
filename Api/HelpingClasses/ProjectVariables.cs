@@ -40,6 +40,7 @@
         public static string DeletedMessage = "The record has been deleted successfully.";
         public static string EmailPassword = "Email/Password cannot be null or Empty.";
         public static string LoginNotFound = "Email/Password is incorrect";
+        public static string RecordFound = "Record Found!";
         public static string RecordNotFound = "The record you're looking for may have been removed or relocated.";
         public static string DuplicateEmail = "This email is already in the system. Log in again or change the email address you can use to register your account.";
         public static string OldPassword = "The old password did not match.";
