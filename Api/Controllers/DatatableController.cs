@@ -1,4 +1,4 @@
-﻿using ITValet.Filters;
+using ITValet.Filters;
 using ITValet.HelpingClasses;
 using ITValet.JWTAuthentication;
 using ITValet.JwtAuthorization;
@@ -6,8 +6,7 @@ using ITValet.Models;
 using ITValet.Services;
 using ITValet.Utils.Helpers;
 using Microsoft.AspNetCore.Mvc;
-using System.Linq;
-using System.Reflection;
+using Microsoft.Extensions.Options;
 
 namespace ITValet.Controllers
 {
@@ -30,11 +29,13 @@ namespace ITValet.Controllers
         private readonly IUserSocialProfileRepo _userSocialProfileRepo;
         private readonly IUserSkillRepo _userSkillRepo;
         private readonly IUserTagRepo _userTagRepo;
+        private readonly ProjectVariables _projectVariables;
         public DatatableController(IJwtUtils _jwtUtils, IRequestServiceRepo _requestServiceRepo,
             IOrderRepo _orderRepo, INotificationService userPackageService, IUserRepo userRepo,
             IContactUsRepo contactUsRepo, IPayPalGateWayService payPalGateWayService,
             IUserEducationRepo userEducationRepo, IUserExperienceRepo userExperienceRepo,
-            IUserSocialProfileRepo userSocialProfileRepo, IUserSkillRepo userSkillRepo, IUserTagRepo userTagRepo)
+            IUserSocialProfileRepo userSocialProfileRepo, IUserSkillRepo userSkillRepo, 
+            IUserTagRepo userTagRepo, IOptions<ProjectVariables> options)
         {
             jwtUtils = _jwtUtils;
             requestServiceRepo = _requestServiceRepo;
@@ -48,6 +49,7 @@ namespace ITValet.Controllers
             _userSocialProfileRepo = userSocialProfileRepo;
             _userSkillRepo = userSkillRepo;
             _userTagRepo = userTagRepo;
+            _projectVariables = options.Value;
         }
         
         [HttpGet("GetRequestServicesDatatableByUserIdAsync")]
@@ -56,186 +58,59 @@ namespace ITValet.Controllers
             try
             {
                 UserClaims? getUserFromToken = jwtUtils.ValidateToken(Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last());
+                var requestServices = await requestServiceRepo.GetRequestServiceByUserId((int)getUserFromToken!.Id!);
 
-                var requestServices = await requestServiceRepo.GetRequestServiceByUserId((int)getUserFromToken.Id);
+                var baseService = new DatatableHelper<RequestService>();
 
-                if (!string.IsNullOrEmpty(name))
-                {
-                    requestServices = requestServices.Where(rs => rs.ServiceTitle.ToLower().Contains(name.ToLower())).ToList();
-                }
+                // Apply sorting
+                requestServices = baseService.ApplySorting(requestServices, sortColumnName, sortDirection);
 
-                if (!string.IsNullOrEmpty(sortColumnName) && sortColumnName != "0")
-                {
-                    if (sortDirection == "asc")
-                    {
-                        requestServices = requestServices.OrderBy(rs => rs.GetType().GetProperty(sortColumnName)?.GetValue(rs)).ToList();
-                    }
-                    else
-                    {
-                        requestServices = requestServices.OrderByDescending(rs => rs.GetType().GetProperty(sortColumnName)?.GetValue(rs)).ToList();
-                    }
-                }
-                else
-                {
-                    requestServices = requestServices.OrderByDescending(rs => rs.CreatedAt).ToList();
-                }
-
+                // Apply filtering
                 if (!string.IsNullOrEmpty(searchValue))
                 {
-                    requestServices = requestServices.Where(rs =>
-                        rs.ServiceTitle.ToLower().Contains(searchValue.ToLower()) ||
+                    requestServices = baseService.ApplyFiltering(requestServices, rs =>
+                        rs.ServiceTitle?.ToLower().Contains(searchValue.ToLower()) == true ||
                         (rs.ServiceDescription != null && rs.ServiceDescription.ToLower().Contains(searchValue.ToLower())) ||
                         (rs.ServiceLanguage != null && rs.ServiceLanguage.ToLower().Contains(searchValue.ToLower()))
                     ).ToList();
                 }
 
-                int totalRows = requestServices.Count();
+                if (!string.IsNullOrEmpty(name))
+                    requestServices = requestServices.Where(rs => rs.ServiceTitle?.ToLower().Contains(name.ToLower()) == true).ToList();
+                
 
-               
-                if(length != -1)
+                int totalRows = requestServices.Count();
+                int totalRowsAfterFiltering = totalRows;
+
+                if (totalRowsAfterFiltering > 0 && start < totalRowsAfterFiltering)
                 {
-                    requestServices = requestServices
-                    .Skip(start * length)
-                    .Take(length)
-                    .ToList();
+                    requestServices = baseService.ApplyPagination(requestServices, start, length);
                 }
 
-                int totalRowsAfterFiltering = requestServices.Count();
-                List<RequestServicesDto> requestServicesDtos = requestServices.Select(rs =>
-                {
-                    string userRegionRequestedTime = GeneralPurpose.regionChanged(Convert.ToDateTime(rs.CreatedAt), getUserFromToken.Timezone);
-                    string userRegionRequestStartTime = rs.FromDateTime.HasValue
-                        ? GeneralPurpose.regionChanged(Convert.ToDateTime(rs.FromDateTime), getUserFromToken.Timezone)
-                        : "";
-                    string userRegionRequestEndTime = rs.ToDateTime.HasValue
-                        ? GeneralPurpose.regionChanged(Convert.ToDateTime(rs.ToDateTime), getUserFromToken.Timezone)
-                        : "";
+                // Map data to DTOs
+                var requestServicesDtos = MappingHelper.MapRequestServiceToDtos(requestServices, getUserFromToken);
 
-                    return new RequestServicesDto
-                    {
-                        Id = rs.Id,
-                        EncId = StringCipher.EncryptId(rs.Id),
-                        PrefferedServiceTime = rs.PrefferedServiceTime,
-                        CategoriesOfProblems = rs.CategoriesOfProblems,
-                        ServiceDescription = rs.ServiceDescription,
-                        FromDateTime = rs.FromDateTime?.ToString("yyyy-MM-ddTHH:mm:ss"),
-                        ToDateTime = rs.ToDateTime?.ToString("yyyy-MM-ddTHH:mm:ss"),
-                        AppointmentTime = $"{userRegionRequestStartTime} - {userRegionRequestEndTime}",
-                        ServiceLanguage = rs.ServiceLanguage,
-                        RequestServiceType = rs.RequestServiceType.ToString(),
-                        RequestServiceSkills = rs.RequestServiceSkills,
-                        CreatedAt = userRegionRequestedTime
-                    };
-                }).ToList();
-
-                return new ObjectResult(new
+                var response = new 
                 {
                     draw = (start / length) + 1,
                     data = requestServicesDtos,
                     recordsTotal = totalRows,
                     recordsFiltered = totalRowsAfterFiltering
-                });
+                };
+
+                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", GlobalMessages.RecordFound, response));
+
+
             }
             catch (Exception ex)
             {
-                await MailSender.SendErrorMessage(ex.Message);
-                return Ok(new ResponseDto { Status = false, StatusCode = "406", Message = GlobalMessages.SystemFailureMessage });
-            }
-        }
-
-        [HttpGet("GetOrdersDatatableByUserId")]
-        public async Task<IActionResult> GetOrdersDatatableByUserId(int start, int length, string? sortColumnName, string? sortDirection, string? searchValue)
-        {
-            try
-            {
-                UserClaims? getUserFromToken = jwtUtils.ValidateToken(Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last());
-                var orders = await orderRepo.GetOrderByUserId((int)getUserFromToken.Id);
-
-                if (!string.IsNullOrEmpty(sortColumnName) && sortColumnName != "0")
-                {
-                    if (sortDirection == "asc")
-                    {
-                        orders = orders.OrderBy(o => o.GetType().GetProperty(sortColumnName)?.GetValue(o)).ToList();
-                    }
-                    else
-                    {
-                        orders = orders.OrderByDescending(o => o.GetType().GetProperty(sortColumnName)?.GetValue(o)).ToList();
-                    }
-                }
-                else
-                {
-                    orders = orders.OrderByDescending(o => o.CreatedAt).ToList();
-                }
-
-                
-                if (!string.IsNullOrEmpty(searchValue))
-                {
-                    orders = orders.Where(o =>
-                        o.OrderTitle?.ToLower().Contains(searchValue.ToLower()) == true ||
-                        o.OrderReason != null && o.OrderReason.Any(r => r.ReasonExplanation.ToLower().Contains(searchValue.ToLower()))
-                    ).ToList();
-                }
-
-                int totalRows = orders.Count();
-
-                
-                int totalRowsAfterFiltering = orders.Count();
-                if (totalRowsAfterFiltering>0 && start< totalRowsAfterFiltering)
-                {
-                    orders = orders.Skip(start * length).Take(length).ToList();
-                }
-                var orderDtos = new List<OrderDtoList>();
-                foreach (var order in orders)
-                {
-                    var orderDto = new OrderDtoList
-                    {
-                        Id = order.Id.ToString(),
-                        EncId = StringCipher.EncryptId(order.Id),
-                        OrderTitle = order.OrderTitle,
-                        StartDateTime = order.StartDateTime != null ? order.StartDateTime.ToString() : "",
-                        EndDateTime = order.EndDateTime != null ? order.EndDateTime.ToString() : "",
-                        OrderPrice = order.OrderPrice.ToString(),
-                        IsDelivered = order.IsDelivered.ToString()
-                    };
-
-                    if (order.OrderReason != null && order.OrderReason.Any())
-                    {
-                        var reason = order.OrderReason.FirstOrDefault();
-                        if (reason != null)
-                        {
-                            orderDto.OrderReasonId = reason.Id.ToString();
-                            orderDto.OrderReasonExplanation = reason.ReasonExplanation;
-                            orderDto.OrderReasonType = reason.ReasonType.ToString();
-                            orderDto.OrderReasonIsActive = reason.IsActive.ToString();
-                        }
-                    }
-
-                    orderDtos.Add(orderDto);
-                }
-
-                return Ok(new
-                {
-                    draw = (start / length) + 1,
-                    data = orderDtos,
-                    recordsTotal = totalRows,
-                    recordsFiltered = totalRowsAfterFiltering
-                });
-            }
-            catch (Exception ex)
-            {
-                await MailSender.SendErrorMessage(ex.Message);
-                return Ok(new ResponseDto
-                {
-                    Status = false,
-                    StatusCode = "500",
-                    Message = "Internal server error"
-                });
+                CreateLogger(ex);
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage));
             }
         }
 
         [HttpGet("orders-by-userId")]
-        public async Task<IActionResult> GetOrderDatatableByUserId(int start, int length, string? sortColumnName,
-            string? sortDirection, string? searchValue)
+        public async Task<IActionResult> GetOrderDatatableByUserId(int start, int length, string? sortColumnName, string? sortDirection, string? searchValue)
         {
             try
             {
@@ -243,7 +118,7 @@ namespace ITValet.Controllers
                 var orders = await orderRepo.GetOrderByUserId((int)userClaims.Id);
 
                 // Initialize BaseService
-                var baseService = new DatatableHelper<Order>();
+                var baseService = new DatatableHelper<Models.Order>();
 
                 // Apply sorting
                 orders = baseService.ApplySorting(orders, sortColumnName, sortDirection);
@@ -269,26 +144,20 @@ namespace ITValet.Controllers
                 // Map data to DTOs
                 var orderDtos = MappingHelper.MapOrdersToDtos(orders);
 
-                return Ok(new
+                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Record Found", new
                 {
                     draw = (start / length) + 1,
                     data = orderDtos,
                     recordsTotal = totalRows,
                     recordsFiltered = totalRowsAfterFiltering
-                });
+                }));
             }
             catch (Exception ex)
             {
-                await MailSender.SendErrorMessage(ex.Message);
-                return Ok(new ResponseDto
-                {
-                    Status = false,
-                    StatusCode = "500",
-                    Message = "Internal server error"
-                });
+                CreateLogger(ex);
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage));
             }
         }
-
 
         [HttpGet("GetUserPackageDatatableAsync")]
 		public async Task<IActionResult> GetUserPackageDatatableAsync(int start, int length, string? sortColumnName, string? sortDirection, string? searchValue, int? UserId)
@@ -296,91 +165,55 @@ namespace ITValet.Controllers
 			try
 			{
                 UserClaims? getUserFromToken = jwtUtils.ValidateToken(Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last());
-                var userPackages = await _userPackageService.GetUserPackageListByUserId((int)getUserFromToken.Id);
-				var userPackageList = userPackages.ToList(); 
+                var userPackages = await _userPackageService.GetUserPackageListByUserId((int)getUserFromToken!.Id!);
+                var userPackageList = userPackages.ToList();
 
-				if (!string.IsNullOrEmpty(sortColumnName) && sortColumnName != "0")
-				{
-					if (sortDirection == "asc")
-					{
-						userPackageList = userPackageList.OrderBy(p => p.GetType().GetProperty(sortColumnName)?.GetValue(p)).ToList();
-					}
-					else
-					{
-						userPackageList = userPackageList.OrderByDescending(p => p.GetType().GetProperty(sortColumnName)?.GetValue(p)).ToList();
-					}
-				}
-				else
-				{
-					userPackageList = userPackageList.OrderByDescending(p => p.StartDateTime).ToList();
-				}
+                // Initialize BaseService
+                var baseService = new DatatableHelper<UserPackage>();
 
-				// Apply searching
-				if (!string.IsNullOrEmpty(searchValue))
-				{
-					string search = searchValue.ToLower().Trim();
-					userPackageList = userPackageList.Where(p =>
-						(p.PackageName != null && p.PackageName.ToLower().Contains(search)) ||
-						(p.TotalSessions != null && p.TotalSessions.ToString().Contains(search)) ||
-						(p.RemainingSessions != null && p.RemainingSessions.ToString().Contains(search)) ||
-						(p.PackageType != null && p.PackageType.ToString().Contains(search.ToLower()))
-					).ToList();
-				}
+                // Apply sorting
+                userPackageList = baseService.ApplySorting(userPackageList, sortColumnName, sortDirection);
+
+                // Apply filtering
+                if (!string.IsNullOrEmpty(searchValue))
+                {
+                    searchValue = searchValue.ToLower().Trim();
+                    userPackageList = baseService.ApplyFiltering(userPackageList, p =>
+                        (p.PackageName != null && p.PackageName.ToLower().Contains(searchValue)) ||
+                        (p.TotalSessions != null && p.TotalSessions.ToString().Contains(searchValue)) ||
+                        (p.RemainingSessions != null && p.RemainingSessions.ToString().Contains(searchValue)) ||
+                        (p.PackageType != null && p.PackageType.ToString().Contains(searchValue))).ToList();
+                }
 
 				int totalRows = userPackageList.Count();
+				int totalRowsAfterFiltering = totalRows;
 
-				
-				int totalRowsAfterFiltering = userPackageList.Count();
-                if (totalRowsAfterFiltering > 0 && start< totalRowsAfterFiltering)
+                // Apply pagination
+                if (totalRowsAfterFiltering > 0 && start < totalRowsAfterFiltering)
                 {
-                    userPackageList = userPackageList.Skip(start * length).Take(length).ToList();
+                    userPackageList = baseService.ApplyPagination(userPackageList, start, length);
                 }
-				var userPackageDtos = new List<UserPackageListDto>();
-				foreach (var userPackage in userPackageList)
-				{
-					var userPackageDto = new UserPackageListDto
-					{
-						Id = userPackage.Id,
-						PackageName = userPackage.PackageName,
-						PackageType = userPackage.PackageType,
-						TotalSessions = userPackage.TotalSessions,
-						RemainingSessions = userPackage.RemainingSessions,
-						StartDateTime = userPackage.StartDateTime,
-						EndDateTime = userPackage.EndDateTime,
-						CustomerId = userPackage.CustomerId,
-					};
 
-					if (userPackage.CustomerId != null)
-					{
-						var customer = await _userRepo.GetUserById((int)userPackage.CustomerId);
-						if (customer != null)
-						{
-							userPackageDto.Customer = $"{customer.FirstName} {customer.LastName}";
-						}
-					}
+                // Assume _userRepo is injected via DI
+                var userPackageDtos = await MappingHelper.MapUserPackageToDtos(userPackageList, _userRepo);
 
-					userPackageDtos.Add(userPackageDto);
-				}
-
-				return Ok(new
-				{
+                var response = new
+                {
                     draw = (start / length) + 1,
                     data = userPackageDtos,
-					recordsTotal = totalRows,
-					recordsFiltered = totalRowsAfterFiltering
-				});
-			}
+                    recordsTotal = totalRows,
+                    recordsFiltered = totalRowsAfterFiltering
+                };
+
+                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", GlobalMessages.RecordFound, response));
+            }
 			catch (Exception ex)
 			{
-                await MailSender.SendErrorMessage(ex.Message);
-				return Ok(new ResponseDto
-				{
-					Status = false,
-					StatusCode = "500",
-					Message = "Internal server error"
-				});
-			}
+                CreateLogger(ex);
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage));
+            }
 		}
+
 
 		[HttpGet("GetOrdersDatatableByPackageId")]
 		public async Task<IActionResult> GetOrdersDatatableByPackageId(int start, int length, string? sortColumnName, string? sortDirection, string? searchValue, int? packageId)
@@ -388,90 +221,55 @@ namespace ITValet.Controllers
 			try
 			{
 				var orderList = await orderRepo.GetOrderByPackageId(packageId);
-				var orderListMaterialized = orderList.ToList();  
+				var orderListMaterialized = orderList.ToList();
 
-				if (!string.IsNullOrEmpty(sortColumnName) && sortColumnName != "0")
-				{
-					if (sortDirection == "asc")
-					{
-						orderListMaterialized = orderListMaterialized.OrderBy(o => o.GetType().GetProperty(sortColumnName)?.GetValue(o)).ToList();
-					}
-					else
-					{
-						orderListMaterialized = orderListMaterialized.OrderByDescending(o => o.GetType().GetProperty(sortColumnName)?.GetValue(o)).ToList();
-					}
-				}
-				else
-				{
-					orderListMaterialized = orderListMaterialized.OrderByDescending(o => o.StartDateTime).ToList();
-				}
+                // Initialize BaseService
+                var baseService = new DatatableHelper<Models.Order>();
 
-				// Apply search filter
-				if (!string.IsNullOrEmpty(searchValue))
-				{
-					string search = searchValue.ToLower().Trim();
-					orderListMaterialized = orderListMaterialized.Where(o =>
-						(o.OrderTitle != null && o.OrderTitle.ToLower().Contains(search)) ||
-						(o.OrderPrice != null && o.OrderPrice.ToString().Contains(search)) ||
-						(o.IsDelivered != null && o.IsDelivered.ToString().Contains(search))
-					).ToList();
-				}
+                // Apply sorting
+                orderListMaterialized = baseService.ApplySorting(orderListMaterialized, sortColumnName, sortDirection);
 
-				int totalRows = orderListMaterialized.Count();
-				
-				
-				int totalRowsAfterFiltering = orderListMaterialized.Count();
+                // Apply filtering
+                if (!string.IsNullOrEmpty(searchValue))
+                {
+                    string search = searchValue.ToLower().Trim();
+                    orderListMaterialized = baseService.ApplyFiltering(orderListMaterialized, o =>
+                        (o.OrderTitle != null && o.OrderTitle.ToLower().Contains(search)) ||
+                        (o.OrderPrice != null && o.OrderPrice.ToString().Contains(search)) ||
+                        (o.IsDelivered != null && o.IsDelivered.ToString().Contains(search))
+                    ).ToList();
+                }
+
+                // Record counts
+                int totalRows = orderListMaterialized.Count();
+                int totalRowsAfterFiltering = totalRows;
+
+                // Apply pagination
                 if (totalRowsAfterFiltering > 0 && start < totalRowsAfterFiltering)
                 {
-                    orderListMaterialized = orderListMaterialized.Skip(start * length).Take(length).ToList();
+                    orderListMaterialized = baseService.ApplyPagination(orderListMaterialized, start, length);
                 }
-                var orderDtos = new List<OrderDtoList>();
-				foreach (var order in orderListMaterialized)
-				{
-					var orderDto = new OrderDtoList
-					{
-						Id = order.Id.ToString(),
-						EncId = StringCipher.EncryptId(order.Id),
-						OrderTitle = order.OrderTitle,
-						StartDateTime = order.StartDateTime?.ToString() ?? "",
-						EndDateTime = order.EndDateTime?.ToString() ?? "",
-						OrderPrice = order.OrderPrice.ToString(),
-						IsDelivered = order.IsDelivered.ToString(),
-					};
 
-					if (order.OrderReason != null && order.OrderReason.Count > 0)
-					{
-						foreach (var reason in order.OrderReason)
-						{
-							orderDto.OrderReasonId = reason.Id.ToString();
-							orderDto.OrderReasonExplanation = reason.ReasonExplanation;
-							orderDto.OrderReasonType = reason.ReasonType.ToString();
-                            orderDto.OrderReasonIsActive = reason.IsActive.ToString();
-                        }
-					}
+                // Map data to DTOs
+                var orderDtos = MappingHelper.MapOrders_ByPackageId_ToDtos(orderListMaterialized);
 
-					orderDtos.Add(orderDto);
-				}
 
-				return Ok(new
-				{
+                var response = new
+                {
                     draw = (start / length) + 1,
                     data = orderDtos,
-					recordsTotal = totalRows,
-					recordsFiltered = totalRowsAfterFiltering
-				});
-			}
-			catch (Exception ex)
-			{
-				await MailSender.SendErrorMessage(ex.Message);
-				return Ok(new ResponseDto
-				{
-					Status = false,
-					StatusCode = "500",
-					Message = "Internal server error"
-				});
-			}
-		}
+                    recordsTotal = totalRows,
+                    recordsFiltered = totalRowsAfterFiltering
+                };
+
+                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", GlobalMessages.RecordFound, response));
+            }
+            catch (Exception ex)
+            {
+                CreateLogger(ex);
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage));
+            }
+        }
 
         [HttpGet("GetContactListAsync")]
         public async Task<IActionResult> GetContactListAsync(int start, int length, string? sortColumnName, string? sortDirection, string? searchValue, string? Name = "", string? Email = "", string? subject = "")
@@ -481,40 +279,34 @@ namespace ITValet.Controllers
                 var contactList = await _contactUsRepo.GetContactList();
                 var contactListMaterialized = contactList.ToList();
 
-                if (!string.IsNullOrEmpty(sortColumnName) && sortColumnName != "0")
-                {
-                    if (sortDirection == "asc")
-                    {
-                        contactListMaterialized = contactListMaterialized.OrderBy(c => c.GetType().GetProperty(sortColumnName)?.GetValue(c)).ToList();
-                    }
-                    else
-                    {
-                        contactListMaterialized = contactListMaterialized.OrderByDescending(c => c.GetType().GetProperty(sortColumnName)?.GetValue(c)).ToList();
-                    }
-                }
-                else
-                {
-                    contactListMaterialized = contactListMaterialized.OrderByDescending(c => c.Name).ToList();
-                }
+                // Initialize BaseService
+                var baseService = new DatatableHelper<Contact>();
 
+                // Apply sorting
+                contactListMaterialized = baseService.ApplySorting(contactListMaterialized, sortColumnName, sortDirection);
+
+
+                // Apply filtering
                 if (!string.IsNullOrEmpty(searchValue))
                 {
-                    string search = searchValue.ToLower().Trim();
-                    contactListMaterialized = contactListMaterialized.Where(c =>
-                        (c.Name != null && c.Name.ToLower().Contains(search)) ||
-                        (c.Email != null && c.Email.ToLower().Contains(search)) ||
-                        (c.Subject != null && c.Subject.ToLower().Contains(search))
+                    searchValue = searchValue.ToLower().Trim();
+                    contactListMaterialized = baseService.ApplyFiltering(contactListMaterialized, c =>
+                        (c.Name != null && c.Name.ToLower().Contains(searchValue)) ||
+                        (c.Email != null && c.Email.ToLower().Contains(searchValue)) ||
+                        (c.Subject != null && c.Subject.ToLower().Contains(searchValue))
                     ).ToList();
                 }
 
+                // Record counts
                 int totalRows = contactListMaterialized.Count();
+                int totalRowsAfterFiltering = totalRows;
 
-                
-                int totalRowsAfterFiltering = contactListMaterialized.Count();
+                // Apply pagination
                 if (totalRowsAfterFiltering > 0 && start < totalRowsAfterFiltering)
                 {
-                    contactListMaterialized = contactListMaterialized.Skip(start * length).Take(length).ToList();
+                    contactListMaterialized = baseService.ApplyPagination(contactListMaterialized, start, length);
                 }
+
                 var contactDtos = contactListMaterialized.Select(contact => new ContactDto
                 {
                     Id = contact.Id,
@@ -525,30 +317,30 @@ namespace ITValet.Controllers
                     Message = contact.Message?.ToString()
                 }).ToList();
 
-                return Ok(new
+
+                var response = new
                 {
                     draw = (start / length) + 1,
                     data = contactDtos,
                     recordsTotal = totalRows,
                     recordsFiltered = totalRowsAfterFiltering
-                });
+                };
+
+                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", GlobalMessages.RecordFound, response));
+
             }
             catch (Exception ex)
             {
-                await MailSender.SendErrorMessage(ex.Message);
-                return Ok(new ResponseDto
-                {
-                    Status = false,
-                    StatusCode = "500",
-                    Message = "Internal server error"
-                });
+                CreateLogger(ex);
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage));
             }
         }
 
         [CustomAuthorize(new EnumRoles[] { EnumRoles.Admin, EnumRoles.Employee })]
         [HttpGet("GetUserListAsync")]
-        public async Task<IActionResult> GetUserListAsync(int Role, int start, int length, string? pendingRec = "", string? Name = "", string? Email = "", string? Contact = "", string? Country = "",
-    string? State = "", string? City = "", string? IsActive = "",  string? sortColumn = "", string? sortDirection = "asc", string? searchValue = "")
+        public async Task<IActionResult> GetUserListAsync(int Role, int start, int length, string? pendingRec = "", string? Name = "", 
+            string? Email = "", string? Contact = "", string? Country = "", string? State = "", string? City = "", string? IsActive = "",  
+            string? sortColumn = "", string? sortDirection = "asc", string? searchValue = "")
         {
             try
             {
@@ -563,56 +355,24 @@ namespace ITValet.Controllers
                     ulist = (List<User>)await _userRepo.GetUserList(Role);
                 }
 
-                if (!string.IsNullOrEmpty(Name))
+                if(!string.IsNullOrEmpty(Name) || !string.IsNullOrEmpty(Email) || !string.IsNullOrEmpty(Contact) || !string.IsNullOrEmpty(Country) || 
+                    !string.IsNullOrEmpty(State) || !string.IsNullOrEmpty(City) || !string.IsNullOrEmpty(IsActive))
                 {
-                    ulist = ulist.Where(x => x.FirstName.ToLower().Contains(Name.ToLower()) || x.LastName.ToLower().Contains(Name.ToLower()) || x.UserName.ToLower().Contains(Name.ToLower())).ToList();
+                    ulist = MappingHelper.FilterUsersList(ulist, Name, Email, Contact, Country, State, City , IsActive);
                 }
+                            
+                // Initialize BaseService
+                var baseService = new DatatableHelper<User>();
 
-                if (!string.IsNullOrEmpty(IsActive))
-                {
-                    ulist = ulist.Where(x => x.IsActive == Convert.ToInt16(IsActive)).ToList();
-                }
+                // Apply sorting
+                ulist = baseService.ApplySorting(ulist, sortColumn, sortDirection);
 
-                if (!string.IsNullOrEmpty(Email))
-                {
-                    ulist = ulist.Where(x => x.Email.ToLower().Contains(Email.ToLower())).ToList();
-                }
-
-                if (!string.IsNullOrEmpty(Contact))
-                {
-                    ulist = ulist.Where(x => x.Contact.ToLower().Contains(Contact.ToLower())).ToList();
-                }
-
-                if (!string.IsNullOrEmpty(Country))
-                {
-                    ulist = ulist.Where(x => x.Country.ToLower().Contains(Country.ToLower())).ToList();
-                }
-
-                if (!string.IsNullOrEmpty(State))
-                {
-                    ulist = ulist.Where(x => x.State.ToLower().Contains(State.ToLower())).ToList();
-                }
-
-                if (!string.IsNullOrEmpty(City))
-                {
-                    ulist = ulist.Where(x => x.City.ToLower().Contains(City.ToLower())).ToList();
-                }
-
-                if (!string.IsNullOrEmpty(sortColumn))
-                {
-                    var isAscending = sortDirection == "asc";
-                    ulist = isAscending
-                        ? ulist.OrderBy(x => x.GetType().GetProperty(sortColumn)?.GetValue(x)).ToList()
-                        : ulist.OrderByDescending(x => x.GetType().GetProperty(sortColumn)?.GetValue(x)).ToList();
-                }
-
-                int totalRows = ulist.Count();
-
+                // Apply filtering
                 if (!string.IsNullOrEmpty(searchValue))
                 {
                     string search = searchValue.ToLower().Trim();
-                    ulist = ulist.Where(x =>
-                        x.Email.ToLower().Contains(search) ||
+                    ulist = baseService.ApplyFiltering(ulist, x =>
+                        x.Email?.ToLower().Contains(search) == true ||
                         x.FirstName != null && x.FirstName.ToLower().Contains(search) ||
                         x.LastName != null && x.LastName.ToLower().Contains(search) ||
                         x.UserName != null && x.UserName.ToLower().Contains(search) ||
@@ -625,62 +385,64 @@ namespace ITValet.Controllers
                     ).ToList();
                 }
 
-                int totalRowsAfterFiltering = ulist.Count();
+                // Record counts
+                int totalRows = ulist.Count();
+                int totalRowsAfterFiltering = totalRows;
+
+                // Apply pagination
                 if (totalRowsAfterFiltering > 0 && start < totalRowsAfterFiltering)
                 {
-                    ulist = ulist.Skip(start * length).Take(length).ToList();
+                    ulist = baseService.ApplyPagination(ulist, start, length);
                 }
-                
-                var udto = ulist.Select(u => new UserListDto
-                {
-                    Id = u.Id,
-                    UserEncId = StringCipher.EncryptId(u.Id),
-                    FirstName = u.FirstName,
-                    LastName = u.LastName,
-                    UserName = u.UserName,
-                    Contact = u.Contact,
-                    Email = u.Email,
-                    // Password = StringCipher.Decrypt(u.Password),
-                    Gender = u.Gender,
-                    ProfilePicture = u.ProfilePicture,
-                    Country = u.Country,
-                    State = u.State,
-                    City = u.City,
-                    Timezone = u.Timezone,
-                    Availability = u.Availability.ToString(),
-                    Status = u.Status.ToString(),
-                    BirthDate = u.BirthDate.ToString(),
-                    Role = Enum.GetName(typeof(EnumRoles), u.Role),
-                    IsActive = Enum.GetName(typeof(EnumActiveStatus), u.IsActive)
-                }).ToList();
 
-                return Ok(new
+                // Map data to DTOs
+                var usersDtos = MappingHelper.MapUsersToDtos(ulist);
+
+                var response = new
                 {
-                    data = udto,
                     draw = (start / length) + 1,
+                    data = usersDtos,
                     recordsTotal = totalRows,
                     recordsFiltered = totalRowsAfterFiltering
-                });
+                };
+
+                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", GlobalMessages.RecordFound, response));
             }
             catch (Exception ex)
             {
-                await MailSender.SendErrorMessage(ex.Message);
-                return Ok(new ResponseDto
-                {
-                    Status = false,
-                    StatusCode = "500",
-                    Message = "Internal server error"
-                });
+                CreateLogger(ex);
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage));
             }
         }
 
         [CustomAuthorize(new EnumRoles[] { EnumRoles.Admin })]
         [HttpGet("GetPayPalOrdersRecordAsync")]
-        public async Task<IActionResult> GetPayPalOrdersRecordAsync(int start, int length, string? UserName = "", string? ItValet = "", string? searchValue = "", string? sortColumnName = "",string? sortDirection = "")
-    {
+        public async Task<IActionResult> GetPayPalOrdersRecordAsync(int start, int length, string? UserName = "", string? ItValet = "", 
+            string? searchValue = "", string? sortColumnName = "",string? sortDirection = "")
+        {
             try
             {
                 var paypalOrdersRecord = await _payPalGateWayService.GetPayPalOrdersRecord();
+
+                // Initialize BaseService
+                var baseService = new DatatableHelper<PayPalOrderDetailsForAdminDB>();
+
+                // Apply sorting
+                paypalOrdersRecord = baseService.ApplySorting(paypalOrdersRecord, sortColumnName, sortDirection);
+
+                // Apply filtering
+                if (!string.IsNullOrEmpty(searchValue))
+                {
+                    string search = searchValue.ToLower().Trim();
+                    paypalOrdersRecord = baseService.ApplyFiltering(paypalOrdersRecord, x =>
+                        (x.CustomerName != null && x.CustomerName.ToLower().Contains(search)) ||
+                        (x.ITValet != null && x.ITValet.ToLower().Contains(search)) ||
+                        (x.OrderTitle != null && x.OrderTitle.ToLower().Contains(search)) ||
+                        (x.OrderPrice != null && x.OrderPrice.ToLower().Contains(search)) ||
+                        (x.OrderStatus != null && x.OrderStatus.ToLower().Contains(search)) ||
+                        (x.PaymentStatus != null && x.PaymentStatus.ToLower().Contains(search))
+                    ).ToList();
+                }
 
                 if (!string.IsNullOrEmpty(UserName))
                 {
@@ -696,67 +458,35 @@ namespace ITValet.Controllers
                     ).ToList();
                 }
 
-                if (!string.IsNullOrEmpty(searchValue))
-                {
-                    string search = searchValue.ToLower().Trim();
-                    paypalOrdersRecord = paypalOrdersRecord.Where(x =>
-                        (x.CustomerName != null && x.CustomerName.ToLower().Contains(search)) ||
-                        (x.ITValet != null && x.ITValet.ToLower().Contains(search)) ||
-                        (x.OrderTitle != null && x.OrderTitle.ToLower().Contains(search)) ||
-                        (x.OrderPrice != null && x.OrderPrice.ToLower().Contains(search)) ||
-                        (x.OrderStatus != null && x.OrderStatus.ToLower().Contains(search)) ||
-                        (x.PaymentStatus != null && x.PaymentStatus.ToLower().Contains(search))
-                    ).ToList();
-                }
 
+                // Record counts
                 int totalRows = paypalOrdersRecord.Count();
-                if (!string.IsNullOrEmpty(sortColumnName))
-                {
-                    var propertyInfo = typeof(PayPalOrderDetailsForAdminDB).GetProperty(sortColumnName);
-                    if (propertyInfo != null)
-                    {
-                        paypalOrdersRecord = sortDirection == "asc"
-                            ? paypalOrdersRecord.OrderBy(x => propertyInfo.GetValue(x, null)).ToList()
-                            : paypalOrdersRecord.OrderByDescending(x => propertyInfo.GetValue(x, null)).ToList();
-                    }
-                }
+                int totalRowsAfterFiltering = totalRows;
 
-                int totalRowsAfterFiltering = paypalOrdersRecord.Count();
+                // Apply pagination
                 if (totalRowsAfterFiltering > 0 && start < totalRowsAfterFiltering)
                 {
-                    paypalOrdersRecord = paypalOrdersRecord.Skip(start * length).Take(length).ToList();
+                    paypalOrdersRecord = baseService.ApplyPagination(paypalOrdersRecord, start, length);
                 }
-                var paypalRecordDto = paypalOrdersRecord.Select(orderObj => new PayPalOrderDetailsForAdminDB
-                {
-                    Id = orderObj.Id,
-                    ITValet = orderObj.ITValet,
-                    OrderTitle = orderObj.OrderTitle,
-                    OrderEncId = orderObj.OrderEncId,
-                    OrderPrice = orderObj.OrderPrice,
-                    OrderStatus = orderObj.OrderStatus,
-                    PaymentStatus = orderObj.PaymentStatus,
-                    CustomerName = orderObj.CustomerName,
-                    CaptureId = orderObj.CaptureId,
-                    PaidByPackage = orderObj.PaidByPackage,
-                }).ToList();
 
-                return Ok(new
+                // Map data to DTOs
+                var paypalRecordDto = MappingHelper.MapPaypalOrdersToDtos(paypalOrdersRecord);
+
+                var response = new
                 {
-                    data = paypalRecordDto,
                     draw = (start / length) + 1,
+                    data = paypalRecordDto,
                     recordsTotal = totalRows,
                     recordsFiltered = totalRowsAfterFiltering
-                });
+                };
+
+                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", GlobalMessages.RecordFound, response));
+
             }
             catch (Exception ex)
             {
-                await MailSender.SendErrorMessage(ex.Message);
-                return Ok(new ResponseDto
-                {
-                    Status = false,
-                    StatusCode = "500",
-                    Message = "Internal server error"
-                });
+                CreateLogger(ex);
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage));
             }
         }
 
@@ -775,6 +505,10 @@ namespace ITValet.Controllers
             try
             {
                 var unclaimedPaymentRecord = await _payPalGateWayService.GetPayPalUnclaimedRecord();
+
+                // Initialize BaseService
+                var baseService = new DatatableHelper<PayPalUnclaimedTransactionDetailsForAdminDB>();
+
                 if (!string.IsNullOrEmpty(userName))
                 {
                     unclaimedPaymentRecord = unclaimedPaymentRecord.Where(x =>
@@ -789,27 +523,14 @@ namespace ITValet.Controllers
                     ).ToList();
                 }
 
-                if (!string.IsNullOrEmpty(sortColumn))
-                {
-                    if (sortColumnDirection == "asc")
-                    {
-                        unclaimedPaymentRecord = unclaimedPaymentRecord
-                            .OrderBy(x => x.GetType().GetProperty(sortColumn)?.GetValue(x))
-                            .ToList();
-                    }
-                    else
-                    {
-                        unclaimedPaymentRecord = unclaimedPaymentRecord
-                            .OrderByDescending(x => x.GetType().GetProperty(sortColumn)?.GetValue(x))
-                            .ToList();
-                    }
-                }
 
-                int totalRows = unclaimedPaymentRecord.Count();
+                // Apply sorting
+                unclaimedPaymentRecord = baseService.ApplySorting(unclaimedPaymentRecord, sortColumn, sortColumnDirection);
 
+                // Apply filtering
                 if (!string.IsNullOrEmpty(searchValue))
                 {
-                    unclaimedPaymentRecord = unclaimedPaymentRecord.Where(x =>
+                    unclaimedPaymentRecord = baseService.ApplyFiltering(unclaimedPaymentRecord, x =>
                         (x.CustomerName != null && x.CustomerName.ToLower().Contains(searchValue)) ||
                         (x.ITValetName != null && x.ITValetName.ToLower().Contains(searchValue)) ||
                         (x.OrderTitle != null && x.OrderTitle.ToLower().Contains(searchValue)) ||
@@ -818,40 +539,34 @@ namespace ITValet.Controllers
                         (x.TransactionStatus != null && x.TransactionStatus.ToLower().Contains(searchValue))
                     ).ToList();
                 }
-                int totalRowsAfterFiltering = unclaimedPaymentRecord.Count();
+
+                // Record counts
+                int totalRows = unclaimedPaymentRecord.Count();
+                int totalRowsAfterFiltering = totalRows;
+
+                // Apply pagination
                 if (totalRowsAfterFiltering > 0 && start < totalRowsAfterFiltering)
                 {
-                    unclaimedPaymentRecord = unclaimedPaymentRecord.Skip(start * length).Take(length).ToList();
+                    unclaimedPaymentRecord = baseService.ApplyPagination(unclaimedPaymentRecord, start, length);
                 }
-                var paypalRecordDto = unclaimedPaymentRecord.Select(unclaimedObj => new PayPalUnclaimedTransactionDetailsForAdminDB
-                {
-                    ITValetName = unclaimedObj.ITValetName,
-                    OrderTitle = unclaimedObj.OrderTitle,
-                    Reason = unclaimedObj.Reason,
-                    TransactionStatus = unclaimedObj.TransactionStatus,
-                    UnclaimedAmountStatus = unclaimedObj.UnclaimedAmountStatus,
-                    CustomerName = unclaimedObj.CustomerName,
-                    OrderEncId = unclaimedObj.OrderEncId,
-                    PayPalEmailAccount = unclaimedObj.PayPalEmailAccount,
-                }).ToList();
 
-                return new ObjectResult(new
+                // Map data to DTOs
+                var paypalRecordDto = MappingHelper.MapPaypalUnclaimedPaymentRecordToDtos(unclaimedPaymentRecord);
+                
+                var response = new
                 {
-                    data = paypalRecordDto,
                     draw = (start / length) + 1,
+                    data = paypalRecordDto,
                     recordsTotal = totalRows,
                     recordsFiltered = totalRowsAfterFiltering
-                });
+                };
+
+                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", GlobalMessages.RecordFound, response));
             }
             catch (Exception ex)
             {
-                await MailSender.SendErrorMessage(ex.Message);
-                return Ok(new ResponseDto
-                {
-                    Status = false,
-                    StatusCode = "500",
-                    Message = "Internal server error"
-                });
+                CreateLogger(ex);
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage));
             }
         }
 
@@ -884,25 +599,16 @@ namespace ITValet.Controllers
                     ).ToList();
                 }
 
-                if (!string.IsNullOrEmpty(sortColumn))
-                {
-                    if (sortColumnDirection == "asc")
-                    {
-                        paypalTransactionRecord = paypalTransactionRecord
-                            .OrderBy(x => x.GetType().GetProperty(sortColumn)?.GetValue(x))
-                            .ToList();
-                    }
-                    else
-                    {
-                        paypalTransactionRecord = paypalTransactionRecord
-                            .OrderByDescending(x => x.GetType().GetProperty(sortColumn)?.GetValue(x))
-                            .ToList();
-                    }
-                }
-                int totalRows = paypalTransactionRecord.Count();
+                // Initialize BaseService
+                var baseService = new DatatableHelper<PayPalTransactionDetailsForAdminDB>();
+
+                // Apply sorting
+                paypalTransactionRecord = baseService.ApplySorting(paypalTransactionRecord, sortColumn, sortColumnDirection);
+
+                // Apply filtering
                 if (!string.IsNullOrEmpty(searchValue))
                 {
-                    paypalTransactionRecord = paypalTransactionRecord.Where(x =>
+                    paypalTransactionRecord = baseService.ApplyFiltering(paypalTransactionRecord, x =>
                         (x.CustomerName != null && x.CustomerName.ToLower().Contains(searchValue)) ||
                         (x.ITValetName != null && x.ITValetName.ToLower().Contains(searchValue)) ||
                         (x.OrderTitle != null && x.OrderTitle.ToLower().Contains(searchValue)) ||
@@ -915,43 +621,34 @@ namespace ITValet.Controllers
                     ).ToList();
                 }
 
-                int totalRowsAfterFiltering = paypalTransactionRecord.Count();
+                // Record counts
+                int totalRows = paypalTransactionRecord.Count();
+                int totalRowsAfterFiltering = totalRows;
+
+                // Apply pagination
                 if (totalRowsAfterFiltering > 0 && start < totalRowsAfterFiltering)
                 {
-                    paypalTransactionRecord = paypalTransactionRecord.Skip(start * length).Take(length).ToList();
+                    paypalTransactionRecord = baseService.ApplyPagination(paypalTransactionRecord, start, length);
                 }
-                var paypalRecordDto = paypalTransactionRecord.Select(transactionObj => new PayPalTransactionDetailsForAdminDB
-                {
-                    ITValetName = transactionObj.ITValetName,
-                    OrderTitle = transactionObj.OrderTitle,
-                    OrderPrice = transactionObj.OrderPrice,
-                    TransactionStatus = transactionObj.TransactionStatus,
-                    PlatformFee = transactionObj.PlatformFee,
-                    CustomerName = transactionObj.CustomerName,
-                    OrderEncId = transactionObj.OrderEncId,
-                    PayOutItemId = transactionObj.PayOutItemId,
-                    SentAmount = transactionObj.SentAmount,
-                    PayPalEmailAccount = transactionObj.PayPalEmailAccount,
-                    ExpectedDateToTransmitPayment = transactionObj.ExpectedDateToTransmitPayment,
-                }).ToList();
 
-                return new ObjectResult(new
+                // Map data to DTOs
+                var paypalRecordDto = MappingHelper.MapPaypalTransactionRecordsToDtos(paypalTransactionRecord);
+
+                var response = new
                 {
-                    data = paypalRecordDto,
                     draw = (start / length) + 1,
+                    data = paypalRecordDto,
                     recordsTotal = totalRows,
                     recordsFiltered = totalRowsAfterFiltering
-                });
+                };
+
+                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", GlobalMessages.RecordFound, response));
+
             }
             catch (Exception ex)
             {
-                await MailSender.SendErrorMessage(ex.Message);
-                return Ok(new ResponseDto
-                {
-                    Status = false,
-                    StatusCode = "500",
-                    Message = "Internal server error"
-                });
+                CreateLogger(ex);
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage));
             }
         }
 
@@ -983,26 +680,16 @@ namespace ITValet.Controllers
                     ).ToList();
                 }
 
-                if (!string.IsNullOrEmpty(sortColumn))
-                {
-                    if (sortColumnDirection == "asc")
-                    {
-                        stripeOrdersRecord = stripeOrdersRecord
-                            .OrderBy(x => x.GetType().GetProperty(sortColumn)?.GetValue(x))
-                            .ToList();
-                    }
-                    else
-                    {
-                        stripeOrdersRecord = stripeOrdersRecord
-                            .OrderByDescending(x => x.GetType().GetProperty(sortColumn)?.GetValue(x))
-                            .ToList();
-                    }
-                }
+                // Initialize BaseService
+                var baseService = new DatatableHelper<StripeOrderDetailForAdminDb>();
 
-                int totalRows = stripeOrdersRecord.Count();
+                // Apply sorting
+                stripeOrdersRecord = baseService.ApplySorting(stripeOrdersRecord, sortColumn, sortColumnDirection);
+                
+                // Apply filtering
                 if (!string.IsNullOrEmpty(searchValue))
                 {
-                    stripeOrdersRecord = stripeOrdersRecord.Where(x =>
+                    stripeOrdersRecord = baseService.ApplyFiltering(stripeOrdersRecord, x =>
                         (x.CustomerName != null && x.CustomerName.ToLower().Contains(searchValue)) ||
                         (x.ITValet != null && x.ITValet.ToLower().Contains(searchValue)) ||
                         (x.OrderTitle != null && x.OrderTitle.ToLower().Contains(searchValue)) ||
@@ -1011,43 +698,35 @@ namespace ITValet.Controllers
                         (x.PaymentStatus != null && x.PaymentStatus.ToLower().Contains(searchValue))
                     ).ToList();
                 }
-                int totalRowsAfterFiltering = stripeOrdersRecord.Count();
+
+                // Record counts
+                int totalRows = stripeOrdersRecord.Count();
+                int totalRowsAfterFiltering = totalRows;
+
+                // Apply pagination
                 if (totalRowsAfterFiltering > 0 && start < totalRowsAfterFiltering)
                 {
-                    stripeOrdersRecord = stripeOrdersRecord.Skip(start * length).Take(length).ToList();
+                    stripeOrdersRecord = baseService.ApplyPagination(stripeOrdersRecord, start, length);
                 }
-                var stripeRecordDto = stripeOrdersRecord.Select(orderObj => new StripeOrderDetailForAdminDb
+
+                // Map data to DTOs
+                var stripeRecordDto = MappingHelper.MapStripeOrderRecordsToDtos(stripeOrdersRecord);
+
+                var response = new
                 {
-                    Id = orderObj.Id,
-                    ITValet = orderObj.ITValet,
-                    OrderTitle = orderObj.OrderTitle,
-                    OrderEncId = orderObj.OrderEncId,
-                    OrderPrice = orderObj.OrderPrice,
-                    OrderStatus = orderObj.OrderStatus,
-                    PaymentStatus = orderObj.PaymentStatus,
-                    CustomerName = orderObj.CustomerName,
-                    StripeStatus = orderObj.StripeStatus,
-                    StripeId = orderObj.StripeId,
-                    IsDelivered = orderObj.IsDelivered,
-                    PaidByPackage = orderObj.PaidByPackage,
-                }).ToList();
-                return new ObjectResult(new
-                {
-                    data = stripeRecordDto,
                     draw = (start / length) + 1,
+                    data = stripeRecordDto,
                     recordsTotal = totalRows,
                     recordsFiltered = totalRowsAfterFiltering
-                });
+                };
+
+                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", GlobalMessages.RecordFound, response));
+
             }
             catch (Exception ex)
             {
-                await MailSender.SendErrorMessage(ex.Message);
-                return Ok(new ResponseDto
-                {
-                    Status = false,
-                    StatusCode = "500",
-                    Message = "Internal server error"
-                });
+                CreateLogger(ex);
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage));
             }
         }
 
@@ -1066,57 +745,47 @@ namespace ITValet.Controllers
             {
                 var userPackageListDto = await _userPackageService.GetUserPackageLists();
 
+                // Initialize BaseService
+                var baseService = new DatatableHelper<UserPackageListDto>();
+
+                // Apply sorting
+                userPackageListDto = baseService.ApplySorting(userPackageListDto, sortColumn, sortDirection);
+
+                // Apply filtering
                 if (!string.IsNullOrEmpty(searchValue))
                 {
-                    userPackageListDto = userPackageListDto
-                        .Where(x =>
-                            (x.PackageName != null && x.PackageName.Trim().ToLower().Contains(searchValue.Trim().ToLower())) ||
+                    userPackageListDto = baseService.ApplyFiltering(userPackageListDto, x =>
+                        (x.PackageName != null && x.PackageName.Trim().ToLower().Contains(searchValue.Trim().ToLower())) ||
                             (x.RemainingSessions != null && x.RemainingSessions.ToString().Contains(searchValue.ToLower())) ||
                             (x.PackageType != null && x.PackageType.ToString().Contains(searchValue.ToLower())) ||
                             (x.Customer != null && x.Customer.ToLower().Contains(searchValue.ToLower()))
                         ).ToList();
                 }
 
+                // Record counts
                 int totalRows = userPackageListDto.Count();
+                int totalRowsAfterFiltering = totalRows;
 
-                if (!string.IsNullOrEmpty(sortColumn))
+                // Apply pagination
+                if (totalRowsAfterFiltering > 0 && start < totalRowsAfterFiltering)
                 {
-                    PropertyInfo propertyInfo = typeof(UserPackageListDto).GetProperty(sortColumn);
-                    if (propertyInfo != null)
-                    {
-                        if (sortDirection == "asc")
-                        {
-                            userPackageListDto = userPackageListDto.OrderBy(x => propertyInfo.GetValue(x)).ToList();
-                        }
-                        else
-                        {
-                            userPackageListDto = userPackageListDto.OrderByDescending(x => propertyInfo.GetValue(x)).ToList();
-                        }
-                    }
+                    userPackageListDto = baseService.ApplyPagination(userPackageListDto, start, length);
                 }
 
-                int totalRowsAfterFiltering = userPackageListDto.Count();
-                if (totalRowsAfterFiltering> 0 && start< totalRowsAfterFiltering)
+                var response = new
                 {
-                    userPackageListDto = userPackageListDto.Skip(start * length).Take(length).ToList();
-                }
-                return new ObjectResult(new
-                {
+                    draw = (start / length) + 1,
                     data = userPackageListDto,
-                    draw = (start/length) + 1,
                     recordsTotal = totalRows,
                     recordsFiltered = totalRowsAfterFiltering
-                });
+                };
+
+                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", GlobalMessages.RecordFound, response));
             }
             catch (Exception ex)
             {
-                await MailSender.SendErrorMessage(ex.Message);
-                return Ok(new ResponseDto
-                {
-                    Status = false,
-                    StatusCode = "500",
-                    Message = "Internal server error"
-                });
+                CreateLogger(ex);
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage));
             }
 
         }
@@ -1132,7 +801,6 @@ namespace ITValet.Controllers
             string? instituteName = "", 
             string? User = "")
         {
-
             try
             {
                 var listOfEducation = await _userEducationRepo.GetUserEducationList();
@@ -1148,62 +816,50 @@ namespace ITValet.Controllers
                 {
                     listOfEducation = listOfEducation.Where(x => x.UserId == StringCipher.DecryptId(User)).ToList();
                 }
-                if (sortColumn != "" && sortColumn != null)
-                {
-                    if (sortColumn != "0")
-                    {
-                        if (sortDirection == "asc")
-                        {
-                            listOfEducation = listOfEducation.OrderByDescending(x => x.GetType().GetProperty(sortColumn).GetValue(x)).ToList();
-                        }
-                        else
-                        {
-                            listOfEducation = listOfEducation.OrderBy(x => x.GetType().GetProperty(sortColumn).GetValue(x)).ToList();
-                        }
-                    }
-                }
-                int totalrows = listOfEducation.Count();
 
+                // Initialize BaseService
+                var baseService = new DatatableHelper<UserEducation>();
+
+                // Apply sorting
+                listOfEducation = baseService.ApplySorting(listOfEducation, sortColumn, sortDirection);
+
+                // Apply filtering
                 if (!string.IsNullOrEmpty(searchValue))
                 {
-                    listOfEducation = listOfEducation.Where(x => x.DegreeName.Trim().ToLower().Contains(searchValue.Trim().ToLower()) ||
-                                        x.InstituteName != null && x.InstituteName.Trim().ToLower().Contains(searchValue.Trim().ToLower())
-                                        ).ToList();
+                    listOfEducation = baseService.ApplyFiltering(listOfEducation, x =>
+                        x.DegreeName.Trim().ToLower().Contains(searchValue.Trim().ToLower()) ||
+                        x.InstituteName != null && x.InstituteName.Trim().ToLower().Contains(searchValue.Trim().ToLower())
+                        ).ToList();
                 }
-                int totalrowsafterfilterinig = listOfEducation.Count();
-                if (totalrowsafterfilterinig > 0 && start < totalrowsafterfilterinig)
+
+                // Record counts
+                int totalRows = listOfEducation.Count();
+                int totalRowsAfterFiltering = totalRows;
+
+                // Apply pagination
+                if (totalRowsAfterFiltering > 0 && start < totalRowsAfterFiltering)
                 {
-                    listOfEducation = listOfEducation.Skip(start * length).Take(length).ToList();
+                    listOfEducation = baseService.ApplyPagination(listOfEducation, start, length);
                 }
-                var educationDto = listOfEducation.Select(educationList => new UserEducationDto
+
+                // Map data to DTOs
+                var educationDto = MappingHelper.MapUserEducationRecordsToDtos(listOfEducation);
+
+                var response = new
                 {
-                    Id = educationList.Id,
-                    UserEducationEncId = StringCipher.EncryptId(educationList.Id),
-                    DegreeName = educationList.DegreeName,
-                    InstituteName = educationList.DegreeName,
-                    StartDate = educationList.StartDate.ToString(),
-                    EndDate = educationList.EndDate.ToString(),
-                    UserId = educationList.UserId
-                }).ToList();
-                return new ObjectResult(new
-                {
-                    data = educationDto,
                     draw = (start / length) + 1,
-                    recordsTotal = totalrows,
-                    recordsFiltered = totalrowsafterfilterinig
-                });
+                    data = educationDto,
+                    recordsTotal = totalRows,
+                    recordsFiltered = totalRowsAfterFiltering
+                };
+
+                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", GlobalMessages.RecordFound, response));
             }
             catch (Exception ex)
             {
-                await MailSender.SendErrorMessage(ex.Message);
-                return Ok(new ResponseDto
-                {
-                    Status = false,
-                    StatusCode = "500",
-                    Message = "Internal server error"
-                });
+                CreateLogger(ex);
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage));
             }
-
         }
 
         [HttpGet("GetUserExperienceListAsync")]
@@ -1233,65 +889,51 @@ namespace ITValet.Controllers
                 {
                     listOfExperience = listOfExperience.Where(x => x.Organization.ToLower().Contains(Organization.ToLower())).ToList();
                 }
-                if (sortColumn != "" && sortColumn != null)
-                {
-                    if (sortColumn != "0")
-                    {
-                        if (sortDirection == "asc")
-                        {
-                            listOfExperience = listOfExperience.OrderByDescending(x => x.GetType().GetProperty(sortColumn).GetValue(x)).ToList();
-                        }
-                        else
-                        {
-                            listOfExperience = listOfExperience.OrderBy(x => x.GetType().GetProperty(sortColumn).GetValue(x)).ToList();
-                        }
-                    }
-                }
-                int totalrows = listOfExperience.Count();
 
+                // Initialize BaseService
+                var baseService = new DatatableHelper<UserExperience>();
+
+                // Apply sorting
+                listOfExperience = baseService.ApplySorting(listOfExperience, sortColumn, sortDirection);
+
+                // Apply filtering
                 if (!string.IsNullOrEmpty(searchValue))
                 {
-                    listOfExperience = listOfExperience.Where(x => x.Title.Trim().ToLower().Contains(searchValue.Trim().ToLower()) ||
-                                        x.Description != null && x.Description.Trim().ToLower().Contains(searchValue.Trim().ToLower()) ||
-                                        x.Organization != null && x.Organization.Trim().ToLower().Contains(searchValue.Trim().ToLower()) ||
-                                        x.Website != null && x.Website.Trim().ToLower().Contains(searchValue.Trim().ToLower())
-                                        ).ToList();
+                    listOfExperience = baseService.ApplyFiltering(listOfExperience, x =>
+                        x.Title.Trim().ToLower().Contains(searchValue.Trim().ToLower()) ||
+                        x.Description != null && x.Description.Trim().ToLower().Contains(searchValue.Trim().ToLower()) ||
+                        x.Organization != null && x.Organization.Trim().ToLower().Contains(searchValue.Trim().ToLower()) ||
+                        x.Website != null && x.Website.Trim().ToLower().Contains(searchValue.Trim().ToLower())
+                        ).ToList();
                 }
-                int totalrowsafterfilterinig = listOfExperience.Count();
-                if (totalrowsafterfilterinig > 0 && start < totalrowsafterfilterinig)
-                {
-                    listOfExperience = listOfExperience.Skip(start * length).Take(length).ToList();
-                }
-                var experienceDto = listOfExperience.Select(experienceList => new UserExperienceDto
-                {
-                    Id = experienceList.Id,
-                    UserExperienceEncId = StringCipher.EncryptId(experienceList.Id),
-                    Title = experienceList.Title,
-                    Description = experienceList.Description,
-                    ExperienceFrom = experienceList.ExperienceFrom.ToString(),
-                    ExperienceTo = experienceList.ExperienceTo.ToString(),
-                    Organization = experienceList.Organization,
-                    Website = experienceList.Website,
-                    UserId = experienceList.UserId
-                }).ToList();
 
-                return new ObjectResult(new
+                // Record counts
+                int totalRows = listOfExperience.Count();
+                int totalRowsAfterFiltering = totalRows;
+
+                // Apply pagination
+                if (totalRowsAfterFiltering > 0 && start < totalRowsAfterFiltering)
                 {
-                    data = experienceDto,
+                    listOfExperience = baseService.ApplyPagination(listOfExperience, start, length);
+                }
+
+                // Map data to DTOs
+                var experienceDto = MappingHelper.MapUserExperienceRecordsToDtos(listOfExperience);
+
+                var response = new
+                {
                     draw = (start / length) + 1,
-                    recordsTotal = totalrows,
-                    recordsFiltered = totalrowsafterfilterinig
-                });
+                    data = experienceDto,
+                    recordsTotal = totalRows,
+                    recordsFiltered = totalRowsAfterFiltering
+                };
+
+                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", GlobalMessages.RecordFound, response));
             }
             catch (Exception ex)
             {
-                await MailSender.SendErrorMessage(ex.Message);
-                return Ok(new ResponseDto
-                {
-                    Status = false,
-                    StatusCode = "500",
-                    Message = "Internal server error"
-                });
+                CreateLogger(ex);
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage));
             }
         }
 
@@ -1319,59 +961,48 @@ namespace ITValet.Controllers
                     listOfSocialProfile = listOfSocialProfile.Where(x => x.Link.ToLower().Contains(Link.ToLower())).ToList();
                 }
 
-                if (sortColumn != "" && sortColumn != null)
-                {
-                    if (sortColumn != "0")
-                    {
-                        if (sortDirection == "asc")
-                        {
-                            listOfSocialProfile = listOfSocialProfile.OrderByDescending(x => x.GetType().GetProperty(sortColumn).GetValue(x)).ToList();
-                        }
-                        else
-                        {
-                            listOfSocialProfile = listOfSocialProfile.OrderBy(x => x.GetType().GetProperty(sortColumn).GetValue(x)).ToList();
-                        }
-                    }
-                }
-                int totalrows = listOfSocialProfile.Count();
+                // Initialize BaseService
+                var baseService = new DatatableHelper<UserSocialProfile>();
 
+                // Apply sorting
+                listOfSocialProfile = baseService.ApplySorting(listOfSocialProfile, sortColumn, sortDirection);
+
+                // Apply filtering
                 if (!string.IsNullOrEmpty(searchValue))
                 {
-                    listOfSocialProfile = listOfSocialProfile.Where(x => x.Title.Trim().ToLower().Contains(searchValue.Trim().ToLower()) ||
-                                        x.Link != null && x.Link.Trim().ToLower().Contains(searchValue.Trim().ToLower())
-                                        ).ToList();
+                    listOfSocialProfile = baseService.ApplyFiltering(listOfSocialProfile, x =>
+                        x.Title.Trim().ToLower().Contains(searchValue.Trim().ToLower()) ||
+                        x.Link != null && x.Link.Trim().ToLower().Contains(searchValue.Trim().ToLower())
+                        ).ToList();
                 }
-                int totalrowsafterfilterinig = listOfSocialProfile.Count();
-                if (totalrowsafterfilterinig > 0 && start < totalrowsafterfilterinig)
-                {
-                    listOfSocialProfile = listOfSocialProfile.Skip(start * length).Take(length).ToList();
-                }
-                var socialProfileDto = listOfSocialProfile.Select(socialProfileList => new UserSocialProfileDto
-                {
-                    Id = socialProfileList.Id,
-                    UserSocialProfileEncId = StringCipher.EncryptId(socialProfileList.Id),
-                    Title = socialProfileList.Title,
-                    Link = socialProfileList.Link,
-                    UserId = socialProfileList.UserId
-                }).ToList();
 
-                return new ObjectResult(new
+                // Record counts
+                int totalRows = listOfSocialProfile.Count();
+                int totalRowsAfterFiltering = totalRows;
+
+                // Apply pagination
+                if (totalRowsAfterFiltering > 0 && start < totalRowsAfterFiltering)
                 {
-                    data = socialProfileDto,
+                    listOfSocialProfile = baseService.ApplyPagination(listOfSocialProfile, start, length);
+                }
+
+                // Map data to DTOs
+                var socialProfileDto = MappingHelper.MapUserSocialProfileRecordsToDtos(listOfSocialProfile);
+                
+                var response = new
+                {
                     draw = (start / length) + 1,
-                    recordsTotal = totalrows,
-                    recordsFiltered = totalrowsafterfilterinig
-                });
+                    data = socialProfileDto,
+                    recordsTotal = totalRows,
+                    recordsFiltered = totalRowsAfterFiltering
+                };
+
+                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", GlobalMessages.RecordFound, response));
             }
             catch (Exception ex)
             {
-                await MailSender.SendErrorMessage(ex.Message);
-                return Ok(new ResponseDto
-                {
-                    Status = false,
-                    StatusCode = "500",
-                    Message = "Internal server error"
-                });
+                CreateLogger(ex);
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage));
             }
         }
 
@@ -1393,58 +1024,47 @@ namespace ITValet.Controllers
                     listOfSkill = listOfSkill.Where(x => x.SkillName.ToLower().Contains(SkillName.ToLower())).ToList();
                 }
 
-                if (sortColumn != "" && sortColumn != null)
-                {
-                    if (sortColumn != "0")
-                    {
-                        if (sortDirection == "asc")
-                        {
-                            listOfSkill = listOfSkill.OrderByDescending(x => x.GetType().GetProperty(sortColumn).GetValue(x)).ToList();
-                        }
-                        else
-                        {
-                            listOfSkill = listOfSkill.OrderBy(x => x.GetType().GetProperty(sortColumn).GetValue(x)).ToList();
-                        }
-                    }
-                }
-                int totalrows = listOfSkill.Count();
+                // Initialize BaseService
+                var baseService = new DatatableHelper<UserSkill>();
 
+                // Apply sorting
+                listOfSkill = baseService.ApplySorting(listOfSkill, sortColumn, sortDirection);
+
+                // Apply filtering
                 if (!string.IsNullOrEmpty(searchValue))
                 {
-                    listOfSkill = listOfSkill.Where(x => x.SkillName.Trim().ToLower().Contains(searchValue.Trim().ToLower())
-                                        ).ToList();
-                }
-                int totalrowsafterfilterinig = listOfSkill.Count();
-                if (totalrowsafterfilterinig > 0 && start < totalrowsafterfilterinig)
-                {
-                    listOfSkill = listOfSkill.Skip(start * length).Take(length).ToList();
+                    listOfSkill = baseService.ApplyFiltering(listOfSkill, x =>
+                        x.SkillName.Trim().ToLower().Contains(searchValue.Trim().ToLower())).ToList();
                 }
 
-                var userSkillDto = listOfSkill.Select(skillList => new UserSkillDto
-                {
-                    Id = skillList.Id,
-                    UserSkillEncId = StringCipher.EncryptId(skillList.Id),
-                    SkillName = skillList.SkillName,
-                    UserId = skillList.UserId
-                }).ToList();
 
-                return new ObjectResult(new
+                // Record counts
+                int totalRows = listOfSkill.Count();
+                int totalRowsAfterFiltering = totalRows;
+
+                // Apply pagination
+                if (totalRowsAfterFiltering > 0 && start < totalRowsAfterFiltering)
                 {
-                    data = userSkillDto,
+                    listOfSkill = baseService.ApplyPagination(listOfSkill, start, length);
+                }
+
+                // Map data to DTOs
+                var userSkillDto = MappingHelper.MapUserSkillRecordsToDtos(listOfSkill);
+
+                var response = new
+                {
                     draw = (start / length) + 1,
-                    recordsTotal = totalrows,
-                    recordsFiltered = totalrowsafterfilterinig
-                });
+                    data = userSkillDto,
+                    recordsTotal = totalRows,
+                    recordsFiltered = totalRowsAfterFiltering
+                };
+
+                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", GlobalMessages.RecordFound, response));
             }
             catch (Exception ex)
             {
-                await MailSender.SendErrorMessage(ex.Message);
-                return Ok(new ResponseDto
-                {
-                    Status = false,
-                    StatusCode = "500",
-                    Message = "Internal server error"
-                });
+                CreateLogger(ex);
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage));
             }
         }
 
@@ -1465,59 +1085,64 @@ namespace ITValet.Controllers
                 {
                     listOfTag = listOfTag.Where(x => x.TagName.ToLower().Contains(TagName.ToLower())).ToList();
                 }
-                if (sortColumn != "" && sortColumn != null)
-                {
-                    if (sortColumn != "0")
-                    {
-                        if (sortDirection == "asc")
-                        {
-                            listOfTag = listOfTag.OrderByDescending(x => x.GetType().GetProperty(sortColumn).GetValue(x)).ToList();
-                        }
-                        else
-                        {
-                            listOfTag = listOfTag.OrderBy(x => x.GetType().GetProperty(sortColumn).GetValue(x)).ToList();
-                        }
-                    }
-                }
-                int totalrows = listOfTag.Count();
 
+                // Initialize BaseService
+                var baseService = new DatatableHelper<UserTag>();
+
+                // Apply sorting
+                listOfTag = baseService.ApplySorting(listOfTag, sortColumn, sortDirection);
+
+                // Apply filtering
                 if (!string.IsNullOrEmpty(searchValue))
                 {
-                    listOfTag = listOfTag.Where(x => x.TagName.Trim().ToLower().Contains(searchValue.Trim().ToLower())
-                                        ).ToList();
+                    listOfTag = baseService.ApplyFiltering(listOfTag, x =>
+                        x.TagName.Trim().ToLower().Contains(searchValue.Trim().ToLower())).ToList();
                 }
-                int totalrowsafterfilterinig = listOfTag.Count();
-                if (totalrowsafterfilterinig > 0 && start < totalrowsafterfilterinig)
-                {
-                    listOfTag = listOfTag.Skip(start * length).Take(length).ToList();
-                }
-                var tagListDto = listOfTag.Select(userTagList => new UserTagDto
-                {
-                    Id = userTagList.Id,
-                    UserTagEncId = StringCipher.EncryptId(userTagList.Id),
-                    TagName = userTagList.TagName,
-                    UserId = userTagList.UserId
-                }).ToList();
 
-                return new ObjectResult(new
+                // Record counts
+                int totalRows = listOfTag.Count();
+                int totalRowsAfterFiltering = totalRows;
+
+                // Apply pagination
+                if (totalRowsAfterFiltering > 0 && start < totalRowsAfterFiltering)
                 {
-                    data = tagListDto,
+                    listOfTag = baseService.ApplyPagination(listOfTag, start, length);
+                }
+
+                // Map data to DTOs
+                var orderDtos = MappingHelper.MapUserTagRecordsToDtos(listOfTag);
+
+                var response = new
+                {
                     draw = (start / length) + 1,
-                    recordsTotal = totalrows,
-                    recordsFiltered = totalrowsafterfilterinig
-                });
+                    data = orderDtos,
+                    recordsTotal = totalRows,
+                    recordsFiltered = totalRowsAfterFiltering
+                };
+
+                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", GlobalMessages.RecordFound, response));
             }
             catch (Exception ex)
             {
-                await MailSender.SendErrorMessage(ex.Message);
-                return Ok(new ResponseDto
-                {
-                    Status = false,
-                    StatusCode = "500",
-                    Message = "Internal server error"
-                });
+                CreateLogger(ex);
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage));
             }
         }
 
+
+
+        #region Helpers
+        private int DecryptionId(string userId)
+        {
+            var validEncrypted = GeneralPurpose.ConversionEncryptedId(userId);
+            return StringCipher.DecryptId(validEncrypted);
+        }
+
+        private async void CreateLogger(Exception ex)
+        {
+            await MailSender.SendErrorMessage($"URL: {_projectVariables.BaseUrl}<br/> Exception Message:  {ex.Message} <br/> Stack Trace: {ex.StackTrace}");
+        }
+        #endregion Helpers
     }
+
 }
