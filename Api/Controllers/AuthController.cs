@@ -8,8 +8,6 @@ using ITValet.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Options;
-using Stripe;
-using System.Diagnostics.Eventing.Reader;
 
 namespace ITValet.Controllers
 {

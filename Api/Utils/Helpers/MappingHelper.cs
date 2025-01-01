@@ -40,6 +40,7 @@ namespace ITValet.Utils.Helpers
 
             return orderDtos;
         }
+        
         public static List<RequestServicesDto> MapRequestServiceToDtos(IEnumerable<RequestService> requestServices, UserClaims? getUserFromToken)
         {
             List<RequestServicesDto> requestServicesDtos = requestServices.Select(rs =>
@@ -72,27 +73,19 @@ namespace ITValet.Utils.Helpers
             return requestServicesDtos;
         }
 
-        public static async Task<List<UserPackageListDto>> MapUserPackageToDtos(IEnumerable<UserPackage> userPackages, IUserRepo _userRepo)
+        public static UserPackageListDto MapUserPackageToDtos(UserPackage packageObj)
         {
-            var userPackageDtos = await Task.WhenAll(userPackages.Select(async userPackage =>
+            return new UserPackageListDto
             {
-                var customer = await _userRepo.GetUserById((int)userPackage.CustomerId!);
-                var customerName = customer != null ? $"{customer.FirstName} {customer.LastName}" : null;
-
-                return new UserPackageListDto
-                {
-                    Id = userPackage.Id,
-                    PackageName = userPackage.PackageName,
-                    PackageType = userPackage.PackageType,
-                    TotalSessions = userPackage.TotalSessions,
-                    RemainingSessions = userPackage.RemainingSessions,
-                    StartDateTime = userPackage.StartDateTime,
-                    EndDateTime = userPackage.EndDateTime,
-                    CustomerId = userPackage.CustomerId,
-                    Customer = customerName
-                };
-            }));
-            return userPackageDtos.ToList();
+                Id = packageObj.Id,
+                PackageName = packageObj.PackageName,
+                PackageType = packageObj.PackageType,
+                TotalSessions = packageObj.TotalSessions,
+                RemainingSessions = packageObj.RemainingSessions,
+                StartDateTime = packageObj.StartDateTime,
+                EndDateTime = packageObj.EndDateTime,
+                CustomerId = packageObj.CustomerId,
+            };
         }
 
         public static List<OrderDtoList> MapOrders_ByPackageId_ToDtos(IEnumerable<Order> orders)

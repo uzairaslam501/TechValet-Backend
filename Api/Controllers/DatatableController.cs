@@ -194,13 +194,19 @@ namespace ITValet.Controllers
                     userPackageList = baseService.ApplyPagination(userPackageList, start, length);
                 }
 
-                // Assume _userRepo is injected via DI
-                var userPackageDtos = await MappingHelper.MapUserPackageToDtos(userPackageList, _userRepo);
+                var dtoList = new List<UserPackageListDto>();
+                foreach (var userPackage in userPackageList) {
+                    var customer = await _userRepo.GetUserById((int)userPackage.CustomerId!);
+                    var customerName = customer != null ? $"{customer.FirstName} {customer.LastName}" : null;
+                    var userPackageDtos = MappingHelper.MapUserPackageToDtos(userPackage);
+                    userPackageDtos.Customer = customerName;
+                    dtoList.Add(userPackageDtos);
+                };
 
                 var response = new
                 {
                     draw = (start / length) + 1,
-                    data = userPackageDtos,
+                    data = dtoList,
                     recordsTotal = totalRows,
                     recordsFiltered = totalRowsAfterFiltering
                 };

@@ -1635,18 +1635,15 @@ namespace ITValet.Controllers
         }
 
         #region CalenderEvent 
-        [HttpGet("GetOrderEventsByUserId")]
-        public async Task<IActionResult> GetOrderEventsByUserId (string Id)
+        [HttpGet("GetOrderEventsByUserId/{userId}")]
+        public async Task<IActionResult> GetOrderEventsByUserId (string userId)
         {
-            int userId = Convert.ToInt32(Id);
+            var decrypt = DecryptionId(userId);
             // Determine whether the user is a Valet or a Customer.
-            var userObj = await userRepo.GetUserById(userId);
-            var orderEvents = await orderRepo.GetOrderEventRecord(userId, userObj.Role);
-            if(orderEvents.Count > 0)
-            {
-                return Ok(new ResponseDto { Status = true, StatusCode = "200", Data = orderEvents });
-            }
-            return Ok(new ResponseDto { Status = false, StatusCode = "400", Message = "Events Not found"});
+            var userObj = await userRepo.GetUserById(decrypt);
+            var orderEvents = await orderRepo.GetOrderEventRecord(decrypt, userObj?.Role);
+            
+            return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "", orderEvents));            
         }
 
         [HttpGet("GetOrderEventsOfValet")]
