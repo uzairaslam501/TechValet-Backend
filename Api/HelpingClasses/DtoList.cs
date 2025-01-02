@@ -35,6 +35,22 @@ namespace ITValet.HelpingClasses
         public string? SignUpOption { get; set; }
     }
 
+    public class RegisterUserDto
+    {
+        public string? Firstname { get; set; }
+        public string? Lastname { get; set; }
+        public string? Username { get; set; }
+        public string? Email { get; set; }
+        public string? Password { get; set; }
+        public string? ConfirmPassword { get; set; }
+        public string? Role { get; set; }
+        public string? State { get; set; }
+        public string? City { get; set; }
+        public string? PostalCode { get; set; }
+        public string? Country { get; set; }
+        public string? Timezone { get; set; }
+    }
+
     public class PostUpdateUserDto
     {
         public int? Id { get; set; }
@@ -254,9 +270,6 @@ namespace ITValet.HelpingClasses
         public bool? Status { get; set; }
         public string? StatusCode { get; set; }
         public string? Message { get; set; }
-        public string? OtherMessage1 { get; set; }
-        public string? OtherMessage2 { get; set; }
-        public string? OtherMessage3 { get; set; }
     }
 
     public class ResponseDtos

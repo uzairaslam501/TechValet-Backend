@@ -82,57 +82,75 @@ namespace ITValet.Controllers
         }
 
         #region Registeration
-        [HttpPost("UserRegisteration")]
-        public async Task<ActionResult> UserRegisteration(PostAddUserDto user)
+        [HttpPost("Register")]
+        public async Task<ActionResult> Register(RegisterUserDto user)
         {
-            var obj = new User();
+            // Validate email
+            if (!await userRepo.ValidateEmail(user.Email!))
+                return Conflict(GlobalMessages.DuplicateEmail);
 
-            if (!await userRepo.ValidateEmail(user.Email))
+            // Validate username
+            if (!await userRepo.ValidateUsername(user.Username!))
+                return Conflict(GlobalMessages.DuplicateUsername);
+
+            if (!MatchPassword(user.Password!, user.ConfirmPassword!))
+                return BadRequest("Password and Confirm Password must be same.");
+
+            // Map user details
+            var obj = new User();
+            MapUser(user, obj);
+            SetRoles(user, obj);
+
+            // Add user
+            if (!await userRepo.AddUser(obj))
+                return BadRequest(GlobalMessages.SystemFailureMessage);
+
+            // Send verification email
+            if (obj.Role == (int)EnumRoles.Customer || obj.Role == (int)EnumRoles.Valet)
+                await MailSender.SendEmailForITValetAdminVerfication(obj.Email!, obj.UserName!, user.Role!);
+
+            return Ok(GeneralPurpose.GenerateResponseCode(true, "200", GlobalMessages.SuccessMessage, obj));
+        }
+
+        private bool MatchPassword(string password, string confirmPassword)
+        {
+            return password == confirmPassword;
+        }
+
+        private void MapUser(RegisterUserDto user, User obj)
+        {
+            obj = new User
             {
-                return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = GlobalMessages.DuplicateEmail });
-            }
-            obj.FirstName = user.FirstName;
-            obj.LastName = user.LastName;
-            obj.UserName = user.UserName;
-            obj.Contact = user.Contact;
-            obj.Email = user.Email;
-            obj.Password = StringCipher.Encrypt(user.Password);
-            obj.BirthDate = Convert.ToDateTime(user.BirthDate);
-            obj.Country = user.Country;
-            obj.State = user.Status;
-            obj.City = user.City;
-            obj.ZipCode = user.ZipCode;
-            obj.Timezone = user.Timezone;
-            obj.Availability = Convert.ToInt32(user.Availability);
-            obj.Status = Convert.ToInt32(user.Status);
-            obj.Gender = user.Gender;
-            obj.StripeId = user.StripeId;
-            obj.IsActive = 1;
-            obj.CreatedAt = GeneralPurpose.DateTimeNow();
-            if (user.SignUpOption == "Customer")
+                FirstName = user.Firstname,
+                LastName = user.Lastname,
+                UserName = user.Username,
+                Email = user.Email,
+                Password = StringCipher.Encrypt(user.Password!),
+                Country = user.Country,
+                State = user.State,
+                City = user.City,
+                ZipCode = user.PostalCode,
+                Timezone = user.Timezone,
+                IsActive = 1,
+                CreatedAt = GeneralPurpose.DateTimeNow()
+            };
+        }
+
+        private void SetRoles(RegisterUserDto user, User obj)
+        {
+            
+            if (!Enum.TryParse<EnumRoles>(user.Role, true, out var role))
+                throw new ArgumentException("Invalid or missing role");
+
+            obj.Role = (int)role;
+
+            if (role == EnumRoles.Valet)
             {
-                obj.Role = 3;
-                obj.IsActive = 2;
-            }
-            if (user.SignUpOption == "ITValet")
-            {
-                obj.Role = 4;
-                obj.PricePerHour = Convert.ToDecimal(24.99);
-                obj.IsActive = 2;
+                obj.PricePerHour = 24.99m;
                 obj.HST = 13;
             }
-            bool chkUserAdded = await userRepo.AddUser(obj);
-            if (chkUserAdded == false)
-            {
-                return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
-            }
-            if (obj.Role == 4 || obj.Role == 3)
-            {
-                bool chkMailSent = await MailSender.SendEmailForITValetAdminVerfication(obj.Email, obj.UserName, (int)obj.Role);
-            }
-
-            return Ok(new ResponseDto() { Status = true, StatusCode = "200", Message = GlobalMessages.SuccessMessage });
         }
+
         #endregion
 
         #region Manage Profile

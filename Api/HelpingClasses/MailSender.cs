@@ -109,22 +109,14 @@ namespace ITValet.HelpingClasses
             }
         }
 
-        public static async Task<bool> SendEmailForITValetAdminVerfication(string email, string username, int role)
+        public static async Task<bool> SendEmailForITValetAdminVerfication(string email, string username, string role)
         {
             try
             {
-
-                string Role = "";
-                if (role == 3)
-                {
-                    Role = "Customer";
-                }
-                else
-                {
-                    Role = "IT-Valet";
-                }
                 string subject = "IT-Valet : Sign Up Verification";
-                string description = "We have successfully forwarded your request to our administrator for review. <br> Once your " + Role + " account has been approved, you will receive a verification email to finalize the process.";
+                string description = "We have successfully forwarded your request to our administrator for review. " +
+                    "<br> Once your " + role + " account has been approved, you will receive a verification " +
+                    "email to finalize the process.";
 
                 string url = "";
                 string buttonText = "";
