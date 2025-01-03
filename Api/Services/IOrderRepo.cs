@@ -35,8 +35,11 @@ namespace ITValet.Services
         Task<List<CompletedOrderRecord>> GetCompletedOrderRecord(int valetId);
         Task<List<decimal?>> CalculateStripeCompletedOrder(int valetId);
         Task<List<decimal?>> GetStripeEarnings(int valetId);
-        Task<List<OrderEventsViewModal>> GetOrderEventRecord(int id, int? Role);
         Task<List<OrderEventsViewModal>> GetOrderEventRecordByOrderStatus(int id, int? role, bool InProgress, bool cancelled, bool completed);
+
+        #region refactor
+        Task<ResponseDto> GetOrderEventRecord(string id, string? role = "", string? filterDate = "");
+        #endregion
     }
 
     public class OrderRepo : IOrderRepo
@@ -405,56 +408,6 @@ namespace ITValet.Services
                 return false;
             }
         }
-        
-        public async Task<List<OrderEventsViewModal>> GetOrderEventRecord(int id, int? Role)
-        {
-            try
-            {
-                List<OrderEventsViewModal> orderEvents = new List<OrderEventsViewModal>();
-                List<Order> orders = null;
-
-                if (Role == 3)
-                {
-                    orders = await _context.Order.Where(x => x.CustomerId == id &&  x.IsActive == (int)EnumActiveStatus.Active &&
-                         (x.OrderStatus == 0 || x.OrderStatus == 1 ||
-                        x.OrderStatus == 2)).ToListAsync();
-                }
-                else if (Role == 4)
-                {
-                    orders = await _context.Order.Where(x => x.ValetId == id && x.IsActive == (int)EnumActiveStatus.Active &&
-                        (x.OrderStatus == 0 || x.OrderStatus == 1 ||
-                        x.OrderStatus == 2)).ToListAsync();
-                }
-                else if (Role == 5)
-                {
-                    orders = await _context.Order.Where(x => x.ValetId == id &&  x.IsActive == (int)EnumActiveStatus.Active &&
-                        (x.OrderStatus == 0 || x.OrderStatus == 1 || x.OrderStatus == 4)).ToListAsync();
-                }
-
-                if (orders != null && orders.Any())
-                {
-                    foreach (var order in orders)
-                    {
-                        OrderEventsViewModal obj = new OrderEventsViewModal();
-                        obj.OrderEncId = StringCipher.EncryptId(order.Id);
-                        obj.OrderTitle = order.OrderTitle;
-                        obj.OrderDescription = order.OrderDescription;
-                        obj.OrderStatus = order.OrderStatus;
-                        obj.StartDateTime = order.StartDateTime;
-                        obj.OrderStatusDescription = await GetOrderStatus(obj.OrderStatus);
-                        obj.EndDateTime = order.EndDateTime;
-                        obj.OrderDetailUrl = projectVariables.BaseUrl + "User/OrderDetail?orderId=" + obj.OrderEncId;
-                        orderEvents.Add(obj);
-                    }
-                }
-
-                return orderEvents;
-            }
-            catch (Exception ex)
-            {
-                return null;
-            }
-        }
 
         private async Task<string?> GetOrderStatus(int? orderStatus)
         {
@@ -734,5 +687,111 @@ namespace ITValet.Services
                 return new List<decimal?>();
             }
         }
+
+        #region Refactor
+        public async Task<ResponseDto> GetOrderEventRecord(string userId, string? role = "", string? filterDate = "")
+        {
+            try
+            {
+                var decrypt = DecryptionId(userId);
+                var currentDate = DateTime.Now.Date;
+                List<Order> orders = await FetchOrdersBasedOnRole(decrypt, role, filterDate);
+                var emptyList = new List<OrderEventsViewModal>();
+
+                if (orders == null || !orders.Any())
+                    return GeneralPurpose.GenerateResponseCode(true, "200", GlobalMessages.RecordFound, emptyList);
+
+                var orderEvents = await MapOrdersToEventViewModels(orders);
+                return GeneralPurpose.GenerateResponseCode(true, "200", GlobalMessages.RecordFound, orderEvents);
+
+            }
+            catch (Exception ex)
+            {
+                // Log the exception if necessary
+                return null;
+            }
+        }
+
+        private async Task<List<Order>> FetchOrdersBasedOnRole(int id, string? role, string? currentDate = "")
+        {
+            if (!Enum.TryParse<EnumRoles>(role, true, out var parsedRole))
+                throw new ArgumentException("Invalid or missing role", nameof(role));
+
+            int userRole = (int)parsedRole;
+
+
+            IQueryable<Order> query = _context.Order.Where(x => x.IsActive == (int)EnumActiveStatus.Active);
+
+            switch (userRole)
+            {
+                case 3:
+                    query = query.Where(x => x.CustomerId == id &&
+                                             (x.OrderStatus == 0 || x.OrderStatus == 1 || x.OrderStatus == 2));
+                    break;
+                case 4:
+                    if (!string.IsNullOrEmpty(currentDate))
+                    {
+                        query = query.Where(x => x.ValetId == id &&
+                                             x.OrderStatus == 0);
+                    }
+                    else
+                    {
+                        query = query.Where(x => x.ValetId == id &&
+                                             (x.OrderStatus == 0 || x.OrderStatus == 1 || x.OrderStatus == 2));
+                    }
+                    break;
+                case 5:
+                    query = query.Where(x => x.ValetId == id &&
+                                             (x.OrderStatus == 0 || x.OrderStatus == 1 || x.OrderStatus == 4));
+                    break;
+                default:
+                    return null;
+            }
+
+
+            if (!string.IsNullOrEmpty(currentDate))
+            {
+                var date = Convert.ToDateTime(currentDate).Date;
+                if (userRole == 4) // Special condition for valet orders
+                    query = query.Where(x => x.StartDateTime.Value.Date >= date);
+            }
+
+            return await query.ToListAsync();
+        }
+
+        private async Task<List<OrderEventsViewModal>> MapOrdersToEventViewModels(List<Order> orders)
+        {
+            var orderEvents = new List<OrderEventsViewModal>();
+
+            foreach (var order in orders)
+            {
+                var eventViewModel = new OrderEventsViewModal
+                {
+                    OrderEncId = StringCipher.EncryptId(order.Id),
+                    OrderTitle = order.OrderTitle,
+                    OrderDescription = order.OrderDescription,
+                    OrderStatus = order.OrderStatus,
+                    StartDateTime = order.StartDateTime,
+                    EndDateTime = order.EndDateTime,
+                    OrderDetailUrl = $"{projectVariables.BaseUrl}User/OrderDetail?orderId={StringCipher.EncryptId(order.Id)}"
+                };
+
+                eventViewModel.OrderStatusDescription = await GetOrderStatus(eventViewModel.OrderStatus);
+                orderEvents.Add(eventViewModel);
+            }
+
+            return orderEvents;
+        }
+
+        #endregion
+
+        #region helpers
+        private int DecryptionId(string userId)
+        {
+            userId = GeneralPurpose.ConversionEncryptedId(userId);
+            var decrypt = StringCipher.DecryptId(userId);
+            return decrypt;
+        }
+        #endregion
     }
 }

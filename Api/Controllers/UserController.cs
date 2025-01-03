@@ -1635,27 +1635,16 @@ namespace ITValet.Controllers
         }
 
         #region CalenderEvent 
-        [HttpGet("GetOrderEventsByUserId/{userId}")]
-        public async Task<IActionResult> GetOrderEventsByUserId (string userId)
+        [HttpGet("order-events/{valetId}")]
+        public async Task<IActionResult> GetOrderEvents(string valetId, string? role, string? filterDate = "")
         {
-            var decrypt = DecryptionId(userId);
-            // Determine whether the user is a Valet or a Customer.
-            var userObj = await userRepo.GetUserById(decrypt);
-            var orderEvents = await orderRepo.GetOrderEventRecord(decrypt, userObj?.Role);
+            var decrypt = DecryptionId(valetId);
+            var orderEvents = await orderRepo.GetOrderEventRecord(valetId, role, filterDate);
+            if (orderEvents.Status == true)
+                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "", orderEvents));
             
-            return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "", orderEvents));            
-        }
-
-        [HttpGet("GetOrderEventsOfValet")]
-        public async Task<IActionResult> GetOrderEventsOfValet(string Id)
-        {
-            int ValetId = StringCipher.DecryptId(Id);
-            var orderEvents = await orderRepo.GetOrderEventRecordForValet(ValetId);
-            if (orderEvents.Count > 0)
-            {
-                return Ok(new ResponseDto { Status = true, StatusCode = "200", Data = orderEvents });
-            }
-            return Ok(new ResponseDto { Status = false, StatusCode = "400", Message = "Events Not found" });
+            return BadRequest(GeneralPurpose.GenerateResponseCode(false, "404", "", GlobalMessages.RecordNotFound));
+            
         }
 
         [HttpGet("GetBookedAvailabilitySlot")]

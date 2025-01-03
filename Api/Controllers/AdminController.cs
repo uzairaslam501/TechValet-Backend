@@ -857,20 +857,6 @@ namespace ITValet.Controllers
         }
 
         [CustomAuthorize(new EnumRoles[] { EnumRoles.Admin })]
-        [HttpGet("GetOrderEventsByUserId")]
-        public async Task<IActionResult> GetOrderEventsByUserId(string Id)
-        {
-            int userId = StringCipher.DecryptId(Id);
-            var userObj = await userRepo.GetUserById(userId);
-            var orderEventsRecord = await _orderService.GetOrderEventRecord(userId, userObj.Role);
-            if (orderEventsRecord.Count() > 0)
-            {
-                return Ok(new ResponseDto { Status = true, StatusCode = "200", Data = orderEventsRecord });
-            }
-            return Ok(new ResponseDto { Status = false, StatusCode = "400", Message = "Record Not Found" });
-        }
-
-        [CustomAuthorize(new EnumRoles[] { EnumRoles.Admin })]
         [HttpGet("GetActiveUsersNameForSearching")]
         public async Task<IActionResult> GetActiveUsersNameForSearching()
         {
@@ -895,12 +881,13 @@ namespace ITValet.Controllers
             }
             return Ok(new ResponseDto { Status = false, StatusCode = "400", Message = "Record Not Found" });
         }
+        
         [HttpGet]
         [Route("GetTimeZones")]
-        public async Task<IActionResult> GetTimeZones()
+        public IActionResult GetTimeZones()
         {
             var getKeyPairValues = DateTimeHelper.TimeZoneFriendlyNames;
-            return Ok(new ResponseDto { Status = true, StatusCode = "200", Data = getKeyPairValues });
+            return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Found", getKeyPairValues));
         }
     }
 }

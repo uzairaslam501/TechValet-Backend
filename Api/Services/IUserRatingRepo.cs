@@ -186,9 +186,7 @@ namespace ITValet.Services
 
                 // If no ratings exist, return early to avoid further processing
                 if (!ratingList.Any())
-                {
                     throw new Exception();
-                }
 
                 int? sumOfRatingStars = ratingList.Sum(x => x.Stars);
                 double averageRating = (double)sumOfRatingStars / ratingList.Count;
