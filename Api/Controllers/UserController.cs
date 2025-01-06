@@ -1780,6 +1780,7 @@ namespace ITValet.Controllers
                 StripeId = user.StripeId,
                 Description = user.Description,
                 Status = user.Status.ToString(),
+                PricePerHour = user.PricePerHour.ToString(),
                 Availability = user.Availability.ToString(),
                 UserEncId = StringCipher.EncryptId(user.Id),
                 Role = Enum.GetName(typeof(EnumRoles), user.Role!),
