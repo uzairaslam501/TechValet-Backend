@@ -1,6 +1,5 @@
 ﻿using ITValet.HelpingClasses;
 using ITValet.Models;
-using Microsoft.Extensions.Options;
 using Stripe;
 using System.Net;
 
@@ -8,27 +7,6 @@ namespace ITValet.Utils.Helpers
 {
     public static class StripeHelper
     {
-        public static Order InitializeOrder(CheckOutDTO checkOutData)
-        {
-            return new Order
-            {
-                OrderTitle = checkOutData.PaymentTitle,
-                OrderDescription = checkOutData.PaymentDescription,
-                StartDateTime = DateTime.Parse(checkOutData.FromDateTime),
-                EndDateTime = DateTime.Parse(checkOutData.ToDateTime),
-                ValetId = int.Parse(checkOutData.ValetId),
-                CustomerId = int.Parse(checkOutData.customerId),
-                OfferId = checkOutData.OfferId,
-                PackageId = checkOutData.PackageId,
-                IsActive = 0,
-                OrderStatus = 0,
-                IsDelivered = 0,
-                OrderPrice = 0,
-                TotalAmountIncludedFee = 0,
-                CreatedAt = GeneralPurpose.DateTimeNow()
-            };
-        }
-
         public static UserPackage InitializePackage(PackageCOutRequest checkOut, out string packagePrice)
         {
             packagePrice = checkOut.SelectedPackage switch

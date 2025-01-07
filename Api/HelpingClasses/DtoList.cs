@@ -787,7 +787,7 @@ namespace ITValet.HelpingClasses
         public string? ToDateTime { set; get; }
         public string? PaymentTitle { set; get; }
         public string? PaymentDescription { set; get; }
-        public string? customerId { set; get; }
+        public string? CustomerId { set; get; }
         public string? ValetId { set; get; }
         public string? WorkingHours { set; get; }
         public string? TotalWorkCharges { set; get; }
@@ -1102,7 +1102,62 @@ namespace ITValet.HelpingClasses
         public string? UserId { get; set; }
     }
     #endregion
-    
+
+    public class StripeCheckoutPayment
+    {
+        public string? FromDateTime { set; get; }
+        public string? ToDateTime { set; get; }
+        public string? Title { set; get; }
+        public string? Description { set; get; }
+        public string? CustomerId { set; get; }
+        public string? ValetId { set; get; }
+        public string? WorkingHours { set; get; }
+        public string? TotalWorkCharges { set; get; }
+        public string? ActualOrderPrice { get; set; }
+        public string? PackagePaidBy { set; get; }
+        public string? PaymentId { set; get; }
+        public string? MessageId { set; get; }
+        public string? StripeEmail { set; get; }
+        public string? StripeId { set; get; }
+        public string? StripeToken { set; get; }
+        public string? OfferId { set; get; }
+    }
+
+    public class DirectOrderDTO
+    {
+        public string? CustomerId { get; set; }
+        public string? ValetId { get; set; }
+        public string? OfferId { get; set; }
+        public string? Title { get; set; }
+        public string? Description { get; set; }
+        public string? ActualOrderPrice { get; set; }
+        public string? TotalWorkCharges { get; set; }
+        public string? FromDateTime { get; set; }
+        public string? ToDateTime { get; set; }
+        public string? StripeEmail { set; get; }
+        public string? StripeId { set; get; }
+        public string? StripeToken { set; get; }
+        public string? WorkingHours { set; get; }
+    }
+
+    public class PackageOrderDTO
+    {
+        public string? CustomerId { get; set; }
+        public string? ValetId { get; set; }
+        public string? Title { get; set; }
+        public string? Description { get; set; }
+        public string? ActualOrderPrice { get; set; }
+        public string? TotalWorkCharges { get; set; }
+        public string? FromDateTime { get; set; }
+        public string? ToDateTime { get; set; }
+        public string? PackagePaidBy { get; set; }
+        public string? PackageId { get; set; }
+        public string? OfferId { get; set; }
+        public string? WorkingHours { set; get; }
+    }
+
+
+
     public class UserRatingListDto
     {
         [Column(TypeName = " nvarchar(1000)")]

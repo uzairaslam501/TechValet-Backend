@@ -54,7 +54,7 @@ namespace ITValet.Controllers
                     string duration = GeneralPurpose.CalculcateTimeDifference(checkoutDTO?.FromDateTime, checkoutDTO?.ToDateTime);
                     string startTo = checkoutDTO?.FromDateTime;
                     string endTo = checkoutDTO?.ToDateTime;
-                    string customerId = checkoutDTO?.customerId?.ToString() ?? "";
+                    string customerId = checkoutDTO?.CustomerId?.ToString() ?? "";
                     string valetId = checkoutDTO?.ValetId?.ToString() ?? "";
                     string offerId = checkoutDTO?.OfferId?.ToString() ?? "";
 
@@ -225,15 +225,62 @@ namespace ITValet.Controllers
             }
         }
 
-
         [HttpPost("CreateStripeCharge")]
-        public async Task<IActionResult> CreateStripeCharge(CheckOutDTO checkOutData)
+        public async Task<IActionResult> CreateStripePayment(DirectOrderDTO stripePayment)
         {
-            var order = StripeHelper.InitializeOrder(checkOutData);
+            var createStripeDto = new CheckOutDTO();
+            createStripeDto.ValetId = stripePayment?.ValetId;
+            createStripeDto.StripeId = stripePayment?.StripeId;
+            createStripeDto.CustomerId = stripePayment?.CustomerId;
+            createStripeDto.StripeEmail = stripePayment?.StripeEmail;
+            createStripeDto.StripeToken = stripePayment?.StripeToken;
+            createStripeDto.PaymentTitle = stripePayment?.Title;
+            createStripeDto.PaymentDescription = stripePayment?.Description;
+            createStripeDto.ActualOrderPrice = stripePayment?.ActualOrderPrice;
+            createStripeDto.TotalWorkCharges = stripePayment?.TotalWorkCharges;
+            createStripeDto.FromDateTime = stripePayment?.FromDateTime;
+            createStripeDto.ToDateTime = stripePayment?.ToDateTime;
+            createStripeDto.WorkingHours = stripePayment?.WorkingHours;
+            createStripeDto.OfferId = !string.IsNullOrEmpty(stripePayment?.OfferId) ? DecryptionId(stripePayment?.OfferId!) : null;
+
+            var response = await CreateStripeCharge(createStripeDto);
+            if(response?.StatusCode == "200")
+                return Ok(response);
+            
+            return BadRequest(response);
+        }
+
+        [HttpPost("CreateStripeChargeForPackage")]
+        public async Task<IActionResult> CreateStripeChargeForPackage(PackageOrderDTO stripePayment)
+        {
+            var createStripeDto = new CheckOutDTO();
+            createStripeDto.PaymentTitle = stripePayment?.Title;
+            createStripeDto.ToDateTime = stripePayment?.ToDateTime;
+            createStripeDto.FromDateTime = stripePayment?.FromDateTime;
+            createStripeDto.WorkingHours = stripePayment?.WorkingHours;
+            createStripeDto.PackagePaidBy = stripePayment?.PackagePaidBy;
+            createStripeDto.PaymentDescription = stripePayment?.Description;
+            createStripeDto.TotalWorkCharges = stripePayment?.TotalWorkCharges;
+            createStripeDto.ActualOrderPrice = stripePayment?.ActualOrderPrice;
+            createStripeDto.ValetId = DecryptionId(stripePayment?.ValetId!).ToString();
+            createStripeDto.CustomerId = DecryptionId(stripePayment?.CustomerId!).ToString();
+            createStripeDto.OfferId = !string.IsNullOrEmpty(stripePayment?.OfferId) ? DecryptionId(stripePayment?.OfferId!) : null;
+            createStripeDto.PackageId = !string.IsNullOrEmpty(stripePayment?.PackageId) ? Convert.ToInt32(stripePayment?.PackageId) : null;
+
+            var response = await CreateStripeCharge(createStripeDto);
+            if (response?.StatusCode == "200")
+                return Ok(response);
+
+            return BadRequest(response);
+        }
+
+        private async Task<ResponseDto> CreateStripeCharge(CheckOutDTO checkOutData)
+        {
+            var order = InitializeOrder(checkOutData);
             var orderId = await _orderRepo.GetOrderId(order);
-            var getLoggedInUser = await _userRepo.GetUserById(Convert.ToInt32(checkOutData.customerId));
+            var getLoggedInUser = await _userRepo.GetUserById((int)order.CustomerId!);
             if (orderId == -1)
-                return BadRequest(new ResponseDto() { StatusCode = "404", Message = GlobalMessages.SystemFailureMessage, Data = null, Status = false });
+                return GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.SystemFailureMessage, null);
 
             bool isOrderUpdated, isPackageUpdated = false;
 
@@ -247,28 +294,17 @@ namespace ITValet.Controllers
             {
                 isOrderUpdated = await UpdateOrder(checkOutData?.TotalWorkCharges!, checkOutData?.ActualOrderPrice!,
                     "", orderId);
-                isPackageUpdated = await UpdatePackage(checkOutData.PackageId, checkOutData?.WorkingHours!);
+                isPackageUpdated = await UpdatePackage(checkOutData!.PackageId, checkOutData?.WorkingHours!);
             }
 
             if (!isOrderUpdated)
-                return BadRequest(new ResponseDto()
-                {
-                    Status = false,
-                    StatusCode = "404",
-                    Message = GlobalMessages.SystemFailureMessage,
-                    Data = null,
-                });
+                return GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.SystemFailureMessage, null);
 
             if (checkOutData?.OfferId! != null)
                 await _offerDetailService.UpdateOfferStatus(orderId, checkOutData.OfferId);
 
-            return Ok(new ResponseDto()
-            {
-                Status = true,
-                StatusCode = "200",
-                Message = GlobalMessages.SuccessMessage,
-                Data = orderId,
-            });
+
+            return GeneralPurpose.GenerateResponseCode(true, "200", GlobalMessages.SuccessMessage, orderId);
         }
 
         [HttpPost("StripeCheckOutForPackages")]
@@ -530,6 +566,27 @@ namespace ITValet.Controllers
                 CreateLogger(ex);
                 return BadRequest(GeneralPurpose.GenerateResponseCode(true, "400", GlobalMessages.SystemFailureMessage)); ;
             }
+        }
+
+        private Order InitializeOrder(CheckOutDTO obj)
+        {
+            return new Order
+            {
+                OrderTitle = obj.PaymentTitle,
+                OrderDescription = obj.PaymentDescription,
+                StartDateTime = DateTime.Parse(obj.FromDateTime!),
+                EndDateTime = DateTime.Parse(obj.ToDateTime!),
+                ValetId = int.Parse(obj.ValetId!),
+                CustomerId = int.Parse(obj.CustomerId!),
+                OfferId = obj.OfferId,
+                PackageId = obj.PackageId,
+                IsActive = 0,
+                OrderStatus = 0,
+                IsDelivered = 0,
+                OrderPrice = 0,
+                TotalAmountIncludedFee = 0,
+                CreatedAt = GeneralPurpose.DateTimeNow()
+            };
         }
 
         private async Task<string> ProcessCharge(CheckOutDTO checkOutData, int orderId, bool isPaymentForPackage)

@@ -571,7 +571,7 @@ namespace ITValet.Controllers
                 var orderCK = new PayPalOrderCheckOutViewModel
                 {
                     ValetId = Convert.ToInt32(orderObj.ValetId),
-                    ClientId = Convert.ToInt32(orderObj.customerId),
+                    ClientId = Convert.ToInt32(orderObj.CustomerId),
                     OrderId = orderId,
                     PayByPackage = true
                 };
@@ -708,7 +708,7 @@ namespace ITValet.Controllers
                 StartDateTime = Convert.ToDateTime(order.FromDateTime),
                 EndDateTime = Convert.ToDateTime(order.ToDateTime),
                 ValetId = Convert.ToInt32(order.ValetId),
-                CustomerId = Convert.ToInt32(order.customerId),
+                CustomerId = Convert.ToInt32(order.CustomerId),
                 OfferId = order.OfferId,
                 PackageId = order.PackageId,
                 PackageBuyFrom = "PAYPAL",
