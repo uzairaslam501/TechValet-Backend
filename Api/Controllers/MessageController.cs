@@ -144,7 +144,7 @@ namespace ITValet.Controllers
                     {
                         DateTime orderStartTime = Convert.ToDateTime(postAddMessage.StartedDateTime);
                         DateTime orderEndTime = Convert.ToDateTime(postAddMessage.EndedDateTime);
-                        var getTotalHours = GeneralPurpose.CalculatePrice(orderStartTime, orderEndTime);
+                        var getTotalHours = GeneralPurpose.CalculatePrice(orderStartTime, orderEndTime, 0);
                         if (getLoggedInUser.Role != 3)
                         {
                             postAddMessage.CustomerId = postAddMessage.ReceiverId.ToString();
@@ -391,11 +391,12 @@ namespace ITValet.Controllers
         
         #region ForReact
         [HttpGet("GetReceiverStatuses/{userId}")]
-        public async Task<IActionResult> GetReceiverStatuss(string? userId)
+        public async Task<IActionResult> GetReceiverStatuss(string userId)
         {
             try
             {
-                var user = await userRepo.GetUserById(Convert.ToInt32(userId));
+                var decrypt = DecryptionId(userId);
+                var user = await userRepo.GetUserById(decrypt);
 
                 if (user == null)
                 {
@@ -480,9 +481,13 @@ namespace ITValet.Controllers
                     var fullName = $"{getLoggedInUser?.FirstName} {getLoggedInUser?.LastName}";
                     var profileImage = $"{projectVariables.BaseUrl}{getLoggedInUser?.ProfilePicture}";
                     var offer = new OfferDetail();
-                    
+
+                    var pricePerHour = (getLoggedInUser?.Role == 4 ? getLoggedInUser?.PricePerHour :
+                   (getOneUser?.Role == 4 ? getOneUser?.PricePerHour : 0));
+
+
                     if (!string.IsNullOrEmpty(postAddMessage.OfferTitle))
-                        offer = await CreateOffer(postAddMessage, message, getLoggedInUser!);
+                        offer = await CreateOffer(postAddMessage, message, getLoggedInUser!, (decimal)pricePerHour!);
                     
                     var model = await NotifyOffer(offer, message, getLoggedInUser!);
                     var data = new
@@ -621,14 +626,15 @@ namespace ITValet.Controllers
             );
         }
 
-        private async Task<OfferDetail> CreateOffer(PostAddMessage postAddMessage, Message message, User getLoggedInUser)
+        private async Task<OfferDetail> CreateOffer(PostAddMessage postAddMessage, Message message,
+            User getLoggedInUser,  decimal pricePerHour)
         {
             var orderStartTime = Convert.ToDateTime(postAddMessage.StartedDateTime);
             var orderEndTime = Convert.ToDateTime(postAddMessage.EndedDateTime);
-            var totalHours = GeneralPurpose.CalculatePrice(orderStartTime, orderEndTime);
+            var totalHours = GeneralPurpose.CalculatePrice(orderStartTime, orderEndTime, pricePerHour);
 
             postAddMessage.CustomerId = getLoggedInUser.Role != 3 ? postAddMessage.ReceiverId.ToString() : postAddMessage.SenderId.ToString();
-            postAddMessage.ValetId = postAddMessage.CustomerId;
+            postAddMessage.ValetId = postAddMessage.ValetId;
             postAddMessage.OfferPrice = totalHours.price.ToString();
             postAddMessage.TransactionFee = totalHours.fee.ToString();
 
@@ -695,14 +701,16 @@ namespace ITValet.Controllers
         }
 
 
-        [HttpGet("GetMessageSideBarLists")]
-        public async Task<IActionResult> GetMessageSideBarLists(string? loggedInUserId, string? Name = "", string? GetUserChatOnTop = "")
+        [HttpGet("GetMessageSideBarLists/{userId}")]
+        public async Task<IActionResult> GetMessageSideBarLists(string? userId, string? Name = "",
+            string? GetUserChatOnTop = "")
         {
             try
             {
-                if (!string.IsNullOrEmpty(loggedInUserId))
+                if (!string.IsNullOrEmpty(userId))
                 {
-                    var getLoggedInUser = await userRepo.GetUserById(Convert.ToInt32(loggedInUserId));
+                    var decrypt = DecryptionId(userId);
+                    var getLoggedInUser = await userRepo.GetUserById(decrypt);
                     var Sender = new Models.User();
                     var Receiver = new Models.User();
                     var getMessages = await messagesRepo.GetMessageByUserId(getLoggedInUser.Id);
@@ -751,7 +759,6 @@ namespace ITValet.Controllers
                     {
                         messagesList = messagesList.Where(a => a.Username.ToLower().Contains(Name.ToLower())).ToList();
                     }
-                    // messagesList = messagesList.OrderByDescending(x=> x.MessageTime).ToList();
 
                     messagesList = messagesList.OrderByDescending(msg => DateTime.Parse(msg.MessageTime)).ToList();
 
@@ -772,78 +779,112 @@ namespace ITValet.Controllers
             }
         }
 
-        [HttpGet("GetMessagesForUsers")]
-        public async Task<IActionResult> GetMessagesForUsers(string? loggedInUserId, string? userId)
+        [HttpGet("GetMessagesForUsers/{userId}")]
+        public async Task<IActionResult> GetMessagesForUsers(string? userId, string? messageUserId)
         {
             try
             {
-                if (string.IsNullOrEmpty(userId))
-                {
-                    return null;
-                }
-                var getLoggedInUser = await userRepo.GetUserById(Convert.ToInt32(loggedInUserId));
-                var getUser = await userRepo.GetUserById(Convert.ToInt32(userId));
-                if (loggedInUserId != null)
-                {
-                    var getMessages = await messagesRepo.GetMessageBySenderIdAndRecieverId(getLoggedInUser.Id, Convert.ToInt32(userId));
-                    List<ViewModelMessageChatBox> messagesList = new List<ViewModelMessageChatBox>();
-                    foreach (var message in getMessages)
-                    {
-                        var viewModelMessage = new ViewModelMessageChatBox
-                        {
-                            Id = message.Id.ToString(),
-                            MessageEncId = StringCipher.EncryptId(message.Id),
-                            MessageDescription = message.MessageDescription,
-                            IsRead = message.IsRead?.ToString(),
-                            FilePath = message.FilePath,
-                            MessageTime = GeneralPurpose.regionChanged(Convert.ToDateTime(message.CreatedAt), getLoggedInUser.Timezone),
-                            SenderId = message.SenderId.ToString(),
-                        };
-                        //order wprk
-                        if (message.OfferDetails != null)
-                        {
-                            viewModelMessage.OfferTitleId = message.OfferDetails.Id.ToString();
-                            viewModelMessage.OfferTitle = message.OfferDetails.OfferTitle;
-                            viewModelMessage.TransactionFee = message.OfferDetails.TransactionFee;
-                            viewModelMessage.OfferDescription = message.OfferDetails.OfferDescription;
-                            viewModelMessage.OfferPrice = message.OfferDetails.OfferPrice.ToString();
-                            viewModelMessage.StartedDateTime = message.OfferDetails.StartedDateTime.ToString();
-                            viewModelMessage.EndedDateTime = message.OfferDetails.EndedDateTime.ToString();
-                            viewModelMessage.CustomerId = message.OfferDetails.CustomerId.ToString();
-                            viewModelMessage.ValetId = message.OfferDetails.ValetId.ToString();
-                            viewModelMessage.OfferStatus = message.OfferDetails.OfferStatus.ToString();
-                        }
-                        //end
+                if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(messageUserId))
+                    return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.RecordNotFound));
 
-                        if (getLoggedInUser.Id == message.SenderId)
-                        {
-                            viewModelMessage.Name = $"{getLoggedInUser.FirstName} {getLoggedInUser.LastName}";
-                            viewModelMessage.Username = getLoggedInUser.UserName;
-                            viewModelMessage.ProfileImage = projectVariables.BaseUrl + getLoggedInUser.ProfilePicture;
-                        }
-                        else
-                        {
-                            viewModelMessage.Name = $"{getUser.FirstName} {getUser.LastName}";
-                            viewModelMessage.Username = getUser.UserName;
-                            viewModelMessage.ProfileImage = projectVariables.BaseUrl + getUser.ProfilePicture;
-                        }
-                        messagesList.Add(viewModelMessage);
-                    }
-                    return Ok(new ResponseDto()
+                var decrypt = DecryptionId(userId);
+                var targerDecrypt = DecryptionId(messageUserId);
+
+                var loggedInUser = await userRepo.GetUserById(decrypt);
+                var targetUser = await userRepo.GetUserById(targerDecrypt);
+
+                if (loggedInUser == null || targetUser == null)
+                {
+                    return NotFound(new ResponseDto()
                     {
-                        Status = true,
-                        StatusCode = "200",
-                        Data = messagesList
+                        Status = false,
+                        StatusCode = "404",
+                        Message = "User not found."
                     });
                 }
-                return null;
+
+                var messages = await messagesRepo.GetMessageBySenderIdAndRecieverId(loggedInUser.Id, targetUser.Id);
+                var messagesList = messages.Select(message => MapMessageToViewModel(message, loggedInUser, targetUser)).ToList();
+
+                return Ok(new ResponseDto()
+                {
+                    Status = true,
+                    StatusCode = "200",
+                    Data = messagesList
+                });
             }
             catch (Exception ex)
             {
-                var x = ex.Message.ToString();
-                return null;
+                return StatusCode(500, new ResponseDto()
+                {
+                    Status = false,
+                    StatusCode = "500",
+                    Message = ex.Message
+                });
             }
         }
+
+        private ViewModelMessageChatBox MapMessageToViewModel(Message message, User loggedInUser, User targetUser)
+        {
+            var viewModel = new ViewModelMessageChatBox
+            {
+                Id = message.Id.ToString(),
+                FilePath = message.FilePath,
+                IsRead = message.IsRead?.ToString(),
+                SenderId = message.SenderId.ToString(),
+                MessageDescription = message.MessageDescription,
+                MessageEncId = StringCipher.EncryptId(message.Id),
+                SenderEncId = StringCipher.EncryptId((int)message.SenderId!),
+                MessageTime = GeneralPurpose.regionChanged(Convert.ToDateTime(message.CreatedAt), loggedInUser.Timezone!),
+
+            };
+            if(loggedInUser.Role == 4)
+            {
+                viewModel.PricePerHour = loggedInUser.PricePerHour.ToString();
+            }
+            else if(targetUser.Role == 4)
+            {
+                viewModel.PricePerHour = targetUser.PricePerHour.ToString();
+            }
+
+            if (message.OfferDetails != null)
+            {
+                MapOfferDetailsToViewModel(viewModel, message.OfferDetails);
+            }
+
+            if (loggedInUser.Id == message.SenderId)
+            {
+                viewModel.Name = $"{loggedInUser.FirstName} {loggedInUser.LastName}";
+                viewModel.Username = loggedInUser.UserName;
+                viewModel.ProfileImage = projectVariables.BaseUrl + loggedInUser.ProfilePicture;
+            }
+            else
+            {
+                viewModel.ReceiverEncId = StringCipher.EncryptId(targetUser.Id!);
+                viewModel.Name = $"{targetUser.FirstName} {targetUser.LastName}";
+                viewModel.Username = targetUser.UserName;
+                viewModel.ProfileImage = projectVariables.BaseUrl + targetUser.ProfilePicture;
+            }
+
+            return viewModel;
+        }
+
+        private void MapOfferDetailsToViewModel(ViewModelMessageChatBox viewModel, OfferDetail offerDetails)
+        {
+            viewModel.OfferTitleId = offerDetails.Id.ToString();
+            viewModel.OfferTitle = offerDetails.OfferTitle;
+            viewModel.TransactionFee = offerDetails.TransactionFee;
+            viewModel.OfferDescription = offerDetails.OfferDescription;
+            viewModel.OfferPrice = offerDetails.OfferPrice.ToString();
+            viewModel.StartedDateTime = offerDetails.StartedDateTime.ToString();
+            viewModel.EndedDateTime = offerDetails.EndedDateTime.ToString();
+            viewModel.CustomerId = offerDetails.CustomerId.ToString();
+            viewModel.ValetId = offerDetails.ValetId.ToString();
+            viewModel.OfferStatus = offerDetails.OfferStatus.ToString();
+            viewModel.CustomerEncId = StringCipher.EncryptId((int)offerDetails.CustomerId!);
+            viewModel.ValetEncId = StringCipher.EncryptId((int)offerDetails.ValetId!);
+        }
+
         #endregion
 
         #region OrderZone
@@ -1984,6 +2025,13 @@ namespace ITValet.Controllers
             }
             
             return false;
+        }
+
+        private int DecryptionId(string id)
+        {
+            id = GeneralPurpose.ConversionEncryptedId(id);
+            var decrypt = StringCipher.DecryptId(id);
+            return decrypt;
         }
     }
 }

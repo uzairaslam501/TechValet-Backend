@@ -697,7 +697,9 @@ namespace ITValet.HelpingClasses
         public string? IsRead { get; set; }
         public string? FilePath { get; set; }
         public string? SenderId { get; set; }
+        public string? SenderEncId { get; set; }
         public string? ReceiverId { get; set; }
+        public string? ReceiverEncId { get; set; }
         public string? OrderId { get; set; }
         public string? Name { get; set; }
         public string? Username { get; set; }
@@ -713,7 +715,9 @@ namespace ITValet.HelpingClasses
         public string? StartedDateTime { get; set; }
         public string? EndedDateTime { get; set; }
         public string? CustomerId { get; set; }
+        public string? CustomerEncId { get; set; }
         public string? ValetId { get; set; }
+        public string? ValetEncId { get; set; }
         public string? OfferStatus { get; set; }
         public string? OrderReasonId { get; set; }
         public string? OrderReasonStatus { get; set; }
@@ -722,6 +726,7 @@ namespace ITValet.HelpingClasses
         public string? StartUrl { get; set; }
         public string? JoinUrl { get; set; }
         public int? IsZoomMeeting { get; set; }
+        public string? PricePerHour { get; set; }
     }
     #endregion
 

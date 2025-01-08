@@ -126,11 +126,11 @@ namespace ITValet.HelpingClasses
             return price + transactionFee;
         }
 
-        public static (decimal price, decimal fee) CalculatePrice(DateTime startDate, DateTime endDate)
+        public static (decimal price, decimal fee) CalculatePrice(DateTime startDate, DateTime endDate,
+            decimal hourlyRate)
         {
             TimeSpan duration = endDate - startDate;
             double totalHours = Math.Ceiling(duration.TotalHours); // Round up to the nearest hour
-            decimal hourlyRate = 25;
             decimal price = (decimal)totalHours * hourlyRate;
             decimal transactionFee = CalculateTransactionFees(price);
             return (price,  transactionFee);

@@ -229,9 +229,7 @@ namespace ITValet.Controllers
         public async Task<IActionResult> CreateStripePayment(DirectOrderDTO stripePayment)
         {
             var createStripeDto = new CheckOutDTO();
-            createStripeDto.ValetId = stripePayment?.ValetId;
             createStripeDto.StripeId = stripePayment?.StripeId;
-            createStripeDto.CustomerId = stripePayment?.CustomerId;
             createStripeDto.StripeEmail = stripePayment?.StripeEmail;
             createStripeDto.StripeToken = stripePayment?.StripeToken;
             createStripeDto.PaymentTitle = stripePayment?.Title;
@@ -241,7 +239,9 @@ namespace ITValet.Controllers
             createStripeDto.FromDateTime = stripePayment?.FromDateTime;
             createStripeDto.ToDateTime = stripePayment?.ToDateTime;
             createStripeDto.WorkingHours = stripePayment?.WorkingHours;
-            createStripeDto.OfferId = !string.IsNullOrEmpty(stripePayment?.OfferId) ? DecryptionId(stripePayment?.OfferId!) : null;
+            createStripeDto.ValetId = DecryptionId(stripePayment?.ValetId!).ToString();
+            createStripeDto.CustomerId = DecryptionId(stripePayment?.CustomerId!).ToString();
+            createStripeDto.OfferId = !string.IsNullOrEmpty(stripePayment?.OfferId) ? Convert.ToInt32(stripePayment?.OfferId!) : null;
 
             var response = await CreateStripeCharge(createStripeDto);
             if(response?.StatusCode == "200")
@@ -264,7 +264,7 @@ namespace ITValet.Controllers
             createStripeDto.ActualOrderPrice = stripePayment?.ActualOrderPrice;
             createStripeDto.ValetId = DecryptionId(stripePayment?.ValetId!).ToString();
             createStripeDto.CustomerId = DecryptionId(stripePayment?.CustomerId!).ToString();
-            createStripeDto.OfferId = !string.IsNullOrEmpty(stripePayment?.OfferId) ? DecryptionId(stripePayment?.OfferId!) : null;
+            createStripeDto.OfferId = !string.IsNullOrEmpty(stripePayment?.OfferId) ? Convert.ToInt32(stripePayment?.OfferId!) : null;
             createStripeDto.PackageId = !string.IsNullOrEmpty(stripePayment?.PackageId) ? Convert.ToInt32(stripePayment?.PackageId) : null;
 
             var response = await CreateStripeCharge(createStripeDto);
