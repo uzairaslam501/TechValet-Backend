@@ -234,7 +234,7 @@ namespace ITValet.Controllers
                 if (!string.IsNullOrEmpty(loggedInUserId))
                 {
                     var getLoggedInUser = await userRepo.GetUserById(Convert.ToInt32(loggedInUserId));
-                    var Sender = new Models.User();
+                    var Sender = new User();
                     var Receiver = new Models.User();
                     var getMessages = await messagesRepo.GetMessageByUserId(getLoggedInUser.Id);
                     List<ViewModelMessage> messagesList = new List<ViewModelMessage>();
@@ -888,112 +888,31 @@ namespace ITValet.Controllers
         #endregion
 
         #region OrderZone
-        [HttpGet("GetMessagesForOrder")]
-        public async Task<IActionResult> GetMessagesForOrder(string? orderId)
+        [HttpGet("GetMessagesForOrder/{orderId}")]
+        public async Task<IActionResult> GetMessagesForOrder(string orderId, string userId)
         {
             try
             {
-                if (string.IsNullOrEmpty(orderId))
+                var decryptId = DecryptionId(orderId);
+                var decryptUserId = DecryptionId(userId);
+                var loggedInUser = await userRepo.GetUserById(decryptUserId);
+                var order = await orderRepo.GetOrderById(decryptId);
+                var messages = await messagesRepo.GetMessageListByOrdrId(order.Id);
+                var userCache = new Dictionary<int, Models.User>(); // Cache users to reduce redundant calls
+                var messagesList = new List<ViewModelMessageChatBox>();
+
+                foreach (var message in messages)
                 {
-                    return null;
-                }
-                UserClaims? getUserFromToken = jwtUtils.ValidateToken(Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last());
-                var getLoggedInUser = await userRepo.GetUserById((int)getUserFromToken.Id);
-                var getOrders = await orderRepo.GetOrderById(Convert.ToInt32(orderId));
-                var getUser = new Models.User();
-                var getMessages = await messagesRepo.GetMessageListByOrdrId(getOrders.Id);
-                List<ViewModelMessageChatBox> messagesList = new List<ViewModelMessageChatBox>();
-                foreach (var message in getMessages)
-                {
-
-                    string StartUrl = "";
-                    string EndUrl = "";
-
-                    if (message.IsZoomMessage == 1)
-                    {
-                        StartUrl = ExtractPart(message.MessageDescription, 1);
-                        EndUrl = ExtractPart(message.MessageDescription, 2);
-                    }
-
-
-                    OrderReason OrderReasonOfTheMessage = new OrderReason();
-                    if (message.OrderReasonId != null)
-                    {
-                        OrderReasonOfTheMessage = await orderReasonRepo.GetOrderReasonByOrderReasonId((int)message.OrderReasonId);
-                    }
-                    if (getUser.Id == 0)
-                    {
-                        var Ids = getLoggedInUser.Id == message.SenderId ? message.ReceiverId : message.SenderId;
-                        getUser = await userRepo.GetUserById((int)Ids);
-                    }
-                    var viewModelMessage = new ViewModelMessageChatBox
-                    {
-                        Id = message.Id.ToString(),
-                        MessageEncId = StringCipher.EncryptId(message.Id),
-                        MessageDescription = message.MessageDescription,
-                        IsRead = message.IsRead?.ToString(),
-                        FilePath = message.FilePath,
-                        MessageTime = GeneralPurpose.regionChanged(Convert.ToDateTime(message.CreatedAt), getLoggedInUser.Timezone),
-                        SenderId = message.SenderId.ToString(),
-                        OrderReasonId = message.OrderReasonId != null ? message.OrderReasonId.ToString() : "",
-                    };
-                    if (OrderReasonOfTheMessage != null && OrderReasonOfTheMessage.ReasonType != 0)
-                    {
-                        if (OrderReasonOfTheMessage.ReasonType != null)
-                        {
-                            viewModelMessage.OrderReasonType = Enum.GetName(typeof(OrderReasonType), OrderReasonOfTheMessage.ReasonType);
-                        }
-                        if (OrderReasonOfTheMessage.IsActive != null)
-                        {
-                            viewModelMessage.OrderReasonIsActive = OrderReasonOfTheMessage.IsActive.ToString();
-                        }
-                    }
-                    if (message.OfferDetails != null)
-                    {
-                        viewModelMessage.OfferTitleId = message.OfferDetails.Id.ToString();
-                        viewModelMessage.OfferTitle = message.OfferDetails.OfferTitle;
-                        viewModelMessage.OfferDescription = message.OfferDetails.OfferDescription;
-                        viewModelMessage.OfferPrice = message.OfferDetails.OfferPrice.ToString();
-                        viewModelMessage.StartedDateTime = message.OfferDetails.StartedDateTime.ToString();
-                        viewModelMessage.EndedDateTime = message.OfferDetails.EndedDateTime.ToString();
-                        viewModelMessage.CustomerId = message.OfferDetails.CustomerId.ToString();
-                        viewModelMessage.ValetId = message.OfferDetails.ValetId.ToString();
-                        viewModelMessage.OfferStatus = message.OfferDetails.OfferStatus.ToString();
-                    }
-                    if (getLoggedInUser.Id == message.SenderId)
-                    {
-                        if (message.IsZoomMessage == 1)
-                        {
-                            viewModelMessage.StartUrl = StartUrl;
-                            viewModelMessage.IsZoomMeeting = string.IsNullOrEmpty(StartUrl) ? 0 : 1;
-                            viewModelMessage.MessageDescription = "Zoom Meeting Created";
-                            viewModelMessage.OrderReasonType = "Zoom";
-                        }
-
-                        viewModelMessage.Username = getLoggedInUser.UserName;
-                        viewModelMessage.ProfileImage = getLoggedInUser.ProfilePicture;
-                    }
-                    else
-                    {
-                        if (message.IsZoomMessage == 1)
-                        {
-                            viewModelMessage.JoinUrl = EndUrl;
-                            viewModelMessage.IsZoomMeeting = string.IsNullOrEmpty(StartUrl) ? 0 : 1;
-                            viewModelMessage.MessageDescription = "Zoom Meeting Created";
-                            viewModelMessage.OrderReasonType = "Zoom";
-                        }
-
-                        viewModelMessage.Username = getUser.UserName;
-                        viewModelMessage.ProfileImage = getUser.ProfilePicture;
-                    }
+                    var viewModelMessage = await CreateViewModelMessage(message, loggedInUser, userCache, order);
                     messagesList.Add(viewModelMessage);
                 }
-                return Ok(messagesList);
+
+                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", GlobalMessages.RecordFound, messagesList));
             }
             catch (Exception ex)
             {
-                var x = ex.Message.ToString();
-                return null;
+                // Log the error instead of returning null (if logging is implemented)
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "500", ex.Message, null));
             }
         }
 
@@ -1384,6 +1303,113 @@ namespace ITValet.Controllers
             // Return the original string if ":ZoomLink:" is not found or partNumber is invalid
             return "";
         }
+
+        #region Helpers
+        private async Task<ViewModelMessageChatBox> CreateViewModelMessage(Message message, User loggedInUser,
+            Dictionary<int, User> userCache, Order order)
+        {
+            string startUrl = string.Empty, endUrl = string.Empty;
+
+            if (message.IsZoomMessage == 1)
+            {
+                startUrl = ExtractPart(message.MessageDescription, 1);
+                endUrl = ExtractPart(message.MessageDescription, 2);
+            }
+
+            var orderReason = message.OrderReasonId.HasValue
+                ? await orderReasonRepo.GetOrderReasonByOrderReasonId((int)message.OrderReasonId)
+                : null;
+
+            var receiverId = loggedInUser.Id == message.SenderId ? message.ReceiverId : message.SenderId;
+
+            if (!userCache.ContainsKey((int)receiverId))
+            {
+                userCache[(int)receiverId] = await userRepo.GetUserById((int)receiverId);
+            }
+
+            var receiver = userCache[(int)receiverId];
+
+            var viewModel = new ViewModelMessageChatBox
+            {
+                Id = message.Id.ToString(),
+                MessageEncId = StringCipher.EncryptId(message.Id),
+                MessageDescription = message.MessageDescription,
+                IsRead = message.IsRead?.ToString(),
+                FilePath = message.FilePath,
+                MessageTime = GeneralPurpose.regionChanged(Convert.ToDateTime(message.CreatedAt), loggedInUser.Timezone),
+                SenderId = message.SenderId.ToString(),
+                OrderReasonId = message.OrderReasonId?.ToString(),
+                CustomerId = order.CustomerId.ToString(),
+                ValetId = order.ValetId.ToString(),
+                CustomerEncId = StringCipher.EncryptId((int)order.CustomerId!),
+                ValetEncId = StringCipher.EncryptId((int)order.ValetId!),
+            };
+
+            SetOrderReasonDetails(viewModel, orderReason);
+            SetOfferDetails(viewModel, message);
+            SetZoomMessageDetails(viewModel, message, loggedInUser, receiver, startUrl, endUrl);
+
+            if (loggedInUser.Id == message.SenderId)
+            {
+                viewModel.Username = loggedInUser.UserName;
+                viewModel.ProfileImage = loggedInUser.ProfilePicture;
+                viewModel.Name = $"{loggedInUser.FirstName} {loggedInUser.LastName}";
+            }
+            else
+            {
+                viewModel.Username = receiver.UserName;
+                viewModel.ProfileImage = receiver.ProfilePicture;
+                viewModel.Name = $"{receiver.FirstName} {receiver.LastName}";
+            }
+
+            return viewModel;
+        }
+
+        private void SetOrderReasonDetails(ViewModelMessageChatBox viewModel, OrderReason orderReason)
+        {
+            if (orderReason != null)
+            {
+                viewModel.OrderReasonType = Enum.GetName(typeof(OrderReasonType), orderReason.ReasonType);
+                viewModel.OrderReasonIsActive = orderReason.IsActive?.ToString();
+            }
+        }
+
+        private void SetOfferDetails(ViewModelMessageChatBox viewModel, Message message)
+        {
+            if (message.OfferDetails != null)
+            {
+                viewModel.OfferTitleId = message.OfferDetails.Id.ToString();
+                viewModel.OfferTitle = message.OfferDetails.OfferTitle;
+                viewModel.OfferDescription = message.OfferDetails.OfferDescription;
+                viewModel.OfferPrice = message.OfferDetails.OfferPrice.ToString();
+                viewModel.StartedDateTime = message.OfferDetails.StartedDateTime?.ToString();
+                viewModel.EndedDateTime = message.OfferDetails.EndedDateTime?.ToString();
+                viewModel.CustomerId = message.OfferDetails.CustomerId?.ToString();
+                viewModel.ValetId = message.OfferDetails.ValetId?.ToString();
+                viewModel.OfferStatus = message.OfferDetails.OfferStatus?.ToString();
+            }
+        }
+
+        private void SetZoomMessageDetails(ViewModelMessageChatBox viewModel, Message message, User loggedInUser,
+            User receiver, string startUrl, string endUrl)
+        {
+            if (message.IsZoomMessage == 1)
+            {
+                viewModel.IsZoomMeeting = string.IsNullOrEmpty(startUrl) ? 0 : 1;
+                viewModel.MessageDescription = "Zoom Meeting Created";
+                viewModel.OrderReasonType = "Zoom";
+
+                if (loggedInUser.Id == message.SenderId)
+                {
+                    viewModel.StartUrl = startUrl;
+                }
+                else
+                {
+                    viewModel.JoinUrl = endUrl;
+                }
+            }
+        }
+        #endregion
 
         #endregion
 

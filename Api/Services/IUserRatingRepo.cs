@@ -186,7 +186,14 @@ namespace ITValet.Services
 
                 // If no ratings exist, return early to avoid further processing
                 if (!ratingList.Any())
-                    throw new Exception();
+                {
+                    var record = new ValetRatingReviewRecord
+                    {
+                        AverageStars = "0.0", // You can set a default value for average stars here
+                        Rating = new List<ValetRatingRecord>()
+                    };
+                    return GeneralPurpose.GenerateResponseCode(true, "200", "Record Found", record);
+                }
 
                 int? sumOfRatingStars = ratingList.Sum(x => x.Stars);
                 double averageRating = (double)sumOfRatingStars / ratingList.Count;
@@ -219,17 +226,12 @@ namespace ITValet.Services
                         valetRatingReviewRecord.Rating.Add(valetRating);
                     }
                 }
-                return GeneralPurpose.GenerateResponseCode(true, "200", "Record Found", valetRatingReviewRecord);
+                return GeneralPurpose.GenerateResponseCode(true, "200", GlobalMessages.RecordFound, valetRatingReviewRecord);
             }
             catch (Exception ex)
             {
                 CreateLogger(ex);
-                var record = new ValetRatingReviewRecord
-                {
-                    AverageStars = "0.0", // You can set a default value for average stars here
-                    Rating = new List<ValetRatingRecord>()
-                };
-                return GeneralPurpose.GenerateResponseCode(true, "200", "Record Found", record);
+                return GeneralPurpose.GenerateResponseCode(true, "400", GlobalMessages.RecordNotFound, null);
             }
         }
         

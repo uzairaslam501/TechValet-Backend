@@ -729,16 +729,8 @@ namespace ITValet.Services
                                              (x.OrderStatus == 0 || x.OrderStatus == 1 || x.OrderStatus == 2));
                     break;
                 case 4:
-                    if (!string.IsNullOrEmpty(currentDate))
-                    {
-                        query = query.Where(x => x.ValetId == id &&
-                                             x.OrderStatus == 0);
-                    }
-                    else
-                    {
-                        query = query.Where(x => x.ValetId == id &&
-                                             (x.OrderStatus == 0 || x.OrderStatus == 1 || x.OrderStatus == 2));
-                    }
+                    query = query.Where(x => x.ValetId == id &&
+                                            (x.OrderStatus == 0 || x.OrderStatus == 1 || x.OrderStatus == 2));
                     break;
                 case 5:
                     query = query.Where(x => x.ValetId == id &&
@@ -753,7 +745,7 @@ namespace ITValet.Services
             {
                 var date = Convert.ToDateTime(currentDate).Date;
                 if (userRole == 4) // Special condition for valet orders
-                    query = query.Where(x => x.StartDateTime.Value.Date >= date);
+                    query = query.Where(x => x.StartDateTime.Value.Date >= date && x.OrderStatus == 0);
             }
 
             return await query.ToListAsync();

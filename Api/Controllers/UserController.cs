@@ -1330,7 +1330,7 @@ namespace ITValet.Controllers
         #endregion
 
         #region Orders
-        [HttpGet("GetOrderById")]
+        [HttpGet("GetOrderById/{orderId}")]
         public async Task<IActionResult> GetOrderById(string? orderId = "")
         {
             UserClaims? getUserFromToken = jwtUtils.ValidateToken(Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last());
