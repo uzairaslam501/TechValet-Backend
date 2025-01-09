@@ -921,56 +921,24 @@ namespace ITValet.Controllers
         {
             try
             {
-                var getSender = await userRepo.GetUserById(Convert.ToInt32(postAddMessage.SenderId));
-                var getReciever = await userRepo.GetUserById(Convert.ToInt32(postAddMessage.ReceiverId));
-                var message = new Message();
-                message.MessageDescription = String.IsNullOrEmpty(postAddMessage.MessageDescription) ? "" : postAddMessage.MessageDescription;
-                message.SenderId = Convert.ToInt32(postAddMessage.SenderId);
-                message.ReceiverId = Convert.ToInt32(postAddMessage.ReceiverId);
-                message.OrderId = Convert.ToInt32(postAddMessage.OrderId);
-                message.IsRead = 0;
-                message.IsActive = 1;
-                message.CreatedAt = GeneralPurpose.DateTimeNow();
-                
-                var filePath = "";
-                if (postAddMessage.IFilePath != null)
-                {
-                    filePath = await UploadFiles(postAddMessage.IFilePath, "OrderDeliverable");
-                    message.FilePath = filePath;
-                }
-                if (postAddMessage.Way == "2")
-                {
-                    var OrderId = Convert.ToInt32(postAddMessage.OrderId);
-                    var getOrder = await orderRepo.GetOrderById(OrderId);
-                    getOrder.IsDelivered = 1;
-                    getOrder.UpdatedAt = GeneralPurpose.DateTimeNow();
-                    var updateOrder = await orderRepo.UpdateOrder(getOrder);
-                }
+                var decrypt = DecryptionId(postAddMessage.SenderId!);
+                var decryptRecieverId = DecryptionId(postAddMessage.ReceiverId!);
+                var decryptOrderId = DecryptionId(postAddMessage.OrderId!);
+                var getSender = await userRepo.GetUserById(decrypt);
+                var getReciever = await userRepo.GetUserById(decryptRecieverId);
+
+                var message = await MapMessage(postAddMessage, decrypt, decryptRecieverId, decryptOrderId);
+                var error = postAddMessage.Way != "Cancel" ? GlobalMessages.MessageSentFail : GlobalMessages.OrderDeliverFail;
 
                 await messagesRepo.AddMessage(message);
+
                 if (!await messagesRepo.saveChangesFunction())
-                {
-                    return Ok(new ResponseDto() { Status = false, StatusCode = "404", Message = postAddMessage.Way != "2" ? GlobalMessages.MessageSentFail : GlobalMessages.OrderDeliverFail });
-                }
+                    return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", error, null));
+                
 
                 if (message.Id != 0)
                 {
-                    string msgTime = GeneralPurpose.regionChanged(Convert.ToDateTime(message.CreatedAt), getSender.Timezone);
-                    string userName = getSender.UserName;
-                    string profile = getSender.ProfilePicture;
-
-                    ReceiveOrderMessageDto receiveOrderMessageDto = new ReceiveOrderMessageDto()
-                    {
-                        senderId = message.SenderId,
-                        receiverId = message.ReceiverId,
-                        userName = userName,
-                        userProfile = profile,
-                        message = message.MessageDescription,
-                        messageTime = msgTime,
-                        newOrderReasonId = "",
-                        filePath = filePath,
-                        IsDelivery = postAddMessage.Way
-                    };
+                    var orderMessage = MapOrderMessage(message, getSender!, postAddMessage.Way);
                     Notification notificationObj = new Notification
                     {
                         UserId = message.ReceiverId,
@@ -984,16 +952,69 @@ namespace ITValet.Controllers
                     };
                     bool isNotification = await _notificationService.AddNotification(notificationObj);
                     await _notificationHubSocket.Clients.All.SendAsync("ReloadNotifications", message.ReceiverId.ToString());
-                    await _notificationHubSocket.Clients.All.SendAsync("ReceiveOrderMessage", receiveOrderMessageDto);
+                    await _notificationHubSocket.Clients.All.SendAsync("ReceiveOrderMessage", orderMessage);
 
-                    return Ok(new { UserName = userName, Profile = profile, Message = message.MessageDescription, MessageTime = msgTime, FilePath = filePath });
+                    var datas = new { 
+                        UserName = getSender?.UserName,
+                        Profile = getSender?.ProfilePicture,
+                        Message = message.MessageDescription,
+                        MessageTime = orderMessage.messageTime,
+                        FilePath = message.FilePath };
+
+                    return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "", datas));
                 }
-                return Ok(new ResponseDto() { Status = false, StatusCode = "404", Message = postAddMessage.Way != "2" ? GlobalMessages.MessageSentFail : GlobalMessages.OrderDeliverFail });
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "404", error, null));
             }
             catch (Exception ex)
             {
-                return Ok(new ResponseDto() { Status = false, StatusCode = "404", Message = postAddMessage.Way != "2" ? GlobalMessages.MessageSentFail : GlobalMessages.OrderDeliverFail });
+                var error = postAddMessage.Way != "Cancel" ? GlobalMessages.MessageSentFail : GlobalMessages.OrderDeliverFail;
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "404", error, null));
             }
+        }
+
+        private async Task<Message> MapMessage(PostAddMessage message, int SenderId, int ReceiverId, int OrderId)
+        {
+            var filePath = "";
+            if (message.IFilePath != null)
+            {
+                filePath = await UploadFiles(message.IFilePath, "OrderDeliverable");
+                message.FilePath = filePath;
+            }
+
+            if (message.Way == "Cancel")
+            {
+                var getOrder = await orderRepo.GetOrderById(OrderId);
+                getOrder!.IsDelivered = 1;
+                getOrder.UpdatedAt = GeneralPurpose.DateTimeNow();
+                var updateOrder = await orderRepo.UpdateOrder(getOrder);
+            }
+
+            return new Message()
+            {
+                MessageDescription = String.IsNullOrEmpty(message.MessageDescription) ? "" : message.MessageDescription,
+                SenderId = SenderId,
+                ReceiverId = ReceiverId,
+                OrderId = OrderId,
+                IsRead = 0,
+                IsActive = 1,
+                CreatedAt = GeneralPurpose.DateTimeNow(),
+            };
+        }
+
+        private ReceiveOrderMessageDto MapOrderMessage(Message message, User sender, string? orderType = "")
+        {
+            return new ReceiveOrderMessageDto()
+            {
+                newOrderReasonId = "",
+                IsDelivery = orderType,
+                userName = sender.UserName,
+                filePath = message.FilePath,
+                senderId = message.SenderId,
+                receiverId = message.ReceiverId,
+                userProfile = sender.ProfilePicture,
+                message = message.MessageDescription,
+                messageTime = GeneralPurpose.regionChanged(Convert.ToDateTime(message.CreatedAt), sender.Timezone!),
+            };
         }
 
         [HttpPut("PostOrderStatus")]
