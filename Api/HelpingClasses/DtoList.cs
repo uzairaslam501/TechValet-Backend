@@ -746,7 +746,9 @@ namespace ITValet.HelpingClasses
         public string? IsDelivered { get; set; }
         public string? RequestId { get; set; }
         public string? CustomerId { get; set; }
+        public string? CustomerEncId { get; set; }
         public string? ValetId { get; set; }
+        public string? ValetEncId { get; set; }
         public string? PackageId { get; set; }
         public string? OrderReasonId { get; set; }
         public string? OrderReasonType { get; set; }

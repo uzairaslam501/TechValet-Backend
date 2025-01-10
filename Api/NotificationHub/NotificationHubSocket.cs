@@ -14,5 +14,10 @@ namespace ITValet.NotificationHub
         {
             await Clients.All.SendAsync("ReceiveOffers", senderId, receiverId, obj);
         }
+
+        public async Task SendOrderObject(string senderId, string receiverId, ViewModelMessageChatBox obj)
+        {
+            await Clients.All.SendAsync("SendOrderMessage", senderId, receiverId, obj);
+        }
     }
 }

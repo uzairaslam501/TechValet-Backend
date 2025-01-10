@@ -12,6 +12,8 @@ using Newtonsoft.Json.Linq;
 using RestSharp;
 using Stripe;
 using System.Text.RegularExpressions;
+using System.Threading;
+using System.Web;
 
 namespace ITValet.Controllers
 {
@@ -20,39 +22,41 @@ namespace ITValet.Controllers
     [ApiController]
     public class MessageController : ControllerBase
     {
-        private readonly IHubContext<NotificationHubSocket> _notificationHubSocket;
+        private readonly IJwtUtils jwtUtils;
         private readonly IUserRepo userRepo;
+        private readonly Zoom _zoomVariables;
+        private readonly IOrderRepo orderRepo;
         private readonly IMessagesRepo messagesRepo;
+        private readonly IUserRatingRepo userRatingRepo;
+        private readonly IOrderReasonRepo orderReasonRepo;
         private readonly ProjectVariables projectVariables;
         private readonly IOfferDetailsRepo offerDetailsRepo;
-        private readonly IFundTransferService _fundTransferService;
-        private readonly IJwtUtils jwtUtils;
-        private readonly IOrderRepo orderRepo;
-        private readonly IOrderReasonRepo orderReasonRepo;
-        private readonly IUserRatingRepo userRatingRepo;
-        private readonly IPayPalGateWayService _payPalGateWayService;
-        private readonly INotificationService userPackageService;
         private readonly INotificationRepo _notificationService;
+        private readonly INotificationService userPackageService;
+        private readonly IFundTransferService _fundTransferService;
+        private readonly IPayPalGateWayService _payPalGateWayService;
+        private readonly IHubContext<NotificationHubSocket> _notificationHubSocket;
 
-        public MessageController(IHubContext<NotificationHubSocket> notificationHubSocket,
-            IUserRepo _userRepo, IMessagesRepo _messagesRepo, IOfferDetailsRepo _offerDetailsRepo,
-            IOptions<ProjectVariables> options, IJwtUtils _jwtUtils, IOrderRepo _orderRepo,
-            IOrderReasonRepo _orderReasonRepo, IFundTransferService fundTransferService,
-            IUserRatingRepo _userRatingRepo, IPayPalGateWayService payPalGateWayService, INotificationService _userPackageService, INotificationRepo notificationService)
+        public MessageController(IHubContext<NotificationHubSocket> notificationHubSocket, IUserRepo _userRepo, 
+            IMessagesRepo _messagesRepo, IOfferDetailsRepo _offerDetailsRepo, IOptions<ProjectVariables> options, IJwtUtils _jwtUtils, 
+            IOrderRepo _orderRepo, IOrderReasonRepo _orderReasonRepo, IFundTransferService fundTransferService, IUserRatingRepo _userRatingRepo,
+            IPayPalGateWayService payPalGateWayService, INotificationService _userPackageService, INotificationRepo notificationService,
+            IOptions<Zoom> zoomVariables)
         {
-            _notificationHubSocket = notificationHubSocket;
-            userRepo = _userRepo;
-            messagesRepo = _messagesRepo;
-            projectVariables = options.Value;
-            offerDetailsRepo = _offerDetailsRepo;
             jwtUtils = _jwtUtils;
+            userRepo = _userRepo;
             orderRepo = _orderRepo;
-            orderReasonRepo = _orderReasonRepo;
-            _fundTransferService = fundTransferService;
+            messagesRepo = _messagesRepo;
             userRatingRepo = _userRatingRepo;
+            projectVariables = options.Value;
+            orderReasonRepo = _orderReasonRepo;
+            _zoomVariables = zoomVariables.Value;
+            offerDetailsRepo = _offerDetailsRepo;
             userPackageService = _userPackageService;
-            _payPalGateWayService = payPalGateWayService;
             _notificationService = notificationService;
+            _fundTransferService = fundTransferService;
+            _payPalGateWayService = payPalGateWayService;
+            _notificationHubSocket = notificationHubSocket;
         }
 
         [HttpPost("SendMessageToClients")]
@@ -453,7 +457,7 @@ namespace ITValet.Controllers
                     });
                 }
 
-                await AddNotification(message, "You just received a message.");
+                await AddNotification(message, "Message Received", "You just received a message.", "messages", "");
 
                 return Ok(new ResponseDto
                 {
@@ -472,7 +476,7 @@ namespace ITValet.Controllers
                     return Ok("Failed to send/add message.");
                 }
 
-                await AddNotification(message, "You just received a message.");
+                await AddNotification(message, "Message Received", "You just received a message.", "messages", "");
 
                 if (message.Id != 0)
                 {
@@ -585,121 +589,6 @@ namespace ITValet.Controllers
                 return StatusCode(500, new ResponseDto { Status = false, StatusCode = "500", Message = GlobalMessages.SystemFailureMessage, Data = ex.Message });
             }
         }
-
-
-        // Helper Methods
-        private async Task CreateMessage(PostAddMessage postAddMessage, Message message)
-        {
-            message.MessageDescription = postAddMessage.MessageDescription;
-            message.SenderId = Convert.ToInt32(postAddMessage.SenderId);
-            message.ReceiverId = Convert.ToInt32(postAddMessage.ReceiverId);
-            message.IsRead = 0;
-            message.IsActive = 1;
-            message.CreatedAt = GeneralPurpose.DateTimeNow();
-            await messagesRepo.AddMessage(message);
-        }
-
-        private async Task AddNotification(Message message, string description)
-        {
-            var notificationObj = new Notification
-            {
-                UserId = message.ReceiverId,
-                Title = "Message Received",
-                IsRead = 0,
-                IsActive = (int)EnumActiveStatus.Active,
-                Url = $"{projectVariables.BaseUrl}Home/Messages",
-                CreatedAt = GeneralPurpose.DateTimeNow(),
-                Description = description,
-                NotificationType = (int)NotificationType.OrderCancellationRequested
-            };
-
-            await _notificationService.AddNotification(notificationObj);
-            await _notificationHubSocket.Clients.All.SendAsync("ReloadNotifications",
-                notificationObj.UserId.ToString(),
-                notificationObj.Title,
-                notificationObj.IsRead,
-                notificationObj.IsActive,
-                notificationObj.Url,
-                notificationObj.Description,
-                notificationObj.CreatedAt,
-                notificationObj.NotificationType
-            );
-        }
-
-        private async Task<OfferDetail> CreateOffer(PostAddMessage postAddMessage, Message message,
-            User getLoggedInUser,  decimal pricePerHour)
-        {
-            var orderStartTime = Convert.ToDateTime(postAddMessage.StartedDateTime);
-            var orderEndTime = Convert.ToDateTime(postAddMessage.EndedDateTime);
-            var totalHours = GeneralPurpose.CalculatePrice(orderStartTime, orderEndTime, pricePerHour);
-
-            postAddMessage.CustomerId = getLoggedInUser.Role != 3 ? postAddMessage.ReceiverId.ToString() : postAddMessage.SenderId.ToString();
-            postAddMessage.ValetId = postAddMessage.ValetId;
-            postAddMessage.OfferPrice = totalHours.price.ToString();
-            postAddMessage.TransactionFee = totalHours.fee.ToString();
-
-            var offer = new OfferDetail
-            {
-                OfferTitle = postAddMessage.OfferTitle,
-                OfferDescription = postAddMessage.OfferDescription,
-                OfferPrice = Convert.ToDouble(postAddMessage.OfferPrice),
-                StartedDateTime = orderStartTime,
-                EndedDateTime = orderEndTime,
-                OfferStatus = 1,
-                TransactionFee = postAddMessage.TransactionFee,
-                CustomerId = Convert.ToInt32(postAddMessage.CustomerId),
-                ValetId = Convert.ToInt32(postAddMessage.ValetId),
-                MessageId = message.Id
-            };
-
-            if (await offerDetailsRepo.AddOfferDetail(offer))
-            {
-                return offer;
-            }
-
-            return null;
-        }
-
-        private async Task<ViewModelMessageChatBox> NotifyOffer(OfferDetail offer, Message message, User getLoggedInUser)
-        {
-            var viewModelMessage = new ViewModelMessageChatBox
-            {
-                Id = message.Id.ToString(),
-                MessageEncId = StringCipher.EncryptId(message.Id),
-                MessageDescription = message.MessageDescription,
-                IsRead = message.IsRead?.ToString(),
-                FilePath = message.FilePath,
-                MessageTime = GeneralPurpose.regionChanged(Convert.ToDateTime(message.CreatedAt), getLoggedInUser?.Timezone!),
-                SenderId = message.SenderId.ToString(),
-            };
-            //order wprk
-            if (offer != null)
-            {
-                viewModelMessage.OfferTitleId = offer.Id.ToString();
-                viewModelMessage.OfferTitle = offer.OfferTitle;
-                viewModelMessage.TransactionFee = offer.TransactionFee;
-                viewModelMessage.OfferDescription = offer.OfferDescription;
-                viewModelMessage.OfferPrice = offer.OfferPrice.ToString();
-                viewModelMessage.StartedDateTime = offer.StartedDateTime.ToString();
-                viewModelMessage.EndedDateTime = offer.EndedDateTime.ToString();
-                viewModelMessage.CustomerId = offer.CustomerId.ToString();
-                viewModelMessage.ValetId = offer.ValetId.ToString();
-                viewModelMessage.OfferStatus = offer.OfferStatus.ToString();
-                viewModelMessage.Name = $"{getLoggedInUser?.FirstName} {getLoggedInUser?.LastName}";
-                viewModelMessage.Username = getLoggedInUser?.UserName;
-                viewModelMessage.ProfileImage = getLoggedInUser?.ProfilePicture;
-            }
-            //end
-
-
-            await _notificationHubSocket.Clients.All.SendAsync("ReceiveOffers",
-                viewModelMessage,
-                message.SenderId,
-                message.ReceiverId
-            );
-            return viewModelMessage;
-        }
-
 
         [HttpGet("GetMessageSideBarLists/{userId}")]
         public async Task<IActionResult> GetMessageSideBarLists(string? userId, string? Name = "",
@@ -824,67 +713,6 @@ namespace ITValet.Controllers
             }
         }
 
-        private ViewModelMessageChatBox MapMessageToViewModel(Message message, User loggedInUser, User targetUser)
-        {
-            var viewModel = new ViewModelMessageChatBox
-            {
-                Id = message.Id.ToString(),
-                FilePath = message.FilePath,
-                IsRead = message.IsRead?.ToString(),
-                SenderId = message.SenderId.ToString(),
-                MessageDescription = message.MessageDescription,
-                MessageEncId = StringCipher.EncryptId(message.Id),
-                SenderEncId = StringCipher.EncryptId((int)message.SenderId!),
-                MessageTime = GeneralPurpose.regionChanged(Convert.ToDateTime(message.CreatedAt), loggedInUser.Timezone!),
-
-            };
-            if(loggedInUser.Role == 4)
-            {
-                viewModel.PricePerHour = loggedInUser.PricePerHour.ToString();
-            }
-            else if(targetUser.Role == 4)
-            {
-                viewModel.PricePerHour = targetUser.PricePerHour.ToString();
-            }
-
-            if (message.OfferDetails != null)
-            {
-                MapOfferDetailsToViewModel(viewModel, message.OfferDetails);
-            }
-
-            if (loggedInUser.Id == message.SenderId)
-            {
-                viewModel.Name = $"{loggedInUser.FirstName} {loggedInUser.LastName}";
-                viewModel.Username = loggedInUser.UserName;
-                viewModel.ProfileImage = projectVariables.BaseUrl + loggedInUser.ProfilePicture;
-            }
-            else
-            {
-                viewModel.ReceiverEncId = StringCipher.EncryptId(targetUser.Id!);
-                viewModel.Name = $"{targetUser.FirstName} {targetUser.LastName}";
-                viewModel.Username = targetUser.UserName;
-                viewModel.ProfileImage = projectVariables.BaseUrl + targetUser.ProfilePicture;
-            }
-
-            return viewModel;
-        }
-
-        private void MapOfferDetailsToViewModel(ViewModelMessageChatBox viewModel, OfferDetail offerDetails)
-        {
-            viewModel.OfferTitleId = offerDetails.Id.ToString();
-            viewModel.OfferTitle = offerDetails.OfferTitle;
-            viewModel.TransactionFee = offerDetails.TransactionFee;
-            viewModel.OfferDescription = offerDetails.OfferDescription;
-            viewModel.OfferPrice = offerDetails.OfferPrice.ToString();
-            viewModel.StartedDateTime = offerDetails.StartedDateTime.ToString();
-            viewModel.EndedDateTime = offerDetails.EndedDateTime.ToString();
-            viewModel.CustomerId = offerDetails.CustomerId.ToString();
-            viewModel.ValetId = offerDetails.ValetId.ToString();
-            viewModel.OfferStatus = offerDetails.OfferStatus.ToString();
-            viewModel.CustomerEncId = StringCipher.EncryptId((int)offerDetails.CustomerId!);
-            viewModel.ValetEncId = StringCipher.EncryptId((int)offerDetails.ValetId!);
-        }
-
         #endregion
 
         #region OrderZone
@@ -926,9 +754,11 @@ namespace ITValet.Controllers
                 var decryptOrderId = DecryptionId(postAddMessage.OrderId!);
                 var getSender = await userRepo.GetUserById(decrypt);
                 var getReciever = await userRepo.GetUserById(decryptRecieverId);
+                var getOrder = await orderRepo.GetOrderById(decryptOrderId);
 
-                var message = await MapMessage(postAddMessage, decrypt, decryptRecieverId, decryptOrderId);
-                var error = postAddMessage.Way != "Cancel" ? GlobalMessages.MessageSentFail : GlobalMessages.OrderDeliverFail;
+                postAddMessage.MessageDescription = HttpUtility.UrlDecode(postAddMessage.MessageDescription);
+                var message = await MapMessage(postAddMessage, decrypt, decryptRecieverId, getOrder);
+                var error = postAddMessage.Way != "cancel" ? GlobalMessages.MessageSentFail : GlobalMessages.OrderDeliverFail;
 
                 await messagesRepo.AddMessage(message);
 
@@ -939,82 +769,29 @@ namespace ITValet.Controllers
                 if (message.Id != 0)
                 {
                     var orderMessage = MapOrderMessage(message, getSender!, postAddMessage.Way);
-                    Notification notificationObj = new Notification
-                    {
-                        UserId = message.ReceiverId,
-                        Title = "Message Received",
-                        IsRead = 0,
-                        IsActive = (int)EnumActiveStatus.Active,
-                        Url = $"{projectVariables.BaseUrl}User/OrderDetail?orderId={StringCipher.EncryptId((int)message.OrderId)}",
-                        CreatedAt = GeneralPurpose.DateTimeNow(),
-                        Description = "You just received a message for your order.",
-                        NotificationType = (int)NotificationType.OrderCancellationRequested
-                    };
-                    bool isNotification = await _notificationService.AddNotification(notificationObj);
-                    await _notificationHubSocket.Clients.All.SendAsync("ReloadNotifications", message.ReceiverId.ToString());
-                    await _notificationHubSocket.Clients.All.SendAsync("ReceiveOrderMessage", orderMessage);
+                    await AddNotification(message, "Message Received", "You just received a message for your order.",
+                        $"order-details/{HttpUtility.UrlDecode(postAddMessage.OrderId!)}", postAddMessage.Way!);
+                    
+                    var userCache = new Dictionary<int, Models.User>();
+                    var viewModelMessage = await CreateViewModelMessage(message, getSender!, userCache, getOrder);
+                    viewModelMessage.SenderId = decrypt.ToString();
+                    viewModelMessage.ReceiverId = decryptRecieverId.ToString();
 
-                    var datas = new { 
-                        UserName = getSender?.UserName,
-                        Profile = getSender?.ProfilePicture,
-                        Message = message.MessageDescription,
-                        MessageTime = orderMessage.messageTime,
-                        FilePath = message.FilePath };
+                    await _notificationHubSocket.Clients.All.SendAsync("SendOrderMessage",
+                            viewModelMessage,
+                            message.SenderId,
+                            message.ReceiverId
+                        );
 
-                    return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "", datas));
+                    return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "", viewModelMessage));
                 }
                 return BadRequest(GeneralPurpose.GenerateResponseCode(false, "404", error, null));
             }
             catch (Exception ex)
             {
-                var error = postAddMessage.Way != "Cancel" ? GlobalMessages.MessageSentFail : GlobalMessages.OrderDeliverFail;
+                var error = postAddMessage.Way != "cancel" ? GlobalMessages.MessageSentFail : GlobalMessages.OrderDeliverFail;
                 return BadRequest(GeneralPurpose.GenerateResponseCode(false, "404", error, null));
             }
-        }
-
-        private async Task<Message> MapMessage(PostAddMessage message, int SenderId, int ReceiverId, int OrderId)
-        {
-            var filePath = "";
-            if (message.IFilePath != null)
-            {
-                filePath = await UploadFiles(message.IFilePath, "OrderDeliverable");
-                message.FilePath = filePath;
-            }
-
-            if (message.Way == "Cancel")
-            {
-                var getOrder = await orderRepo.GetOrderById(OrderId);
-                getOrder!.IsDelivered = 1;
-                getOrder.UpdatedAt = GeneralPurpose.DateTimeNow();
-                var updateOrder = await orderRepo.UpdateOrder(getOrder);
-            }
-
-            return new Message()
-            {
-                MessageDescription = String.IsNullOrEmpty(message.MessageDescription) ? "" : message.MessageDescription,
-                SenderId = SenderId,
-                ReceiverId = ReceiverId,
-                OrderId = OrderId,
-                IsRead = 0,
-                IsActive = 1,
-                CreatedAt = GeneralPurpose.DateTimeNow(),
-            };
-        }
-
-        private ReceiveOrderMessageDto MapOrderMessage(Message message, User sender, string? orderType = "")
-        {
-            return new ReceiveOrderMessageDto()
-            {
-                newOrderReasonId = "",
-                IsDelivery = orderType,
-                userName = sender.UserName,
-                filePath = message.FilePath,
-                senderId = message.SenderId,
-                receiverId = message.ReceiverId,
-                userProfile = sender.ProfilePicture,
-                message = message.MessageDescription,
-                messageTime = GeneralPurpose.regionChanged(Convert.ToDateTime(message.CreatedAt), sender.Timezone!),
-            };
         }
 
         [HttpPut("PostOrderStatus")]
@@ -1325,113 +1102,6 @@ namespace ITValet.Controllers
             return "";
         }
 
-        #region Helpers
-        private async Task<ViewModelMessageChatBox> CreateViewModelMessage(Message message, User loggedInUser,
-            Dictionary<int, User> userCache, Order order)
-        {
-            string startUrl = string.Empty, endUrl = string.Empty;
-
-            if (message.IsZoomMessage == 1)
-            {
-                startUrl = ExtractPart(message.MessageDescription, 1);
-                endUrl = ExtractPart(message.MessageDescription, 2);
-            }
-
-            var orderReason = message.OrderReasonId.HasValue
-                ? await orderReasonRepo.GetOrderReasonByOrderReasonId((int)message.OrderReasonId)
-                : null;
-
-            var receiverId = loggedInUser.Id == message.SenderId ? message.ReceiverId : message.SenderId;
-
-            if (!userCache.ContainsKey((int)receiverId))
-            {
-                userCache[(int)receiverId] = await userRepo.GetUserById((int)receiverId);
-            }
-
-            var receiver = userCache[(int)receiverId];
-
-            var viewModel = new ViewModelMessageChatBox
-            {
-                Id = message.Id.ToString(),
-                MessageEncId = StringCipher.EncryptId(message.Id),
-                MessageDescription = message.MessageDescription,
-                IsRead = message.IsRead?.ToString(),
-                FilePath = message.FilePath,
-                MessageTime = GeneralPurpose.regionChanged(Convert.ToDateTime(message.CreatedAt), loggedInUser.Timezone),
-                SenderId = message.SenderId.ToString(),
-                OrderReasonId = message.OrderReasonId?.ToString(),
-                CustomerId = order.CustomerId.ToString(),
-                ValetId = order.ValetId.ToString(),
-                CustomerEncId = StringCipher.EncryptId((int)order.CustomerId!),
-                ValetEncId = StringCipher.EncryptId((int)order.ValetId!),
-            };
-
-            SetOrderReasonDetails(viewModel, orderReason);
-            SetOfferDetails(viewModel, message);
-            SetZoomMessageDetails(viewModel, message, loggedInUser, receiver, startUrl, endUrl);
-
-            if (loggedInUser.Id == message.SenderId)
-            {
-                viewModel.Username = loggedInUser.UserName;
-                viewModel.ProfileImage = loggedInUser.ProfilePicture;
-                viewModel.Name = $"{loggedInUser.FirstName} {loggedInUser.LastName}";
-            }
-            else
-            {
-                viewModel.Username = receiver.UserName;
-                viewModel.ProfileImage = receiver.ProfilePicture;
-                viewModel.Name = $"{receiver.FirstName} {receiver.LastName}";
-            }
-
-            return viewModel;
-        }
-
-        private void SetOrderReasonDetails(ViewModelMessageChatBox viewModel, OrderReason orderReason)
-        {
-            if (orderReason != null)
-            {
-                viewModel.OrderReasonType = Enum.GetName(typeof(OrderReasonType), orderReason.ReasonType);
-                viewModel.OrderReasonIsActive = orderReason.IsActive?.ToString();
-            }
-        }
-
-        private void SetOfferDetails(ViewModelMessageChatBox viewModel, Message message)
-        {
-            if (message.OfferDetails != null)
-            {
-                viewModel.OfferTitleId = message.OfferDetails.Id.ToString();
-                viewModel.OfferTitle = message.OfferDetails.OfferTitle;
-                viewModel.OfferDescription = message.OfferDetails.OfferDescription;
-                viewModel.OfferPrice = message.OfferDetails.OfferPrice.ToString();
-                viewModel.StartedDateTime = message.OfferDetails.StartedDateTime?.ToString();
-                viewModel.EndedDateTime = message.OfferDetails.EndedDateTime?.ToString();
-                viewModel.CustomerId = message.OfferDetails.CustomerId?.ToString();
-                viewModel.ValetId = message.OfferDetails.ValetId?.ToString();
-                viewModel.OfferStatus = message.OfferDetails.OfferStatus?.ToString();
-            }
-        }
-
-        private void SetZoomMessageDetails(ViewModelMessageChatBox viewModel, Message message, User loggedInUser,
-            User receiver, string startUrl, string endUrl)
-        {
-            if (message.IsZoomMessage == 1)
-            {
-                viewModel.IsZoomMeeting = string.IsNullOrEmpty(startUrl) ? 0 : 1;
-                viewModel.MessageDescription = "Zoom Meeting Created";
-                viewModel.OrderReasonType = "Zoom";
-
-                if (loggedInUser.Id == message.SenderId)
-                {
-                    viewModel.StartUrl = startUrl;
-                }
-                else
-                {
-                    viewModel.JoinUrl = endUrl;
-                }
-            }
-        }
-        #endregion
-
         #endregion
 
         #region Zoom
@@ -1465,8 +1135,16 @@ namespace ITValet.Controllers
         [HttpPost("CreateZoomMeeting")]
         public async Task<IActionResult> CreateZoomMeeting(string ReceiverId = "", string SenderId = "", string OrderId = "")
         {
-            var getToken = await GetLoginWithAccountId(GlobalMessages.ZoomAccountId, GlobalMessages.ZoomClientId, GlobalMessages.ZoomClientSecret);
-            var getLoggedInUser = await userRepo.GetUserById(Convert.ToInt32(SenderId));
+            var decryptReceiver = DecryptionId(ReceiverId);
+            var decryptSender = DecryptionId(SenderId);
+            var decryptOrder = DecryptionId(OrderId);
+
+            var getSender = await userRepo.GetUserById(decryptSender);
+            var getReceiver = await userRepo.GetUserById(decryptReceiver);
+            var getOrder = await orderRepo.GetOrderById(decryptOrder);
+
+            var getToken = await GetLoginWithAccountId(_zoomVariables.AccountId!, _zoomVariables.ClientId!, _zoomVariables.ClientSecret!);
+
             if (getToken != null)
             {
                 var getDateTimeForZoom = GeneralPurpose.DateTimeNow();
@@ -1486,7 +1164,6 @@ namespace ITValet.Controllers
                 request.AddParameter("application/json", modal, ParameterType.RequestBody);
 
                 RestClient client = new RestClient();
-                //var Url = string.Format("https://api.zoom.us/v2/users/" + GetUserDetail + "/meetings");
                 var Url = string.Format("https://api.zoom.us/v2/users/me/meetings");
                 client = new RestClient(Url);
 
@@ -1494,70 +1171,42 @@ namespace ITValet.Controllers
                 if (response.StatusCode == System.Net.HttpStatusCode.Created)
                 {
                     ZoomMeetingResponse zoomMeetingResponse = JsonConvert.DeserializeObject<ZoomMeetingResponse>(response.Content.ToString());
-                    var getMessage = new Message();
-                    getMessage.SenderId = Convert.ToInt32(SenderId);
-                    getMessage.ReceiverId = Convert.ToInt32(ReceiverId);
-                    getMessage.OrderId = Convert.ToInt32(OrderId);
-                    getMessage.MessageDescription = zoomMeetingResponse.start_url + ":ZoomLink:" + zoomMeetingResponse.join_url;
-                    getMessage.IsZoomMessage = 1;
-                    getMessage.CreatedAt = GeneralPurpose.DateTimeNow();
+                    var generateURl = zoomMeetingResponse!.start_url + ":ZoomLink:" + zoomMeetingResponse.join_url;
+                    
+                    var message = MapMessageForZoom(generateURl, decryptSender, decryptReceiver, decryptOrder);
+                    var getMessage = await PostAddOrderReasonMessage(message);
+                    var receiveOrderMessageDto = MapOrderMessage(message, getSender!);
+                    receiveOrderMessageDto.message = "Click the link to Open Zoom Meeting";
+                    receiveOrderMessageDto.reasonType = "Zoom";
+                    receiveOrderMessageDto.StartUrl = zoomMeetingResponse.start_url;
+                    receiveOrderMessageDto.JoinUrl = zoomMeetingResponse.join_url;
+                    //For Sender
+                    await AddNotification(message, "Zoom Meeting", "You created new zoom meeting",
+                        $"order-details/{HttpUtility.UrlDecode(OrderId)}", "Zoom Meeting Created");
+                    //For Receiver
+                    await AddNotification(message, "Zoom Meeting Created", "You created new zoom meeting",
+                        $"order-details/{HttpUtility.UrlDecode(OrderId)}", "Zoom Meeting Created");
 
-                    var message = await PostAddOrderReasonMessage(getMessage);
+                    var userCache = new Dictionary<int, Models.User>();
+                    var viewModelMessage = await CreateViewModelMessage(message, getSender!, userCache, getOrder!);
+                    viewModelMessage.SenderId = decryptSender.ToString();
+                    viewModelMessage.ReceiverId = decryptReceiver.ToString();
+                    viewModelMessage.JoinUrl = receiveOrderMessageDto.JoinUrl;
 
-                    string msgTime = GeneralPurpose.regionChanged(Convert.ToDateTime(message.CreatedAt), getLoggedInUser.Timezone);
-                    string userName = getLoggedInUser.UserName;
-                    string profile = getLoggedInUser.ProfilePicture;
+                    await _notificationHubSocket.Clients.All.SendAsync("SendOrderMessage",
+                            viewModelMessage,
+                            message.SenderId,
+                            message.ReceiverId
+                        );
 
-
-                    ReceiveOrderMessageDto receiveOrderMessageDto = new ReceiveOrderMessageDto()
-                    {
-                        senderId = message.SenderId,
-                        receiverId = message.ReceiverId,
-                        userName = userName,
-                        userProfile = profile,
-                        message = "Click the link to Open Zoom Meeting",
-                        reasonType = "Zoom",
-                        messageTime = msgTime,
-                        newOrderReasonId = "",
-                        StartUrl = zoomMeetingResponse.start_url,
-                        JoinUrl = zoomMeetingResponse.join_url,
-                    };
-                    Notification notificationObj1 = new Notification
-                    {
-                        UserId = message.SenderId,
-                        Title = "Zoom Meeting",
-                        IsRead = 0,
-                        IsActive = (int)EnumActiveStatus.Active,
-                        Url = $"{projectVariables.BaseUrl}User/OrderDetail?orderId={StringCipher.EncryptId((int)message.OrderId)}",
-                        CreatedAt = GeneralPurpose.DateTimeNow(),
-                        Description = "You created new zoom meeting",
-                        NotificationType = (int)NotificationType.ZoomMeetingCreated
-                    };                   
-                    Notification notificationObj2 = new Notification
-                    {
-                        UserId = message.ReceiverId,
-                        Title = "Zoom Meeting Created",
-                        IsRead = 0,
-                        IsActive = (int)EnumActiveStatus.Active,
-                        Url = $"{projectVariables.BaseUrl}User/OrderDetail?orderId={StringCipher.EncryptId((int)message.OrderId)}",
-                        CreatedAt = GeneralPurpose.DateTimeNow(),
-                        Description = "Zoom meeting has been created for your Order.",
-                        NotificationType = (int)NotificationType.ZoomMeetingCreated
-                    };
-
-                    bool isNotification = await _notificationService.AddNotification(notificationObj1);
-                    bool isNotification2 = await _notificationService.AddNotification(notificationObj2);
-                    await _notificationHubSocket.Clients.All.SendAsync("ReloadNotifications", message.ReceiverId.ToString());
-                    await _notificationHubSocket.Clients.All.SendAsync("ReloadNotifications", message.SenderId.ToString());
-                    await _notificationHubSocket.Clients.All.SendAsync("ReceiveOrderMessage", receiveOrderMessageDto);
-                    return Ok(new { Status = true, Message = "Zoom Meeting Created Successfully", Profile = profile, userName = userName, MessageTime = msgTime, StartUrl = zoomMeetingResponse.start_url, JoinUrl = zoomMeetingResponse.join_url });
+                    return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "", viewModelMessage));
                 }
                 else
                 {
-                    return Ok(new { Status = false, Message = "Failed To Create Zoom Meeting" });
+                    return BadRequest(GeneralPurpose.GenerateResponseCode(false, "404", "Failed To Create Zoom Meeting", null));
                 }
             }
-            return Ok(new { Status = false, Message = "There is an error while creating Zoom Meeting" });
+            return BadRequest(GeneralPurpose.GenerateResponseCode(false, "404", "Failed To Create Zoom Meeting", null));
         }
 
         #endregion
@@ -2073,6 +1722,365 @@ namespace ITValet.Controllers
             
             return false;
         }
+
+
+        #region Helpers
+        #region PostAddMessages
+        private async Task CreateMessage(PostAddMessage postAddMessage, Message message)
+        {
+            message.MessageDescription = postAddMessage.MessageDescription;
+            message.SenderId = Convert.ToInt32(postAddMessage.SenderId);
+            message.ReceiverId = Convert.ToInt32(postAddMessage.ReceiverId);
+            message.IsRead = 0;
+            message.IsActive = 1;
+            message.CreatedAt = GeneralPurpose.DateTimeNow();
+            await messagesRepo.AddMessage(message);
+        }
+
+        private async Task AddNotification(Message message, string title, string description, string url, string orderType = "")
+        {
+            var notificationObj = new Notification();
+            if (!string.IsNullOrEmpty(orderType))
+            {
+                if(orderType == "cancel")
+                {
+                    notificationObj.NotificationType = (int)NotificationType.OrderCancellationRequested;
+                }
+                else
+                {
+                    if(orderType == "Zoom Meeting Created")
+                    {
+                        notificationObj.NotificationType = (int)NotificationType.ZoomMeetingCreated;
+                    }
+                }
+            }
+            notificationObj.IsRead = 0;
+            notificationObj.Title = title;
+            notificationObj.Description = description;
+            notificationObj.UserId = message.ReceiverId;
+            notificationObj.IsActive = (int)EnumActiveStatus.Active;
+            notificationObj.Url = $"{projectVariables.BaseUrl}{url}";
+            notificationObj.CreatedAt = GeneralPurpose.DateTimeNow();
+
+            await _notificationService.AddNotification(notificationObj);
+            await _notificationHubSocket.Clients.All.SendAsync("ReloadNotifications",
+                notificationObj.UserId.ToString(),
+                notificationObj.Title,
+                notificationObj.IsRead,
+                notificationObj.IsActive,
+                notificationObj.Url,
+                notificationObj.Description,
+                notificationObj.CreatedAt,
+                notificationObj.NotificationType
+            );
+        }
+
+        private async Task<OfferDetail> CreateOffer(PostAddMessage postAddMessage, Message message,
+            User getLoggedInUser, decimal pricePerHour)
+        {
+            var orderStartTime = Convert.ToDateTime(postAddMessage.StartedDateTime);
+            var orderEndTime = Convert.ToDateTime(postAddMessage.EndedDateTime);
+            var totalHours = GeneralPurpose.CalculatePrice(orderStartTime, orderEndTime, pricePerHour);
+
+            postAddMessage.CustomerId = getLoggedInUser.Role != 3 ? postAddMessage.ReceiverId.ToString() : postAddMessage.SenderId.ToString();
+            postAddMessage.ValetId = postAddMessage.ValetId;
+            postAddMessage.OfferPrice = totalHours.price.ToString();
+            postAddMessage.TransactionFee = totalHours.fee.ToString();
+
+            var offer = new OfferDetail
+            {
+                OfferTitle = postAddMessage.OfferTitle,
+                OfferDescription = postAddMessage.OfferDescription,
+                OfferPrice = Convert.ToDouble(postAddMessage.OfferPrice),
+                StartedDateTime = orderStartTime,
+                EndedDateTime = orderEndTime,
+                OfferStatus = 1,
+                TransactionFee = postAddMessage.TransactionFee,
+                CustomerId = Convert.ToInt32(postAddMessage.CustomerId),
+                ValetId = Convert.ToInt32(postAddMessage.ValetId),
+                MessageId = message.Id
+            };
+
+            if (await offerDetailsRepo.AddOfferDetail(offer))
+            {
+                return offer;
+            }
+
+            return null;
+        }
+
+        private async Task<ViewModelMessageChatBox> NotifyOffer(OfferDetail offer, Message message, User getLoggedInUser)
+        {
+            var viewModelMessage = new ViewModelMessageChatBox
+            {
+                Id = message.Id.ToString(),
+                MessageEncId = StringCipher.EncryptId(message.Id),
+                MessageDescription = message.MessageDescription,
+                IsRead = message.IsRead?.ToString(),
+                FilePath = message.FilePath,
+                MessageTime = GeneralPurpose.regionChanged(Convert.ToDateTime(message.CreatedAt), getLoggedInUser?.Timezone!),
+                SenderId = message.SenderId.ToString(),
+            };
+            //order wprk
+            if (offer != null)
+            {
+                viewModelMessage.OfferTitleId = offer.Id.ToString();
+                viewModelMessage.OfferTitle = offer.OfferTitle;
+                viewModelMessage.TransactionFee = offer.TransactionFee;
+                viewModelMessage.OfferDescription = offer.OfferDescription;
+                viewModelMessage.OfferPrice = offer.OfferPrice.ToString();
+                viewModelMessage.StartedDateTime = offer.StartedDateTime.ToString();
+                viewModelMessage.EndedDateTime = offer.EndedDateTime.ToString();
+                viewModelMessage.CustomerId = offer.CustomerId.ToString();
+                viewModelMessage.ValetId = offer.ValetId.ToString();
+                viewModelMessage.OfferStatus = offer.OfferStatus.ToString();
+                viewModelMessage.Name = $"{getLoggedInUser?.FirstName} {getLoggedInUser?.LastName}";
+                viewModelMessage.Username = getLoggedInUser?.UserName;
+                viewModelMessage.ProfileImage = getLoggedInUser?.ProfilePicture;
+            }
+            //end
+
+
+            await _notificationHubSocket.Clients.All.SendAsync("ReceiveOffers",
+                viewModelMessage,
+                message.SenderId,
+                message.ReceiverId
+            );
+            return viewModelMessage;
+        }
+        #endregion
+        
+        #region GetMessagesForUsers
+        private ViewModelMessageChatBox MapMessageToViewModel(Message message, User loggedInUser, User targetUser)
+        {
+            var viewModel = new ViewModelMessageChatBox
+            {
+                Id = message.Id.ToString(),
+                FilePath = message.FilePath,
+                IsRead = message.IsRead?.ToString(),
+                SenderId = message.SenderId.ToString(),
+                MessageDescription = message.MessageDescription,
+                MessageEncId = StringCipher.EncryptId(message.Id),
+                SenderEncId = StringCipher.EncryptId((int)message.SenderId!),
+                MessageTime = GeneralPurpose.regionChanged(Convert.ToDateTime(message.CreatedAt), loggedInUser.Timezone!),
+
+            };
+            if (loggedInUser.Role == 4)
+            {
+                viewModel.PricePerHour = loggedInUser.PricePerHour.ToString();
+            }
+            else if (targetUser.Role == 4)
+            {
+                viewModel.PricePerHour = targetUser.PricePerHour.ToString();
+            }
+
+            if (message.OfferDetails != null)
+            {
+                MapOfferDetailsToViewModel(viewModel, message.OfferDetails);
+            }
+
+            if (loggedInUser.Id == message.SenderId)
+            {
+                viewModel.Name = $"{loggedInUser.FirstName} {loggedInUser.LastName}";
+                viewModel.Username = loggedInUser.UserName;
+                viewModel.ProfileImage = projectVariables.BaseUrl + loggedInUser.ProfilePicture;
+            }
+            else
+            {
+                viewModel.ReceiverEncId = StringCipher.EncryptId(targetUser.Id!);
+                viewModel.Name = $"{targetUser.FirstName} {targetUser.LastName}";
+                viewModel.Username = targetUser.UserName;
+                viewModel.ProfileImage = projectVariables.BaseUrl + targetUser.ProfilePicture;
+            }
+
+            return viewModel;
+        }
+
+        private void MapOfferDetailsToViewModel(ViewModelMessageChatBox viewModel, OfferDetail offerDetails)
+        {
+            viewModel.OfferTitleId = offerDetails.Id.ToString();
+            viewModel.OfferTitle = offerDetails.OfferTitle;
+            viewModel.TransactionFee = offerDetails.TransactionFee;
+            viewModel.OfferDescription = offerDetails.OfferDescription;
+            viewModel.OfferPrice = offerDetails.OfferPrice.ToString();
+            viewModel.StartedDateTime = offerDetails.StartedDateTime.ToString();
+            viewModel.EndedDateTime = offerDetails.EndedDateTime.ToString();
+            viewModel.CustomerId = offerDetails.CustomerId.ToString();
+            viewModel.ValetId = offerDetails.ValetId.ToString();
+            viewModel.OfferStatus = offerDetails.OfferStatus.ToString();
+            viewModel.CustomerEncId = StringCipher.EncryptId((int)offerDetails.CustomerId!);
+            viewModel.ValetEncId = StringCipher.EncryptId((int)offerDetails.ValetId!);
+        }
+        #endregion
+
+        #region GetMessagesForOrder
+        private async Task<ViewModelMessageChatBox> CreateViewModelMessage(Message message, User loggedInUser,
+            Dictionary<int, User> userCache, Order order)
+        {
+            string startUrl = string.Empty, endUrl = string.Empty;
+
+            if (message.IsZoomMessage == 1)
+            {
+                startUrl = ExtractPart(message.MessageDescription, 1);
+                endUrl = ExtractPart(message.MessageDescription, 2);
+            }
+
+            var orderReason = message.OrderReasonId.HasValue
+                ? await orderReasonRepo.GetOrderReasonByOrderReasonId((int)message.OrderReasonId)
+                : null;
+
+            var receiverId = loggedInUser.Id == message.SenderId ? message.ReceiverId : message.SenderId;
+
+            if (!userCache.ContainsKey((int)receiverId))
+            {
+                userCache[(int)receiverId] = await userRepo.GetUserById((int)receiverId);
+            }
+
+            var receiver = userCache[(int)receiverId];
+
+            var viewModel = new ViewModelMessageChatBox
+            {
+                Id = message.Id.ToString(),
+                FilePath = $"{projectVariables.BaseUrl}{message.FilePath}" ,
+                ValetId = order.ValetId.ToString(),
+                IsRead = message.IsRead?.ToString(),
+                SenderId = message.SenderId.ToString(),
+                CustomerId = order.CustomerId.ToString(),
+                MessageDescription = message.MessageDescription,
+                MessageEncId = StringCipher.EncryptId(message.Id),
+                OrderReasonId = message.OrderReasonId?.ToString(),
+                ValetEncId = StringCipher.EncryptId((int)order.ValetId!),
+                CustomerEncId = StringCipher.EncryptId((int)order.CustomerId!),
+                MessageTime = GeneralPurpose.regionChanged(Convert.ToDateTime(message.CreatedAt), loggedInUser.Timezone!),
+            };
+
+            SetOrderReasonDetails(viewModel, orderReason);
+            SetOfferDetails(viewModel, message);
+            SetZoomMessageDetails(viewModel, message, loggedInUser, receiver, startUrl, endUrl);
+
+            if (loggedInUser.Id == message.SenderId)
+            {
+                viewModel.Username = loggedInUser.UserName;
+                viewModel.ProfileImage = loggedInUser.ProfilePicture;
+                viewModel.Name = $"{loggedInUser.FirstName} {loggedInUser.LastName}";
+            }
+            else
+            {
+                viewModel.Username = receiver.UserName;
+                viewModel.ProfileImage = receiver.ProfilePicture;
+                viewModel.Name = $"{receiver.FirstName} {receiver.LastName}";
+            }
+
+            return viewModel;
+        }
+
+        private void SetOrderReasonDetails(ViewModelMessageChatBox viewModel, OrderReason orderReason)
+        {
+            if (orderReason != null)
+            {
+                viewModel.OrderReasonType = Enum.GetName(typeof(OrderReasonType), orderReason.ReasonType);
+                viewModel.OrderReasonIsActive = orderReason.IsActive?.ToString();
+            }
+        }
+
+        private void SetOfferDetails(ViewModelMessageChatBox viewModel, Message message)
+        {
+            if (message.OfferDetails != null)
+            {
+                viewModel.OfferTitleId = message.OfferDetails.Id.ToString();
+                viewModel.OfferTitle = message.OfferDetails.OfferTitle;
+                viewModel.OfferDescription = message.OfferDetails.OfferDescription;
+                viewModel.OfferPrice = message.OfferDetails.OfferPrice.ToString();
+                viewModel.StartedDateTime = message.OfferDetails.StartedDateTime?.ToString();
+                viewModel.EndedDateTime = message.OfferDetails.EndedDateTime?.ToString();
+                viewModel.CustomerId = message.OfferDetails.CustomerId?.ToString();
+                viewModel.ValetId = message.OfferDetails.ValetId?.ToString();
+                viewModel.OfferStatus = message.OfferDetails.OfferStatus?.ToString();
+            }
+        }
+
+        private void SetZoomMessageDetails(ViewModelMessageChatBox viewModel, Message message, User loggedInUser,
+            User receiver, string startUrl, string endUrl)
+        {
+            if (message.IsZoomMessage == 1)
+            {
+                viewModel.IsZoomMeeting = string.IsNullOrEmpty(startUrl) ? 0 : 1;
+                viewModel.MessageDescription = "Zoom Meeting Created";
+                viewModel.OrderReasonType = "Zoom";
+
+                if (loggedInUser.Id == message.SenderId)
+                {
+                    viewModel.StartUrl = startUrl;
+                }
+                else
+                {
+                    viewModel.JoinUrl = endUrl;
+                }
+            }
+        }
+        #endregion
+        
+        #region PostAddOrderMessages
+        private async Task<Message> MapMessage(PostAddMessage message, int SenderId, int ReceiverId, Order order)
+        {
+            var filePath = "";
+            if (message.IFilePath != null)
+            {
+                filePath = await UploadFiles(message.IFilePath, "OrderDeliverable");
+                message.FilePath = filePath;
+            }
+
+            if (message.Way == "cancel")
+            {
+                order!.IsDelivered = 1;
+                order.UpdatedAt = GeneralPurpose.DateTimeNow();
+                var updateOrder = await orderRepo.UpdateOrder(order);
+            }
+
+            return new Message()
+            {
+                MessageDescription = String.IsNullOrEmpty(message.MessageDescription) ? "" : message.MessageDescription,
+                SenderId = SenderId,
+                ReceiverId = ReceiverId,
+                OrderId = order.Id,
+                IsRead = 0,
+                IsActive = 1,
+                CreatedAt = GeneralPurpose.DateTimeNow(),
+                FilePath = message.FilePath
+            };
+        }
+
+        private Message MapMessageForZoom(string message, int SenderId, int ReceiverId, int order)
+        {
+            return new Message()
+            {
+                MessageDescription = message,
+                SenderId = SenderId,
+                ReceiverId = ReceiverId,
+                OrderId = order,
+                IsZoomMessage = 1,
+                IsActive = 1,
+                CreatedAt = GeneralPurpose.DateTimeNow(),
+            };
+        }
+
+        private ReceiveOrderMessageDto MapOrderMessage(Message message, User sender, string? orderType = "")
+        {
+            return new ReceiveOrderMessageDto()
+            {
+                newOrderReasonId = "",
+                IsDelivery = orderType,
+                userName = sender.UserName,
+                filePath = message.FilePath,
+                senderId = message.SenderId,
+                receiverId = message.ReceiverId,
+                userProfile = sender.ProfilePicture,
+                message = message.MessageDescription,
+                messageTime = GeneralPurpose.regionChanged(Convert.ToDateTime(message.CreatedAt), sender.Timezone!),
+            };
+        }
+        #endregion
+        #endregion
 
         private int DecryptionId(string id)
         {

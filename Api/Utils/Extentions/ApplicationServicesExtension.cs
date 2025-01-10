@@ -44,6 +44,7 @@ namespace ITValet.Utils.Extentions
             services.Configure<ProjectVariables>(configuration.GetSection("ProjectVariables"));
             services.Configure<StripeApiKeys>(configuration.GetSection("StripeApiKeys"));
             services.Configure<ReturnUrls>(configuration.GetSection("ReturnUrls"));
+            services.Configure<Zoom>(configuration.GetSection("Zoom"));
             
             services.AddScoped<IJwtUtils, JwtUtils>();
             services.AddScoped<ISearchLogService, SearchLogService>();

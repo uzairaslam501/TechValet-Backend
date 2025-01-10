@@ -1,13 +1,8 @@
 ﻿using ITValet.Filters;
 using ITValet.HelpingClasses;
-using ITValet.JWTAuthentication;
 using ITValet.Models;
-using ITValet.NotificationHub;
 using ITValet.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.SignalR;
-using Microsoft.Extensions.Options;
-using MimeKit;
 
 namespace ITValet.Controllers
 {

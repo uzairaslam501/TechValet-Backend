@@ -1359,7 +1359,9 @@ namespace ITValet.Controllers
                 CapturedId = getOrder.CapturedId,
                 ValetId = getOrder.ValetId.ToString(),
                 CreatedAt = Convert.ToDateTime(GeneralPurpose.regionChanged(Convert.ToDateTime(getOrder.CreatedAt), getUserFromToken.Timezone)).ToString("MM-dd-yyyy"),
-                Rating = await ratingRepo.GetOrderRatingByOrderId(getOrder.Id)
+                Rating = await ratingRepo.GetOrderRatingByOrderId(getOrder.Id),
+                CustomerEncId = StringCipher.EncryptId((int)getOrder.CustomerId),
+                ValetEncId = StringCipher.EncryptId((int)getOrder.ValetId),
             };
             
 
