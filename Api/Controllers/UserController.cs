@@ -1389,8 +1389,7 @@ namespace ITValet.Controllers
             {
                 order.UserName = getValet.FirstName + " " + getValet.LastName;
             }
-
-            return Ok(new ResponseDto() { Data = order, Status = true, StatusCode = "200" });
+            return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "", order));
         }
 
         [HttpGet("get-earnings/{userId}")]

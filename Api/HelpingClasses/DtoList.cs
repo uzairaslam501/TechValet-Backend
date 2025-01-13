@@ -720,6 +720,7 @@ namespace ITValet.HelpingClasses
         public string? ValetEncId { get; set; }
         public string? OfferStatus { get; set; }
         public string? OrderReasonId { get; set; }
+        public string? OrderReasonEncId { get; set; }
         public string? OrderReasonStatus { get; set; }
         public string? OrderReasonType { get; set; }
         public string? OrderReasonIsActive { get; set; }
@@ -767,6 +768,24 @@ namespace ITValet.HelpingClasses
     {
         public string? Reviews { get; set; }
         public int? Stars { get; set; }
+    }
+
+    public class OrderStatusDto
+    {
+        public string? OrderStatus { get; set; }
+        public string? SenderId { get; set; }
+        public string? ReceiverId { get; set; }
+        public string? Explanation { get; set; }
+        public string? DateExtension { get; set; }
+    }
+
+    public class OrderExtentionDto
+    {
+        public string? OrderReasonId { get; set; }
+        public string? OrderStatus { get; set; }
+        public string? ReceiverId { get; set; }
+        public string? SenderId { get; set; }
+        public string? DateExtension { get; set; }
     }
     #endregion
 

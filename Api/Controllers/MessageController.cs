@@ -794,7 +794,7 @@ namespace ITValet.Controllers
             }
         }
 
-        [HttpPut("PostOrderStatus")]
+        [HttpPut("PostOrderStatus/{orderId}")]
         public async Task<IActionResult> PostOrderStatus(string orderId, 
             string orderStatus, string senderId, string receiverId, string? explanation = "",
             string? dateExtension = "")
@@ -883,6 +883,18 @@ namespace ITValet.Controllers
             await _notificationHubSocket.Clients.All.SendAsync("ReceiveOrderMessage", receiveOrderMessageDto);
 
             return Ok(new { UserName = userName, Profile = profile, Message = message.MessageDescription, MessageTime = msgTime, NewOrderReasonId = orderReasons.Id.ToString() });
+        }
+
+        [HttpPut("RequestExtendDate/{orderId}")]
+        public async Task<IActionResult> PostOrderAccept(string orderId, OrderStatusDto obj)
+        {
+            return await HandleOrderStatusChange(orderId, obj, "Extend Date", "Order Date Extension Requested.", "extension", reasonType: 1);
+        }
+
+        [HttpPut("CancelOrder/{orderId}")]
+        public async Task<IActionResult> PostOrderCancel(string orderId, OrderStatusDto obj)
+        {
+            return await HandleOrderStatusChange(orderId, obj, "Cancel Order", "Order cancellation Requested.", "cancel", reasonType: 3);
         }
 
         [HttpPut("AcceptOrRejectOrderReason")]
@@ -997,50 +1009,71 @@ namespace ITValet.Controllers
             return Ok(new ResponseDto() { Status = true, StatusCode = "200", Data = orderDeliverObj });
         }
 
-        [HttpPut("PostExtendDeadline")]
-        public async Task<IActionResult> PostExtendDeadline(string orderId, string orderReasonId,
-            string orderStatus, string senderId, string receiverId, string datetime)
+        [HttpPut("ExtendDateApproval/{orderId}")]
+        public async Task<IActionResult> PostExtendDeadline(string orderId, OrderExtentionDto obj)
         {
-            var datetimes = Convert.ToDateTime(datetime);
-            var getLoggedInUser = await userRepo.GetUserById(Convert.ToInt32(senderId));
+            // Decrypt input IDs
+            var decryptSenderId = DecryptionId(obj.SenderId!);
+            var decryptReceiverId = DecryptionId(obj.ReceiverId!);
+            var decryptOrderId = DecryptionId(orderId!);
+            var decryptOrderReasonId = DecryptionId(obj.OrderReasonId!);
 
-            var getOrderReason = await orderReasonRepo.GetOrderReasonById(Convert.ToInt32(orderReasonId));
-            var getMessage = new Message();
-            getMessage.SenderId = Convert.ToInt32(senderId);
-            getMessage.ReceiverId = Convert.ToInt32(receiverId);
-            getMessage.OrderId = Convert.ToInt32(orderId);
-            getOrderReason.IsActive = 2;
+            // Fetch necessary entities
+            var order = await orderRepo.GetOrderById(decryptOrderId);
+            var sender = await userRepo.GetUserById(decryptSenderId);
+            var receiver = await userRepo.GetUserById(decryptReceiverId);
+            var getOrderReason = await orderReasonRepo.GetOrderReasonById(decryptOrderReasonId);
 
-            if (orderStatus == "Accept")
+            var datetimes = Convert.ToDateTime(obj.DateExtension);
+
+            var getMessage = new Message()
+            {
+                SenderId = decryptSenderId,
+                ReceiverId = decryptReceiverId,
+                OrderId = decryptOrderId,
+                MessageDescription = "Extention Has Not been Approved ",
+                OrderReasonId = decryptOrderReasonId
+            };
+           
+            if (obj.OrderStatus == "Accept")
             {
                 getMessage.MessageDescription = "Extention Date Has been Approved ";
-                await PostExtendOrderDate((int)getOrderReason.OrderId, datetimes.ToString());
+                await PostExtendOrderDate(decryptOrderId, datetimes.ToString());
             }
-            else
-            {
-                getMessage.MessageDescription = "Extention Has Not been Approved ";
-            }
+
+            getOrderReason!.IsActive = 2;
             getOrderReason.UpdatedAt = GeneralPurpose.DateTimeNow();
             await orderReasonRepo.UpdateOrderReason(getOrderReason);
-            getMessage.OrderReasonId = getOrderReason.Id;
+
             var message = await PostAddOrderReasonMessage(getMessage);
 
-            string msgTime = GeneralPurpose.regionChanged(Convert.ToDateTime(message.CreatedAt), getLoggedInUser.Timezone);
-            string userName = getLoggedInUser.UserName;
-            string profile = getLoggedInUser.ProfilePicture;
+            // Add a notification for the action
+            await AddNotification(
+                message,
+                "Order Extention Date Accepted",
+                "The date you have requested for extention has been accepted",
+                $"order-details/{HttpUtility.UrlDecode(orderId)}",
+                ""
+            );
 
-            ReceiveOrderMessageDto receiveOrderMessageDto = new ReceiveOrderMessageDto()
-            {
-                senderId = message.SenderId,
-                receiverId = message.ReceiverId,
-                userName = userName,
-                userProfile = profile,
-                message = message.MessageDescription,
-                messageTime = msgTime,
-            };
-            await _notificationHubSocket.Clients.All.SendAsync("ReceiveOrderMessage", receiveOrderMessageDto);
+            // Prepare data for the real-time notification
+            var userCache = new Dictionary<int, Models.User>();
+            var viewModelMessage = await CreateViewModelMessage(message, sender!, userCache, order!);
+            viewModelMessage.SenderId = decryptSenderId.ToString();
+            viewModelMessage.ReceiverId = decryptReceiverId.ToString();
+            viewModelMessage.OrderReasonId = decryptOrderReasonId.ToString();
+            viewModelMessage.OrderReasonEncId = StringCipher.EncryptId(decryptOrderReasonId);
 
-            return Ok(new ResponseDto() { Status = true, StatusCode = "200", Message = receiveOrderMessageDto.message });
+            // Send a notification to connected clients via SignalR
+            await _notificationHubSocket.Clients.All.SendAsync(
+                "SendOrderMessage",
+                viewModelMessage,
+                message.SenderId,
+                message.ReceiverId
+            );
+
+            // Return success response
+            return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "", viewModelMessage));
         }
 
         private static int GetLastNumberOfString(string input)
@@ -1746,12 +1779,13 @@ namespace ITValet.Controllers
                 {
                     notificationObj.NotificationType = (int)NotificationType.OrderCancellationRequested;
                 }
-                else
+                else if (orderType == "Zoom Meeting Created")
                 {
-                    if(orderType == "Zoom Meeting Created")
-                    {
-                        notificationObj.NotificationType = (int)NotificationType.ZoomMeetingCreated;
-                    }
+                    notificationObj.NotificationType = (int)NotificationType.ZoomMeetingCreated;
+                }
+                else if(orderType == "extention")
+                {
+                    notificationObj.NotificationType = (int)NotificationType.DateExtensionRequested;
                 }
             }
             notificationObj.IsRead = 0;
@@ -1941,7 +1975,7 @@ namespace ITValet.Controllers
             var viewModel = new ViewModelMessageChatBox
             {
                 Id = message.Id.ToString(),
-                FilePath = $"{projectVariables.BaseUrl}{message.FilePath}" ,
+                FilePath = !string.IsNullOrEmpty(message.FilePath) ? $"{projectVariables.BaseUrl}{message.FilePath}" : "",
                 ValetId = order.ValetId.ToString(),
                 IsRead = message.IsRead?.ToString(),
                 SenderId = message.SenderId.ToString(),
@@ -2078,6 +2112,113 @@ namespace ITValet.Controllers
                 message = message.MessageDescription,
                 messageTime = GeneralPurpose.regionChanged(Convert.ToDateTime(message.CreatedAt), sender.Timezone!),
             };
+        }
+        #endregion
+
+        #region CancelAcceptOrders
+        private async Task<IActionResult> HandleOrderStatusChange(string orderId, OrderStatusDto obj, string notificationTitle,
+            string notificationMessage, string notificationType, int reasonType)
+        {
+            try
+            {
+                // Decrypt input IDs
+                var decryptSenderId = DecryptionId(obj.SenderId!);
+                var decryptReceiverId = DecryptionId(obj.ReceiverId!);
+                var decryptOrderId = DecryptionId(orderId!);
+
+                // Fetch necessary entities
+                var sender = await userRepo.GetUserById(decryptSenderId);
+                var receiver = await userRepo.GetUserById(decryptReceiverId);
+                var order = await orderRepo.GetOrderById(decryptOrderId);
+
+                if (sender == null || receiver == null || order == null)
+                    return NotFound(GeneralPurpose.GenerateResponseCode(false, "404", "Invalid sender, receiver, or order ID."));
+
+                // Prepare the order reason entity
+                var orderReason = await CreateOrderReason(order, obj, reasonType);
+
+                // Prepare the message entity
+                var message = await CreateStatusMessage(decryptOrderId, decryptSenderId, decryptReceiverId, orderReason, obj.DateExtension);
+
+                // Add a notification for the action
+                await AddNotification(
+                    message,
+                    notificationTitle,
+                    notificationMessage,
+                    $"order-details/{HttpUtility.UrlDecode(orderId)}",
+                    notificationType
+                );
+
+                // Prepare data for the real-time notification
+                var userCache = new Dictionary<int, Models.User>();
+                var viewModelMessage = await CreateViewModelMessage(message, sender, userCache, order);
+                viewModelMessage.SenderId = decryptSenderId.ToString();
+                viewModelMessage.ReceiverId = decryptReceiverId.ToString();
+                viewModelMessage.OrderReasonId = orderReason.Id.ToString();
+                viewModelMessage.OrderReasonEncId = StringCipher.EncryptId(orderReason.Id);
+
+                // Send a notification to connected clients via SignalR
+                await _notificationHubSocket.Clients.All.SendAsync(
+                    "SendOrderMessage",
+                    viewModelMessage,
+                    message.SenderId,
+                    message.ReceiverId
+                );
+
+                // Return success response
+                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "", viewModelMessage));
+            }
+            catch (Exception ex)
+            {
+                // Log the exception for debugging
+                Console.WriteLine($"Error: {ex.Message}");
+                return StatusCode(500, GeneralPurpose.GenerateResponseCode(false, "500", "An error occurred while processing the request."));
+            }
+        }
+
+        private async Task<OrderReason> CreateOrderReason(Order order, OrderStatusDto obj, int reasonType)
+        {
+            var orderReason = new OrderReason
+            {
+                OrderId = order.Id,
+                ReasonExplanation = $"<strong>Reason: </strong> {obj.Explanation}",
+                IsActive = 2,
+                CreatedAt = GeneralPurpose.DateTimeNow(),
+                ReasonType = reasonType
+            };
+
+            if (!string.IsNullOrEmpty(obj.DateExtension))
+            {
+                DateTime dateOfExtension = DateTime.Parse(obj.DateExtension);
+                DateTime currentDate = DateTime.Now;
+                TimeSpan timeDifference = dateOfExtension - currentDate;
+                // Extract days, hours, and minutes
+                int daysDifference = timeDifference.Days;
+                int hoursDifference = timeDifference.Hours;
+                int minutesDifference = timeDifference.Minutes;
+
+                orderReason.ReasonExplanation += $"<br /> <strong>Requested time: </strong> {daysDifference} days, {hoursDifference} hours, and {minutesDifference} minutes.";
+            }
+
+            return await orderReasonRepo.AddOrderReason(orderReason);
+        }
+
+        private async Task<Message> CreateStatusMessage(int orderId, int senderId, int receiverId,
+            OrderReason orderReason, string? dateExtension)
+        {
+            var message = new Message
+            {
+                OrderId = orderId,
+                SenderId = senderId,
+                ReceiverId = receiverId,
+                OrderReasonId = orderReason.Id,
+                MessageDescription = orderReason.ReasonExplanation
+            };
+
+            if (!string.IsNullOrEmpty(dateExtension))
+                message.MessageDescription += $"<br /> <strong>Extended to: </strong> {Convert.ToDateTime(dateExtension).ToString("yyyy-MM-dd HH:mm tt")}";
+
+            return await PostAddOrderReasonMessage(message);
         }
         #endregion
         #endregion
