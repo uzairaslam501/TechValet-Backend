@@ -1037,12 +1037,16 @@ namespace ITValet.Controllers
            
             if (obj.OrderStatus == "Accept")
             {
+                getOrderReason!.IsActive = 2; //Accept Case
                 getMessage.MessageDescription = "Extention Date Has been Approved ";
                 await PostExtendOrderDate(decryptOrderId, datetimes.ToString());
             }
+            else
+            {
+                getOrderReason!.IsActive = 3; //Reject Case
+            }
 
-            getOrderReason!.IsActive = 2;
-            getOrderReason.UpdatedAt = GeneralPurpose.DateTimeNow();
+            getOrderReason!.UpdatedAt = GeneralPurpose.DateTimeNow();
             await orderReasonRepo.UpdateOrderReason(getOrderReason);
 
             var message = await PostAddOrderReasonMessage(getMessage);
@@ -1980,11 +1984,13 @@ namespace ITValet.Controllers
                 IsRead = message.IsRead?.ToString(),
                 SenderId = message.SenderId.ToString(),
                 CustomerId = order.CustomerId.ToString(),
+                OrderEncId = StringCipher.EncryptId(order.Id),
                 MessageDescription = message.MessageDescription,
                 OrderReasonId = message.OrderReasonId?.ToString(),
                 MessageEncId = StringCipher.EncryptId(message.Id),
                 ValetEncId = StringCipher.EncryptId((int)order.ValetId!),
                 CustomerEncId = StringCipher.EncryptId((int)order.CustomerId!),
+                OrderReasonEncId = message.OrderReasonId != null ? StringCipher.EncryptId((int)message.OrderReasonId) : null,
                 FilePath = !string.IsNullOrEmpty(message.FilePath) ? $"{projectVariables.BaseUrl}{message.FilePath}" : "",
                 MessageTime = GeneralPurpose.regionChanged(Convert.ToDateTime(message.CreatedAt), loggedInUser.Timezone!),
             };
@@ -2183,7 +2189,7 @@ namespace ITValet.Controllers
             {
                 OrderId = order.Id,
                 ReasonExplanation = $"<strong>Reason: </strong> {obj.Explanation}",
-                IsActive = 2,
+                IsActive = 1,
                 CreatedAt = GeneralPurpose.DateTimeNow(),
                 ReasonType = reasonType
             };

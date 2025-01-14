@@ -701,6 +701,7 @@ namespace ITValet.HelpingClasses
         public string? ReceiverId { get; set; }
         public string? ReceiverEncId { get; set; }
         public string? OrderId { get; set; }
+        public string? OrderEncId { get; set; }
         public string? Name { get; set; }
         public string? Username { get; set; }
         public string? ProfileImage { get; set; }
