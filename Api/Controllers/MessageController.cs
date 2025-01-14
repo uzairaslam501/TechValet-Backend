@@ -1975,16 +1975,17 @@ namespace ITValet.Controllers
             var viewModel = new ViewModelMessageChatBox
             {
                 Id = message.Id.ToString(),
-                FilePath = !string.IsNullOrEmpty(message.FilePath) ? $"{projectVariables.BaseUrl}{message.FilePath}" : "",
+                OrderId = order.Id.ToString(),
                 ValetId = order.ValetId.ToString(),
                 IsRead = message.IsRead?.ToString(),
                 SenderId = message.SenderId.ToString(),
                 CustomerId = order.CustomerId.ToString(),
                 MessageDescription = message.MessageDescription,
-                MessageEncId = StringCipher.EncryptId(message.Id),
                 OrderReasonId = message.OrderReasonId?.ToString(),
+                MessageEncId = StringCipher.EncryptId(message.Id),
                 ValetEncId = StringCipher.EncryptId((int)order.ValetId!),
                 CustomerEncId = StringCipher.EncryptId((int)order.CustomerId!),
+                FilePath = !string.IsNullOrEmpty(message.FilePath) ? $"{projectVariables.BaseUrl}{message.FilePath}" : "",
                 MessageTime = GeneralPurpose.regionChanged(Convert.ToDateTime(message.CreatedAt), loggedInUser.Timezone!),
             };
 
