@@ -794,97 +794,6 @@ namespace ITValet.Controllers
             }
         }
 
-        [HttpPut("PostOrderStatus/{orderId}")]
-        public async Task<IActionResult> PostOrderStatus(string orderId, 
-            string orderStatus, string senderId, string receiverId, string? explanation = "",
-            string? dateExtension = "")
-        {
-            var getLoggedInUser = await userRepo.GetUserById(Convert.ToInt32(senderId));
-
-            var getOrder = await orderRepo.GetOrderById(Convert.ToInt32(orderId));
-            var getMessage = new Message();
-
-            getMessage.SenderId = Convert.ToInt32(senderId);
-            getMessage.ReceiverId = Convert.ToInt32(receiverId);
-            getMessage.OrderId = Convert.ToInt32(orderId);
-
-            var OrderReason = new OrderReason();
-            OrderReason.OrderId = getOrder.Id;
-            OrderReason.ReasonExplanation = explanation;
-            if (orderStatus == "Extend")
-            {
-                if (dateExtension != "")
-                {
-                    DateTime dateOfExtension = DateTime.Parse(dateExtension);
-                    DateTime currentDate = DateTime.Now;
-                    // Calculate the difference in days
-                    TimeSpan difference = dateOfExtension - currentDate;
-                    int daysDifference = (int)difference.TotalDays;
-                    OrderReason.ReasonExplanation = explanation + " Requested days are " + daysDifference;
-
-                }
-                OrderReason.ReasonType = 1;
-                getMessage.MessageDescription = OrderReason.ReasonExplanation + ". <br> The Extended Date is " + dateExtension;
-
-                Notification notificationObj = new Notification
-                {
-                    UserId = Convert.ToInt32(receiverId),
-                    Title = "Extend Date",
-                    IsRead = 0,
-                    IsActive = (int)EnumActiveStatus.Active,
-                    Url = $"{projectVariables.BaseUrl}User/OrderDetail?orderId={StringCipher.EncryptId((int)getOrder.Id)}",
-                    CreatedAt = GeneralPurpose.DateTimeNow(),
-                    Description = "Order Date Extension Requested.",
-                    NotificationType = (int)NotificationType.DateExtensionRequested
-                };
-                bool isNotification = await _notificationService.AddNotification(notificationObj);
-            }
-            if (orderStatus == "Cancel")
-            {
-                OrderReason.ReasonType = 3;
-                getMessage.MessageDescription = OrderReason.ReasonExplanation;
-
-                Notification notificationObj = new Notification
-                {
-                    UserId = Convert.ToInt32(receiverId),
-                    Title = "Cancel Order",
-                    IsRead = 0,
-                    IsActive = (int)EnumActiveStatus.Active,
-                    Url = $"{projectVariables.BaseUrl}User/OrderDetail?orderId={StringCipher.EncryptId((int)getOrder.Id)}",
-                    CreatedAt = GeneralPurpose.DateTimeNow(),
-                    Description = "Order cancellation Requested.",
-                    NotificationType = (int)NotificationType.OrderCancellationRequested
-                };
-                bool isNotification = await _notificationService.AddNotification(notificationObj);
-            }
-            OrderReason.IsActive = 2;
-            OrderReason.CreatedAt = GeneralPurpose.DateTimeNow();
-            var orderReasons = await orderReasonRepo.AddOrderReason(OrderReason);
-            getMessage.OrderReasonId = orderReasons.Id;
-            var message = await PostAddOrderReasonMessage(getMessage);
-
-            string msgTime = GeneralPurpose.regionChanged(Convert.ToDateTime(message.CreatedAt), getLoggedInUser.Timezone);
-            string userName = getLoggedInUser.UserName;
-            string profile = getLoggedInUser.ProfilePicture;
-
-            string newOrderReasonId = orderReasons.Id.ToString();
-            ReceiveOrderMessageDto receiveOrderMessageDto = new ReceiveOrderMessageDto()
-            {
-                senderId = message.SenderId,
-                receiverId = message.ReceiverId,
-                userName = userName,
-                userProfile = profile,
-                message = message.MessageDescription,
-                messageTime = msgTime,
-                newOrderReasonId = newOrderReasonId,
-                reasonType = orderStatus
-            };
-            await _notificationHubSocket.Clients.All.SendAsync("ReloadNotifications", message.ReceiverId.ToString());
-            await _notificationHubSocket.Clients.All.SendAsync("ReceiveOrderMessage", receiveOrderMessageDto);
-
-            return Ok(new { UserName = userName, Profile = profile, Message = message.MessageDescription, MessageTime = msgTime, NewOrderReasonId = orderReasons.Id.ToString() });
-        }
-
         [HttpPut("RequestExtendDate/{orderId}")]
         public async Task<IActionResult> PostOrderAccept(string orderId, OrderStatusDto obj)
         {
@@ -897,117 +806,98 @@ namespace ITValet.Controllers
             return await HandleOrderStatusChange(orderId, obj, "Cancel Order", "Order cancellation Requested.", "cancel", reasonType: 3);
         }
 
-        [HttpPut("AcceptOrRejectOrderReason")]
-        public async Task<IActionResult> AcceptOrRejectOrderReason(string orderId,
-         string orderStatus, string reasonStatus, string senderId, string receiverId)
+        [HttpPut("HandleCancelOrderRequest/{orderId}")]
+        public async Task<IActionResult> HandleCancelOrderRequest(string orderId, OrderExtentionDto obj)
         {
-            var getLoggedInUser = await userRepo.GetUserById(Convert.ToInt32(senderId));
+            // Decrypt input IDs
+            var decryptSenderId = DecryptionId(obj.SenderId!);
+            var decryptReceiverId = DecryptionId(obj.ReceiverId!);
+            var decryptOrderId = DecryptionId(orderId!);
+            var decryptOrderReasonId = DecryptionId(obj.OrderReasonId!);
 
-            Order getOrder = await orderRepo.GetOrderById(Convert.ToInt32(orderId));
-            OrderReason OrderReason = await orderReasonRepo.GetOrderReasonByOrderId(Convert.ToInt32(orderId));
-            string generalStatusReason = "";
-            string generalOrderReason = "";
+            // Fetch necessary entities
+            var order = await orderRepo.GetOrderById(decryptOrderId);
+            var sender = await userRepo.GetUserById(decryptSenderId);
+            var receiver = await userRepo.GetUserById(decryptReceiverId);
+            var getOrderReason = await orderReasonRepo.GetOrderReasonById(decryptOrderReasonId);
 
-            if (orderStatus == "Extend")
+            var getMessage = new Message()
             {
-                int ExtendedDay = GetLastNumberOfString(OrderReason.ReasonExplanation);
-                if (ExtendedDay != -1)
-                {
-                    DateTime updatedEndDate = Convert.ToDateTime(getOrder.EndDateTime).AddDays(ExtendedDay);
-                    getOrder.EndDateTime = updatedEndDate;
-                }
+                SenderId = decryptSenderId,
+                ReceiverId = decryptReceiverId,
+                OrderId = decryptOrderId,
+                OrderReasonId = decryptOrderReasonId
+            };
 
-
+            if(obj.OrderStatus == "Cancel")
+                getOrderReason!.IsActive = 3; //Reject Case
+            else
+            {
+                getOrderReason!.IsActive = 2; //Accept Case
+                await ProcessCancellationAsync(order!);
             }
-            generalStatusReason = reasonStatus == "Accept" ? generalStatusReason = "Accepted" : generalStatusReason = "Rejected";
-            generalOrderReason = orderStatus == "Cancel" ? "Request to Cancel this order has been " + generalStatusReason : "Request to Extend date of this order has been " + generalStatusReason;
 
-            if (orderStatus == "Cancel" && reasonStatus == "Accept")
+            getOrderReason!.UpdatedAt = GeneralPurpose.DateTimeNow();
+            var orderReasons = await orderReasonRepo.UpdateOrderReason(getOrderReason);
+            var chkOrderUpdated = await orderRepo.UpdateOrder(order!);
+
+            var title = getOrderReason.IsActive == 3 ? "Cancellation Rejected" : "Order Cancelled";
+            getMessage.MessageDescription = getOrderReason.IsActive == 3
+                ? "Your Request to cancel this order has been declined"
+                : "Your Request to cancel this order has been accepted";
+
+            var message = await PostAddOrderReasonMessage(getMessage);
+
+            await AddNotification(message, title,
+                getMessage.MessageDescription,
+                $"order-details/{HttpUtility.UrlDecode(orderId)}", "");
+
+            var userCache = new Dictionary<int, Models.User>();
+            var viewModelMessage = await CreateViewModelMessage(message, sender!, userCache, order!);
+            viewModelMessage.SenderId = decryptSenderId.ToString();
+            viewModelMessage.ReceiverId = decryptReceiverId.ToString();
+            viewModelMessage.OrderReasonId = decryptOrderReasonId.ToString();
+            viewModelMessage.OrderReasonEncId = StringCipher.EncryptId(decryptOrderReasonId);
+
+            // Send a notification to connected clients via SignalR
+            await _notificationHubSocket.Clients.All.SendAsync(
+                "SendOrderMessage",
+                viewModelMessage,
+                message.SenderId,
+                message.ReceiverId
+            );
+
+            // Return success response
+            return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "", viewModelMessage));
+        }
+
+        private async Task ProcessCancellationAsync(Order order)
+        {
+            if (order.PackageId == null)
             {
-
-                if (getOrder.PackageId == null)
+                if (order.CapturedId != null)
                 {
-                    if (getOrder.CapturedId != null)
-                    {
-                        bool isRefundStatus = await _fundTransferService.RefundPayment(getOrder.CapturedId, getOrder.Id);
-                    }
-                    else
-                    {
-                        var RefundOrderPayment = await RefundPayment(getOrder.StripeChargeId, getOrder.Id);
-                        if (RefundOrderPayment)
-                        {
-                            bool updateCancelOrderStatus = await orderRepo.UpdateOrderStatusForCancel(getOrder.Id);
-                        }         
-                    }
+                    await _fundTransferService.RefundPayment(order.CapturedId, order.Id);
                 }
                 else
                 {
-                    if(getOrder.PackageBuyFrom == "PAYPAL")
+                    var refundSuccess = await RefundPayment(order.StripeChargeId!, order.Id);
+                    if (refundSuccess)
                     {
-                        bool cancelOrderInCheckOut = await _payPalGateWayService.DeleteCheckOutOrderOfPackages(getOrder.Id);
+                        await orderRepo.UpdateOrderStatusForCancel(order.Id);
                     }
-                    await postUpdatePackage(getOrder.Id, getOrder.PackageId.Value, getOrder.CustomerId, getOrder.StartDateTime, getOrder.EndDateTime);
                 }
-            }
-            if (reasonStatus == "Accept")
-            {
-                OrderReason.IsActive = 1;
             }
             else
             {
-                OrderReason.IsActive = 3;
+                if (order.PackageBuyFrom == "PAYPAL")
+                {
+                    await _payPalGateWayService.DeleteCheckOutOrderOfPackages(order.Id);
+                }
+                await postUpdatePackage(order.Id, order.PackageId.Value, order.CustomerId, order.StartDateTime, order.EndDateTime);
             }
-            OrderReason.UpdatedAt = GeneralPurpose.DateTimeNow();
-            var orderReasons = await orderReasonRepo.UpdateOrderReason(OrderReason);
-            var chkOrderUpdated = await orderRepo.UpdateOrder(getOrder);
-            ViewModelMessageChatBox orderDeliverObj = new ViewModelMessageChatBox
-            {
-                MessageDescription = generalOrderReason,
-                OrderReasonId = OrderReason.Id.ToString(),
-                OrderReasonStatus = generalStatusReason,
-                OrderReasonType = orderStatus,
-            };
-            int TypeOfNotification = 0;
-            string NotificationTitle = "";
-            string NotificationDescription = "";
-
-            Dictionary<(string, string), (int, string, string)> notificationMappings = new Dictionary<(string, string), (int, string, string)>
-            {
-                {("Cancel", "Accept"), ((int)NotificationType.OrderCancelled, "Order Cancelled", "Your Request to cancel this order has been accepted")},
-                {("Cancel", "Reject"), ((int)NotificationType.OrderCancellationRejected, "Cancellation Rejected", "Your Request to cancel this order has been declined")},
-                {("Extend", "Accept"), ((int)NotificationType.DateExtended, "Date Extended", "Your Request to extend this order date has been accepted")},
-                {("Extend", "Reject"), ((int)NotificationType.DateExtensionRejected, "Date Extension Rejected", "Your Request to cancel this order has been accepted")}
-            };
-
-            if (notificationMappings.TryGetValue((orderStatus, reasonStatus), out var notificationValues))
-            {
-                TypeOfNotification = notificationValues.Item1;
-                NotificationTitle = notificationValues.Item2;
-                NotificationDescription = notificationValues.Item3;
-            }
-
-
-            Notification notificationObj2 = new Notification
-            {
-                UserId = Convert.ToInt32(receiverId),
-                Title = NotificationTitle,
-                IsRead = 0,
-                IsActive = (int)EnumActiveStatus.Active,
-                Url = $"{projectVariables.BaseUrl}User/OrderDetail?orderId={StringCipher.EncryptId((int)getOrder.Id)}",
-                CreatedAt = GeneralPurpose.DateTimeNow(),
-                Description = NotificationDescription,
-                NotificationType = TypeOfNotification
-            };
-            bool isNotification = await _notificationService.AddNotification(notificationObj2);
-            if (isNotification)
-            {
-                await _notificationHubSocket.Clients.All.SendAsync("ReloadNotifications", receiverId);
-            }
-
-            await _notificationHubSocket.Clients.All.SendAsync("UpdateOrderStatus", senderId.ToString(), OrderReason.Id.ToString(), generalStatusReason, orderStatus, "");
-
-            return Ok(new ResponseDto() { Status = true, StatusCode = "200", Data = orderDeliverObj });
         }
+
 
         [HttpPut("ExtendDateApproval/{orderId}")]
         public async Task<IActionResult> PostExtendDeadline(string orderId, OrderExtentionDto obj)
