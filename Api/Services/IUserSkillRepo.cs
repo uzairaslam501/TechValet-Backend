@@ -54,7 +54,7 @@ namespace ITValet.Services
         public async Task<IEnumerable<UserSkill>> GetUsersBySkillNameAsync(string skillName)
         {
             return await _context.UserSkill
-                .Where(x => x.IsActive == (int)EnumActiveStatus.Active && x.SkillName == skillName)
+                .Where(x => x.IsActive == (int)EnumActiveStatus.Active && x.SkillName!.ToLower() == skillName.ToLower())
                 .ToListAsync();
         }
 

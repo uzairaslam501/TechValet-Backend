@@ -773,7 +773,7 @@ namespace ITValet.Controllers
             obj.Gender = user.Gender;
             obj.Role = Convert.ToInt32(user.Role);
             obj.IsActive = 1;
-            obj.PricePerHour = 25;
+            obj.PricePerHour = Convert.ToDecimal(24.99);
             obj.CreatedAt = GeneralPurpose.DateTimeNow();
 
             if (!await userRepo.AddUser(obj))

@@ -12,6 +12,7 @@ using ITValet.NotificationHub;
 using Microsoft.AspNetCore.SignalR;
 using System.Net;
 using ITValet.ViewModel;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ITValet.Controllers
 {
@@ -164,26 +165,6 @@ namespace ITValet.Controllers
                 await MailSender.SendErrorMessage(ex.Message);
                 return Ok(new ResponseDto() { Status = true, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
             }
-        }
-
-        [HttpGet("user-by-id/{userId}")]
-        public async Task<ActionResult<UserListDto>> GetUserByIdEncryptedId(string userId)
-        {
-            var Id = DecryptionId(userId);
-            var user = await userRepo.GetUserById(Id);
-            if (user == null)
-                return NotFound(GeneralPurpose.GenerateResponseCode(false, "404", GlobalMessages.RecordNotFound));
-            
-            var userEducation = await userEducationRepo.UserEducationRecordById(Id);
-            var userExperience = await userExperienceRepo.UserExperiencedRecordById(Id);
-
-
-            var obj = MapToUserDto(user);
-            obj.UserEducations = userEducation;
-            obj.UserExperienced = userExperience;
-            MapTimeSlotsToUser(obj);
-
-            return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Record Fetch Successfully", obj));
         }
 
         [HttpGet("GetUserListAsync")]
@@ -440,31 +421,6 @@ namespace ITValet.Controllers
             }
             return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.RecordNotFound));
         }
-
-        [HttpGet("education-by-userId/{userId}")]
-        public async Task<IActionResult> GetUserEducationByUserId(string userId)
-        {
-            try
-            {
-                if (string.IsNullOrEmpty(userId))
-                    return NotFound(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.RecordNotFound));
-
-                var decrypt = DecryptionId(userId);
-
-                var listOfEducation = await userEducationRepo.GetUserEducationByUserId(decrypt);
-                List<EducationViewModel> dtos = new List<EducationViewModel>();
-                foreach (var obj in listOfEducation)
-                {
-                    var educationDto = MapToUserEducationDto(obj);
-                    dtos.Add(educationDto);
-                }
-                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Education Fetch Successfully", dtos));
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage));
-            }
-        }
         #endregion
 
         #region UserExperience
@@ -528,29 +484,6 @@ namespace ITValet.Controllers
                 var userExperienceDto = MapToUserExperienceDto(obj);
 
                 return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Experience Fetch Successfully", userExperienceDto));
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", ex.Message));
-            }
-        }
-
-        [HttpGet("user-services/{userId}")]
-        public async Task<IActionResult> GetUserExperienceByUserId(string userId)
-        {
-            try
-            {
-                if (string.IsNullOrEmpty(userId))
-                    throw new Exception(GlobalMessages.RecordNotFound);
-
-                var decrypt = DecryptionId(userId);
-                var listOfExperience = await userExperienceRepo.GetUserExperienceByUserId(decrypt);
-                List<UserExperienceDto> dtos = new List<UserExperienceDto>();
-                foreach (var obj in listOfExperience)
-                {
-                    dtos.Add(MapToUserExperienceDto(obj));
-                }
-                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Experience Fetch Successfully", dtos));
             }
             catch (Exception ex)
             {
@@ -747,19 +680,6 @@ namespace ITValet.Controllers
             var userSkill = MapToUserSkillDto(obj);
 
             return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Skill fetch successfully.", userSkill));
-        }
-
-        [HttpGet("GetSkills/{userId}")]
-        public async Task<IActionResult> GetSkills(string userId)
-        {
-            userId = GeneralPurpose.ConversionEncryptedId(userId);
-
-            var decrypt = DecryptionId(userId);
-            var listOfSkill = await userSkillRepo.GetUserSkillsByUserIdAsync(decrypt);
-            
-            var userSkills = listOfSkill.Select(skill => MapToUserSkillDto(skill)).ToList();
-
-            return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Skills fetched successfully.", userSkills));
         }
 
         [HttpDelete("Delete/{skillId}")]
@@ -975,46 +895,6 @@ namespace ITValet.Controllers
                 }
             }
             return Ok(new ResponseDto() { Status = true, StatusCode = "200", Message = GlobalMessages.UpdateMessage });
-        }
-
-        [HttpGet("user-availability/{userId}")]
-        public async Task<IActionResult> GetUserAvailableSlotByUserId(string userId)
-        {
-            try
-            {
-                if (string.IsNullOrEmpty(userId))
-                    return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.RecordNotFound));
-
-                var decrypt = DecryptionId(userId);
-                var listOfAvailableSlot = await userAvailableSlotRepo.GetUserAvailableSlotByUserId(decrypt);
-
-                List<UserAvailableSlotDto> dtos = new List<UserAvailableSlotDto>();
-
-                foreach (var obj in listOfAvailableSlot)
-                {
-                    DateTime? dateTimeOfDay = obj.DateTimeOfDay;
-                    string dayName = dateTimeOfDay.HasValue ? dateTimeOfDay.Value.DayOfWeek.ToString() : string.Empty;
-
-                    UserAvailableSlotDto userAvailableSlotDto = new UserAvailableSlotDto()
-                    {
-                        Id = obj.Id,
-                        UserAvailableSlotEncId = StringCipher.EncryptId(obj.Id),
-                        DateTimeOfDay = dateTimeOfDay.Value.ToString("MMM-dd-yyyy"),
-                        DayName = dayName, // Extract day name
-                        Slot1 = obj.Slot1.ToString(),
-                        Slot2 = obj.Slot2.ToString(),
-                        Slot3 = obj.Slot3.ToString(),
-                        Slot4 = obj.Slot4.ToString(),
-                        UserId = obj.UserId
-                    };
-                    dtos.Add(userAvailableSlotDto);
-                }
-                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Record Found", dtos));
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage));
-            }
         }
 
         [HttpGet("GetUserAvailableSlotList")]
@@ -1493,8 +1373,8 @@ namespace ITValet.Controllers
 
         #region Create Stripe Connect Account
 
-        
-        
+
+
         [HttpPost("ValidateStripeAccount")]
         public async Task<bool> ValidateStripeAccount(string val = "")
         {
@@ -1636,17 +1516,6 @@ namespace ITValet.Controllers
         }
 
         #region CalenderEvent 
-        [HttpGet("order-events/{valetId}")]
-        public async Task<IActionResult> GetOrderEvents(string valetId, string? role, string? filterDate = "")
-        {
-            var decrypt = DecryptionId(valetId);
-            var orderEvents = await orderRepo.GetOrderEventRecord(valetId, role, filterDate);
-            if (orderEvents.Status == true)
-                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "", orderEvents));
-            
-            return BadRequest(GeneralPurpose.GenerateResponseCode(false, "404", "", GlobalMessages.RecordNotFound));
-            
-        }
 
         [HttpGet("GetBookedAvailabilitySlot")]
         public async Task<IActionResult> GetBookedAvailabilitySlot (string Id)
@@ -1675,14 +1544,6 @@ namespace ITValet.Controllers
         #endregion
 
         #region UserRating
-
-        [HttpGet("users-rating/{userId}")]
-        public async Task<IActionResult> GetValetRatingRecord(string userId)
-        {
-            var response = await ratingRepo.GetValetRatingRecords(userId);
-            return Ok(response);
-        }        
-        
         [HttpGet("GetValetRatingRecordByDecreaptedId")]
         public async Task<IActionResult> GetValetRatingRecordByDecreaptedId(int ValetEncId)
         {
@@ -1694,6 +1555,150 @@ namespace ITValet.Controllers
             return Ok(new ResponseDto() { Status = false, StatusCode = "500", Message = "Rating Record Not Found" });
         }
         #endregion'
+
+
+        #region PublicApis
+        [AllowAnonymous]
+        [HttpGet("user-by-id/{userId}")]
+        public async Task<ActionResult<UserListDto>> GetUserByIdEncryptedId(string userId)
+        {
+            var Id = DecryptionId(userId);
+            var user = await userRepo.GetUserById(Id);
+            if (user == null)
+                return NotFound(GeneralPurpose.GenerateResponseCode(false, "404", GlobalMessages.RecordNotFound));
+
+            var obj = MapToUserDto(user);
+            MapTimeSlotsToUser(obj);
+
+            return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Record Fetch Successfully", obj));
+        }
+
+        [AllowAnonymous]
+        [HttpGet("education-by-userId/{userId}")]
+        public async Task<IActionResult> GetUserEducationByUserId(string userId)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(userId))
+                    return NotFound(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.RecordNotFound));
+
+                var decrypt = DecryptionId(userId);
+
+                var listOfEducation = await userEducationRepo.GetUserEducationByUserId(decrypt);
+                List<EducationViewModel> dtos = new List<EducationViewModel>();
+                foreach (var obj in listOfEducation)
+                {
+                    var educationDto = MapToUserEducationDto(obj);
+                    dtos.Add(educationDto);
+                }
+                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Education Fetch Successfully", dtos));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage));
+            }
+        }
+
+        [AllowAnonymous]
+        [HttpGet("users-rating/{userId}")]
+        public async Task<IActionResult> GetValetRatingRecord(string userId)
+        {
+            var response = await ratingRepo.GetValetRatingRecords(userId);
+            return Ok(response);
+        }
+
+        [AllowAnonymous]
+        [HttpGet("user-availability/{userId}")]
+        public async Task<IActionResult> GetUserAvailableSlotByUserId(string userId)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(userId))
+                    return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.RecordNotFound));
+
+                var decrypt = DecryptionId(userId);
+                var listOfAvailableSlot = await userAvailableSlotRepo.GetUserAvailableSlotByUserId(decrypt);
+
+                List<UserAvailableSlotDto> dtos = new List<UserAvailableSlotDto>();
+
+                foreach (var obj in listOfAvailableSlot)
+                {
+                    DateTime? dateTimeOfDay = obj.DateTimeOfDay;
+                    string dayName = dateTimeOfDay.HasValue ? dateTimeOfDay.Value.DayOfWeek.ToString() : string.Empty;
+
+                    UserAvailableSlotDto userAvailableSlotDto = new UserAvailableSlotDto()
+                    {
+                        Id = obj.Id,
+                        UserAvailableSlotEncId = StringCipher.EncryptId(obj.Id),
+                        DateTimeOfDay = dateTimeOfDay.Value.ToString("MMM-dd-yyyy"),
+                        DayName = dayName, // Extract day name
+                        Slot1 = obj.Slot1.ToString(),
+                        Slot2 = obj.Slot2.ToString(),
+                        Slot3 = obj.Slot3.ToString(),
+                        Slot4 = obj.Slot4.ToString(),
+                        UserId = obj.UserId
+                    };
+                    dtos.Add(userAvailableSlotDto);
+                }
+                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Record Found", dtos));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage));
+            }
+        }
+
+        [AllowAnonymous]
+        [HttpGet("GetSkills/{userId}")]
+        public async Task<IActionResult> GetSkills(string userId)
+        {
+            userId = GeneralPurpose.ConversionEncryptedId(userId);
+
+            var decrypt = DecryptionId(userId);
+            var listOfSkill = await userSkillRepo.GetUserSkillsByUserIdAsync(decrypt);
+
+            var userSkills = listOfSkill.Select(skill => MapToUserSkillDto(skill)).ToList();
+
+            return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Skills fetched successfully.", userSkills));
+        }
+
+        [AllowAnonymous]
+        [HttpGet("user-services/{userId}")]
+        public async Task<IActionResult> GetUserExperienceByUserId(string userId)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(userId))
+                    throw new Exception(GlobalMessages.RecordNotFound);
+
+                var decrypt = DecryptionId(userId);
+                var listOfExperience = await userExperienceRepo.GetUserExperienceByUserId(decrypt);
+                List<UserExperienceDto> dtos = new List<UserExperienceDto>();
+                foreach (var obj in listOfExperience)
+                {
+                    dtos.Add(MapToUserExperienceDto(obj));
+                }
+                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Experience Fetch Successfully", dtos));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", ex.Message));
+            }
+        }
+
+        [AllowAnonymous]
+        [HttpGet("order-events/{valetId}")]
+        public async Task<IActionResult> GetOrderEvents(string valetId, string? role, string? filterDate = "")
+        {
+            var decrypt = DecryptionId(valetId);
+            var orderEvents = await orderRepo.GetOrderEventRecord(valetId, role, filterDate);
+            if (orderEvents.Status == true)
+                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "", orderEvents));
+
+            return BadRequest(GeneralPurpose.GenerateResponseCode(false, "404", "", GlobalMessages.RecordNotFound));
+
+        }
+        #endregion
 
         #region Orders
 

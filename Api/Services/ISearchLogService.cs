@@ -2,7 +2,6 @@
 using ITValet.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using System.Runtime.CompilerServices;
 
 namespace ITValet.Services
 {
@@ -10,6 +9,7 @@ namespace ITValet.Services
     {
         Task<bool> InsertOrUpdateSearchValue(string keyword);
         Task<List<SearchedUserList>> SearchValetsAndSkillsByKey(string searchKeyword);
+        Task<ResponseDto> SearchValetsBySkill(string skill);
         Task<List<string?>> GetHighSearchVolumeKeys();
     }
 
@@ -92,6 +92,50 @@ namespace ITValet.Services
             }
         }
 
+
+        public async Task<ResponseDto> SearchValetsBySkill(string skill)
+        {
+            try
+            {
+                var findUsersFromSkills = await _userSkillService.GetUsersBySkillNameAsync(skill);
+
+                List<SearchedUserList> searchedUsers = new List<SearchedUserList>();
+
+
+                    List<int?> userIds = findUsersFromSkills.Select(userSkill => userSkill.UserId).ToList();
+                    var skilledUsers = await _userService.GetSkilledUsersByIds(userIds);
+
+                    // Transform the skilledUsers to SearchedUserList view model
+                    searchedUsers = skilledUsers.Select(user => new SearchedUserList
+                    {
+                        UserProfile = projectVariables.BaseUrl + user.ProfilePicture,
+                        UserName = user.UserName,
+                        FirstName = user.FirstName,
+                        LastName = user.LastName,
+                        Status = user.Status,
+                        UserDescription = user.Description,
+                        City = user.City,
+                        Country = user.Country,
+                        AverageStars = _userRatingRepo.CalculateAverageStars(user.Id),
+                        EncUserId = StringCipher.EncryptId(user.Id),
+                        PricePerHours = user.PricePerHour
+                    }).ToList();
+
+
+
+                // Sort searchedUsers by AverageStars in descending order
+                searchedUsers = searchedUsers.OrderByDescending(user => double.Parse(user.AverageStars)).ToList();
+
+
+
+                return GeneralPurpose.GenerateResponseCode(true, "200", "", searchedUsers);
+            }
+            catch (Exception ex)
+            {
+                // Handle exceptions if needed
+                return GeneralPurpose.GenerateResponseCode(true, "200", ex.Message, null);
+            }
+        }
 
         public async Task<bool> InsertOrUpdateSearchValue(string keyword)
         {

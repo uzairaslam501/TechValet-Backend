@@ -1,6 +1,5 @@
 ﻿using ITValet.Filters;
 using ITValet.HelpingClasses;
-using ITValet.JWTAuthentication;
 using ITValet.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -12,13 +11,16 @@ namespace ITValet.Controllers
     [ApiController]
     public class GeneralPurposeController : ControllerBase
     {
-        private readonly IUserRepo userRepo;
-        private readonly IJwtUtils jwtUtils;
-        private readonly ProjectVariables projectVariables;
-        public GeneralPurposeController(IUserRepo _userRepo, IOptions<ProjectVariables> options)
+        private readonly IUserRepo _userRepo;
+        private readonly ProjectVariables _projectVariables;
+        private readonly ISearchLogService _searchLogService;
+        
+        public GeneralPurposeController(IUserRepo userRepo, IOptions<ProjectVariables> options, 
+            ISearchLogService searchLogService)
         {
-            userRepo = _userRepo;
-            projectVariables = options.Value;
+            _userRepo = userRepo;
+            _projectVariables = options.Value;
+            _searchLogService = searchLogService;
         }
 
         [HttpGet("validateEmail")]
@@ -29,7 +31,7 @@ namespace ITValet.Controllers
             {
                 id = StringCipher.DecryptId(UserId);
             }
-            bool chkUser = await userRepo.ValidateEmail(Email, id);
+            bool chkUser = await _userRepo.ValidateEmail(Email, id);
             return chkUser;
         }
 
@@ -41,8 +43,15 @@ namespace ITValet.Controllers
             {
                 id = StringCipher.DecryptId(UserId);
             }
-            bool chkUser = await userRepo.ValidateUsername(username, id);
+            bool chkUser = await _userRepo.ValidateUsername(username, id);
             return chkUser;
+        }
+
+        [HttpGet("GetValetsBySkill/{skill}")]
+        public async Task<IActionResult> GetValetsBySkill(string skill)
+        {
+            var response = await _searchLogService.SearchValetsBySkill(skill);
+            return Ok(response);
         }
     }
 }

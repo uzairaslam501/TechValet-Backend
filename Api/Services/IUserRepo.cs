@@ -57,7 +57,7 @@ namespace ITValet.Services
             try
             {
                 List<User?> users = await _context.User
-                    .Where(u => userIds.Contains(u.Id) && u.Role != 1 && u.IsBankAccountAdded == 1)
+                    .Where(u => userIds.Contains(u.Id) && u.Role != 1)
                     .ToListAsync<User?>();
 
                 return users;
