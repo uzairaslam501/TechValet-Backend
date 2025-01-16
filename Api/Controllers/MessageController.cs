@@ -1321,11 +1321,11 @@ namespace ITValet.Controllers
         }
 
         [HttpPost("AcceptOrder/{orderId}")]
-        public async Task<IActionResult> AcceptOrder(string orderId, OrderDeliverDto orderDeliverDto)
+        public async Task<IActionResult> AcceptOrder(string orderId, OrderDeliverViewModel orderDeliverDto)
         {
             var decryptedOrderId = DecryptionId(orderId);
             var order = await orderRepo.GetOrderById(decryptedOrderId);
-            UpdateOrderDetails(order!, orderDeliverDto);
+            UpdateOrderDetails(order!);
 
             if (await orderRepo.UpdateOrder(order!))
             {
@@ -1348,7 +1348,7 @@ namespace ITValet.Controllers
             return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
         }
 
-        private async Task ProcessUserRating(Order order, OrderDeliverDto orderDeliverDto)
+        private async Task ProcessUserRating(Order order, OrderDeliverViewModel orderDeliverDto)
         {
             var userRating = CreateUserRating(order, orderDeliverDto);
             if (userRating.Stars != null || userRating.Reviews != null)
@@ -1360,20 +1360,20 @@ namespace ITValet.Controllers
             }
         }
 
-        private void UpdateOrderDetails(Order order, OrderDeliverDto orderDeliverDto)
+        private void UpdateOrderDetails(Order order)
         {
             order.IsDelivered = 2;
             order.OrderStatus = 1;
             order.UpdatedAt = GeneralPurpose.DateTimeNow();
         }
 
-        private UserRating CreateUserRating(Order order, OrderDeliverDto orderDeliverDto)
+        private UserRating CreateUserRating(Order order, OrderDeliverViewModel orderDeliverDto)
         {
             return new UserRating
             {
                 OrderId = order.Id,
-                Reviews = orderDeliverDto.Reviews,
-                Stars = orderDeliverDto.Stars != null ? Convert.ToInt32(orderDeliverDto.Stars) : null,
+                Reviews = orderDeliverDto.MessageDescription,
+                Stars = orderDeliverDto.Rating != null ? Convert.ToInt32(orderDeliverDto.Rating) : null,
                 CustomerId = order.CustomerId,
                 ValetId = order.ValetId
             };

@@ -857,6 +857,16 @@ namespace ITValet.HelpingClasses
 
     }
 
+    public class OrderDeliverViewModel
+    {
+        public string? OrderId { get; set; }
+        public string? SenderId { get; set; }
+        public string? ReceiverId { get; set; }
+        public string? MessageDescription { get; set; }
+        public string? Rating { get; set; }
+
+    }
+
     #endregion
 
     #region PayPalViewModel
