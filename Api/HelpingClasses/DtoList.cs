@@ -729,6 +729,7 @@ namespace ITValet.HelpingClasses
         public string? JoinUrl { get; set; }
         public int? IsZoomMeeting { get; set; }
         public string? PricePerHour { get; set; }
+        public string? IsDelivered { get; set; }
     }
     #endregion
 

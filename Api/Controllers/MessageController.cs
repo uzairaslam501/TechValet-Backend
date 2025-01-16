@@ -794,6 +794,56 @@ namespace ITValet.Controllers
             }
         }
 
+        [HttpPost("PostDeliverOrder/{orderId}")]
+        public async Task<IActionResult> PostDeliverOrder(string orderId, [FromForm] PostAddMessage postAddMessage)
+        {
+            try
+            {
+                var decryptOrderId = DecryptionId(orderId);
+                var decrypt = DecryptionId(postAddMessage.SenderId!);
+                var decryptRecieverId = DecryptionId(postAddMessage.ReceiverId!);
+
+                var getSender = await userRepo.GetUserById(decrypt);
+                var getReciever = await userRepo.GetUserById(decryptRecieverId);
+                var getOrder = await orderRepo.GetOrderById(decryptOrderId);
+                postAddMessage.Way = "deliver";
+                postAddMessage.MessageDescription = HttpUtility.UrlDecode(postAddMessage.MessageDescription);
+                var message = await MapMessage(postAddMessage, decrypt, decryptRecieverId, getOrder!);
+
+                await messagesRepo.AddMessage(message);
+
+                if (!await messagesRepo.saveChangesFunction())
+                    return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.OrderDeliverFail, null));
+
+
+                if (message.Id != 0)
+                {
+                    var orderMessage = MapOrderMessage(message, getSender!, postAddMessage.Way);
+                    await AddNotification(message, "Message Received", "Your order has been deleiver, look at it",
+                        $"order-details/{HttpUtility.UrlDecode(orderId!)}", postAddMessage.Way!);
+
+                    var userCache = new Dictionary<int, Models.User>();
+                    var viewModelMessage = await CreateViewModelMessage(message, getSender!, userCache, getOrder);
+                    viewModelMessage.SenderId = decrypt.ToString();
+                    viewModelMessage.ReceiverId = decryptRecieverId.ToString();
+                    viewModelMessage.IsDelivered = getOrder.IsDelivered.ToString();
+
+                    await _notificationHubSocket.Clients.All.SendAsync("SendOrderMessage",
+                            viewModelMessage,
+                            message.SenderId,
+                            message.ReceiverId
+                        );
+
+                    return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "", viewModelMessage));
+                }
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "404", GlobalMessages.OrderDeliverFail, null));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "404", GlobalMessages.OrderDeliverFail, null));
+            }
+        }
+
         [HttpPut("RequestExtendDate/{orderId}")]
         public async Task<IActionResult> PostOrderAccept(string orderId, OrderStatusDto obj)
         {
@@ -1270,125 +1320,16 @@ namespace ITValet.Controllers
             }
         }
 
-
-        //[HttpPost("AcceptOrder")]
-        //public async Task<IActionResult> AcceptOrder(OrderDeliverDto orderDeliverDto)
-        //{
-        //    var OrderId = StringCipher.DecryptId(orderDeliverDto.OrderId);
-        //    var getOrder = await orderRepo.GetOrderById(OrderId);
-        //    getOrder.IsDelivered = 2;
-        //    getOrder.OrderStatus = 1;
-        //    getOrder.UpdatedAt = GeneralPurpose.DateTimeNow();
-            
-        //    UserRating userRating = new UserRating();
-        //    userRating.OrderId = getOrder.Id;
-        //    userRating.Reviews = orderDeliverDto.Reviews;
-        //    userRating.Stars = Convert.ToInt32(orderDeliverDto.Stars);
-        //    userRating.CustomerId = getOrder.CustomerId;
-        //    userRating.ValetId = getOrder.ValetId;
-
-        //    if (await orderRepo.UpdateOrder(getOrder))
-        //    {
-        //        await PostUserRating(userRating);
-        //        var GetValet = await userRepo.GetUserById(getOrder.ValetId.Value);
-        //        if (GetValet != null)
-        //        {
-        //            var TransferToSeller = await userRepo.TransferFunds(GetValet.StripeId, (long)getOrder.OrderPrice);
-        //            if (TransferToSeller == true)
-        //            {
-        //                await orderRepo.ChangeStripePaymentStatus(OrderId, StripePaymentStatus.SentToValet);
-        //                return Ok(new ResponseDto() { Status = true, StatusCode = "200", Message = "Order Is Accepted Successfully"});
-        //            }
-        //            else
-        //            {
-        //                await orderRepo.ChangeStripePaymentStatus(OrderId, StripePaymentStatus.PaymentFailedToSend);
-        //            }
-        //        }
-        //    }
-        //    return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
-        //}
-
-        //private async Task<bool> PostUserRating(UserRating userRating)
-        //{
-        //    UserRating rating = new UserRating();
-        //    rating.OrderId = userRating.OrderId;
-        //    rating.Reviews = userRating.Reviews;
-        //    rating.Stars = userRating.Stars;
-        //    rating.CustomerId = userRating.CustomerId;
-        //    rating.ValetId = userRating.ValetId;
-        //    rating.CreatedAt = GeneralPurpose.DateTimeNow();
-        //    if(await userRatingRepo.AddUserRating(rating))
-        //    {
-        //        if(!await UpdateRating((int)rating.ValetId, (int)rating.Stars))
-        //        {
-        //            return false;
-        //        }
-        //        return true;
-        //    }
-        //    return false; 
-        //}
-
-        //private async Task<bool> UpdateRating(int userId, int stars)
-        //{
-        //    var user = await userRepo.GetUserById((int)userId);
-        //    if (user != null)
-        //    {
-        //        if (stars == 5)
-        //        {
-        //            user.StarsCount = user.StarsCount != null ? user.StarsCount + 1 : 1;
-        //        }
-        //        user.AverageRating = await GetAverageRating(user.Id);
-        //        if (user.StarsCount >= 5 && user.StarsCount < 10)
-        //        {
-        //            if ((double)user.AverageRating >= 4.8)
-        //            {
-        //                user.PricePerHour = Convert.ToDecimal(29.99);
-        //            }
-        //        }
-        //        if (user.StarsCount >= 10)
-        //        {
-        //            if ((double)user.AverageRating >= 4.8)
-        //            {
-        //                user.PricePerHour = Convert.ToDecimal(34.99);
-        //            }
-        //        }
-        //    }
-        //    if (!await userRepo.UpdateUser(user))
-        //    {
-        //        return false; 
-        //    }
-        //    return true;
-        //}
-
-        //private async Task<decimal> GetAverageRating(int userId)
-        //{
-        //    try
-        //    {
-        //        var valetRatingList = await userRatingRepo.GetUserRatingListByUserId(userId);
-        //        valetRatingList = valetRatingList.Where(x => x.ValetId == userId).ToList();
-
-        //        int totalRatings = valetRatingList.Count();
-        //        int totalStars = (int)valetRatingList.Sum(x => x.Stars);
-        //        decimal averageRating = totalStars / totalRatings;
-        //        return averageRating;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return -1;
-        //    }
-        //}
-
-
-        [HttpPost("AcceptOrder")]
-        public async Task<IActionResult> AcceptOrder(OrderDeliverDto orderDeliverDto)
+        [HttpPost("AcceptOrder/{orderId}")]
+        public async Task<IActionResult> AcceptOrder(string orderId, OrderDeliverDto orderDeliverDto)
         {
-            var decryptedOrderId = StringCipher.DecryptId(orderDeliverDto.OrderId);
+            var decryptedOrderId = DecryptionId(orderId);
             var order = await orderRepo.GetOrderById(decryptedOrderId);
-            UpdateOrderDetails(order, orderDeliverDto);
+            UpdateOrderDetails(order!, orderDeliverDto);
 
-            if (await orderRepo.UpdateOrder(order))
+            if (await orderRepo.UpdateOrder(order!))
             {
-                await ProcessUserRating(order, orderDeliverDto);
+                await ProcessUserRating(order!, orderDeliverDto);
                 var valet = await userRepo.GetUserById(order.ValetId.Value);
                 if (valet != null)
                 {
@@ -1488,65 +1429,55 @@ namespace ITValet.Controllers
         }
 
         #region OrderRevision
-        [HttpPut("PostUpdateOrderStatus")]
-        public async Task<IActionResult> PostUpdateOrderStatus(string? OrderId, string senderId, string receiverId, string RevisionExplanation = "")
+        [HttpPut("PostSendRevision/{oderId}")]
+        public async Task<IActionResult> PostSendRevision(string? orderId, PostAddMessage postAddMessage)
         {
-            var getLoggedInUser = await userRepo.GetUserById(Convert.ToInt32(senderId));
-            var getOrder = await orderRepo.GetOrderById(Convert.ToInt32(OrderId));
-            getOrder.IsDelivered = 0;
-            getOrder.UpdatedAt = null;
+            var decrypt = DecryptionId(postAddMessage.SenderId!);
+            var decryptRecieverId = DecryptionId(postAddMessage.ReceiverId!);
+            var decryptOrderId = DecryptionId(postAddMessage.OrderId!);
 
+            var getSender = await userRepo.GetUserById(decrypt);
+            var getReciever = await userRepo.GetUserById(decryptRecieverId);
+            var getOrder = await orderRepo.GetOrderById(decryptOrderId);
+
+            postAddMessage.MessageDescription = HttpUtility.UrlDecode(postAddMessage.MessageDescription);
+            
             var OrderReason = new OrderReason();
-            OrderReason.OrderId = getOrder.Id;
-            OrderReason.ReasonExplanation = RevisionExplanation;
+            OrderReason.OrderId = decryptOrderId;
+            OrderReason.ReasonExplanation = postAddMessage.MessageDescription;
             OrderReason.ReasonType = 2;
             OrderReason.IsActive = 1;
             var orderReasons = await orderReasonRepo.AddOrderReason(OrderReason);
-            var getMessage = new Message();
 
-            getMessage.SenderId = Convert.ToInt32(senderId);
-            getMessage.ReceiverId = Convert.ToInt32(receiverId);
-            getMessage.OrderId = getOrder.Id;
-            getMessage.OrderReasonId = orderReasons.Id;
-            getMessage.MessageDescription = RevisionExplanation;
+            var message = await MapMessage(postAddMessage, decrypt, decryptRecieverId, getOrder);
+            message.OrderReasonId = orderReasons.Id;
 
-            var message = await PostAddOrderReasonMessage(getMessage);
-            if (!await orderRepo.UpdateOrder(getOrder))
+            await messagesRepo.AddMessage(message);
+
+            if (!await messagesRepo.saveChangesFunction())
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.RecordNotFound, null));
+
+            if (message.Id != 0)
             {
-                return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
+                var orderMessage = MapOrderMessage(message, getSender!, postAddMessage.Way);
+                await AddNotification(message, "Message Received", "You have just received a revision for your order.",
+                    $"order-details/{HttpUtility.UrlDecode(postAddMessage.OrderId!)}", postAddMessage.Way!);
+
+                var userCache = new Dictionary<int, Models.User>();
+                var viewModelMessage = await CreateViewModelMessage(message, getSender!, userCache, getOrder);
+                viewModelMessage.SenderId = decrypt.ToString();
+                viewModelMessage.ReceiverId = decryptRecieverId.ToString();
+
+                await _notificationHubSocket.Clients.All.SendAsync("SendOrderMessage",
+                        viewModelMessage,
+                        message.SenderId,
+                        message.ReceiverId
+                    );
+
+                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "", viewModelMessage));
             }
+            return BadRequest(GeneralPurpose.GenerateResponseCode(false, "404", GlobalMessages.MessageSentFail, null));
 
-            string msgTime = GeneralPurpose.regionChanged(Convert.ToDateTime(message.CreatedAt), getLoggedInUser.Timezone);
-            string userName = getLoggedInUser.UserName;
-            string profile = getLoggedInUser.ProfilePicture;
-            string newOrderReasonId = orderReasons.Id.ToString();
-            ReceiveOrderMessageDto receiveOrderMessageDto = new ReceiveOrderMessageDto()
-            {
-                senderId = message.SenderId,
-                receiverId = message.ReceiverId,
-                userName = userName,
-                userProfile = profile,
-                message = message.MessageDescription,
-                messageTime = msgTime,
-                newOrderReasonId = newOrderReasonId,
-                reasonType = "Revision"
-            };
-            Notification notificationObj = new Notification
-            {
-                UserId = Convert.ToInt32(receiverId),
-                Title = "Revision Requested",
-                IsRead = 0,
-                IsActive = (int)EnumActiveStatus.Active,
-                Url = $"{projectVariables.BaseUrl}User/OrderDetail?orderId={StringCipher.EncryptId((int)getOrder.Id)}",
-                CreatedAt = GeneralPurpose.DateTimeNow(),
-                Description = "Client Requested a revision for your order.",
-                NotificationType = (int)NotificationType.OrderCancellationRequested
-            };
-            bool isNotification = await _notificationService.AddNotification(notificationObj);
-            await _notificationHubSocket.Clients.All.SendAsync("ReloadNotifications", message.ReceiverId.ToString());
-
-            await _notificationHubSocket.Clients.All.SendAsync("ReceiveOrderMessage", receiveOrderMessageDto);
-            return Ok(new { Status = true, UserName = userName, Profile = profile, Message = message.MessageDescription, MessageTime = msgTime, NewOrderReasonId = orderReasons.Id.ToString() });
         }
         #endregion
 
@@ -1680,6 +1611,10 @@ namespace ITValet.Controllers
                 else if(orderType == "extention")
                 {
                     notificationObj.NotificationType = (int)NotificationType.DateExtensionRequested;
+                }
+                else if(orderType == "deliver")
+                {
+                    notificationObj.NotificationType = (int)NotificationType.OrderDelivered;
                 }
             }
             notificationObj.IsRead = 0;
@@ -1961,7 +1896,7 @@ namespace ITValet.Controllers
                 message.FilePath = filePath;
             }
 
-            if (message.Way == "cancel")
+            if (message.Way == "deliver")
             {
                 order!.IsDelivered = 1;
                 order.UpdatedAt = GeneralPurpose.DateTimeNow();
