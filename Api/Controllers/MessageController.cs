@@ -442,8 +442,8 @@ namespace ITValet.Controllers
                 }
 
                 postAddMessage.MessageDescription = getLoggedInUser.Role == 4
-                    ? "Hi! I am interested in your services! Please reach me back asap. Thanks!"
-                    : "Hi! I am interested in your project! Please reach me back asap. Thanks!";
+                    ? "Hi! I am interested in your project! Please reach me back asap. Thanks!"
+                    : "Hi! I am interested in your services! Please reach me back asap. Thanks!";
 
                 await CreateMessage(postAddMessage, message);
 
@@ -600,8 +600,25 @@ namespace ITValet.Controllers
                 {
                     var decrypt = DecryptionId(userId);
                     var getLoggedInUser = await userRepo.GetUserById(decrypt);
+
+                    var decryptUserChat = 0;
                     var Sender = new Models.User();
                     var Receiver = new Models.User();
+                    if (!string.IsNullOrEmpty(GetUserChatOnTop) && GetUserChatOnTop != "undefined" && GetUserChatOnTop != "null") 
+                    {
+                        decryptUserChat = DecryptionId(GetUserChatOnTop);
+                        var getUserMEssages = await messagesRepo.GetMessageBySenderIdAndRecieverId(decrypt, decryptUserChat);
+                        if(getUserMEssages.Count() == 0)
+                        {
+                            var postAddMessage = new PostAddMessage()
+                            {
+                                SenderId = decrypt.ToString(),
+                                ReceiverId = decryptUserChat.ToString(),
+                                Way = "ViewUserProfile",
+                            };
+                            await PostAddMessages(postAddMessage);
+                        }
+                    }
                     var getMessages = await messagesRepo.GetMessageByUserId(getLoggedInUser.Id);
                     List<ViewModelMessage> messagesList = new List<ViewModelMessage>();
                     foreach (Message message in getMessages)
@@ -635,12 +652,12 @@ namespace ITValet.Controllers
                         messagesList.Add(viewModelMessage);
 
                     }
-                    if (!string.IsNullOrEmpty(GetUserChatOnTop) && GetUserChatOnTop != "null")
+                    if (!string.IsNullOrEmpty(GetUserChatOnTop) && GetUserChatOnTop != "null" && GetUserChatOnTop != "undefinded")
                     {
                         // ID to move to the top
-                        string idToMoveToTop = StringCipher.DecryptId(GetUserChatOnTop).ToString();
+                        string idToMoveToTop = decryptUserChat.ToString();
                         // Reordering the list
-                        messagesList = messagesList.OrderBy(user => user.SenderId == idToMoveToTop ? 0 : 1)
+                        messagesList = messagesList.OrderBy(user => user.SenderId == idToMoveToTop || user.ReceiverId == idToMoveToTop ? 0 : 1)
                                                   .ThenBy(user => user.Id)
                                                   .ToList();
                     }
@@ -648,7 +665,7 @@ namespace ITValet.Controllers
                     {
                         messagesList = messagesList.Where(a => a.Username.ToLower().Contains(Name.ToLower())).ToList();
                     }
-
+                    if(string.IsNullOrWhiteSpace(Name) && string.IsNullOrEmpty(GetUserChatOnTop))
                     messagesList = messagesList.OrderByDescending(msg => DateTime.Parse(msg.MessageTime)).ToList();
 
 
