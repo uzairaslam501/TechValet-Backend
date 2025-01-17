@@ -33,6 +33,9 @@ namespace ITValet.Models
         public DbSet<PayPalPackagesCheckOut> PayPalPackagesCheckOut { get; set; }
         public DbSet<PayPalToValetTransactions> PayPalToValetTransactions { get; set; }
 
+        public DbSet<Blog> Blogs { get; set; }
+        public DbSet<FrequentlyAskedQuestion> FrequentlyAskedQuestions { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<User>().HasData(

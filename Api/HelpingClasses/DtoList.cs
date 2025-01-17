@@ -1243,4 +1243,43 @@ namespace ITValet.HelpingClasses
         public decimal BalanceAvailable { get; set; }
         public decimal BalancePending { get; set; }
     }
+
+    #region Blogs
+    public class BlogViewModel
+    {
+        public int? Id { get; set; }
+        public string? EncId { get; set; }
+
+        public string? Title { get; set; }
+
+        public string? Description { get; set; }
+        public string? Slug { get; set; }
+        public string? Content { get; set; }
+        public string? Image { get; set; } // FeaturedImageUrl
+        public string? Tags { get; set; }
+        public DateTime? PublishedDate { get; set; }
+        public int? CreatedBy { get; set; }
+        public string? Skill { get; set; }
+    }
+    public class AddUpdateBlogViewModel
+    {
+        public string? EncId { get; set; }
+        public string? Title { get; set; }
+
+        public string? Description { get; set; }
+        public string? Slug { get; set; }
+        public string? Content { get; set; }
+        
+        public IFormFile? Image { get; set; } // FeaturedImageUrl
+
+        public string? Tags { get; set; }
+        public DateTime? PublishedDate { get; set; }
+        public int? CreatedBy { get; set; }
+        public string? Skill { get; set; }
+    }
+    
+    #endregion Blogs
+
+    #region FAQ
+    #endregion FAQ
 }

@@ -2,6 +2,7 @@
 using ITValet.Services;
 using ITValet.ViewModel;
 using System.Net.NetworkInformation;
+using System.Web;
 
 namespace ITValet.HelpingClasses
 {
@@ -249,6 +250,7 @@ namespace ITValet.HelpingClasses
         #region Responses 
         public static string ConversionEncryptedId(string encryptedId)
         {
+            encryptedId = HttpUtility.UrlDecode(encryptedId);
             var lowerValue = "%2F";
             if (encryptedId.Contains(lowerValue))
             {
@@ -311,6 +313,72 @@ namespace ITValet.HelpingClasses
             };
         }
 
+        public static ResponseDto GenerateResponse(bool Status, string StatusCode, string? Message = "", Object? data = null)
+        {
+            return new ResponseDto()
+            {
+                Status = Status,
+                StatusCode = StatusCode,
+                Message = Message,
+                Data = data,
+            };
+        }
+
         #endregion
+
+        #region Image Handling
+        public static async Task<string> UploadFiles(IFormFile file, string? uploadedFiles = "")
+        {
+            try
+            {
+                string profileImagesPath = Path.Combine(Directory.GetCurrentDirectory(), @"wwwroot\" + uploadedFiles);
+                if (!Directory.Exists(profileImagesPath))
+                {
+                    DirectoryInfo di = Directory.CreateDirectory(profileImagesPath);
+                }
+                var getFileName = Path.GetFileNameWithoutExtension(file.FileName);
+                if (getFileName.Contains(" "))
+                {
+                    getFileName = getFileName.Replace(" ", "-");
+                }
+                var getFileExtentions = Path.GetExtension(file.FileName);
+                string imgName = getFileName + "_" + DateTime.Now.Ticks.ToString() + getFileExtentions;
+                var rootDir = Path.Combine(Directory.GetCurrentDirectory(), @"wwwroot\" + uploadedFiles, imgName);
+                using (var stream = new FileStream(rootDir, FileMode.Create))
+                {
+                    await file.CopyToAsync(stream);
+                }
+                return uploadedFiles + "/" + imgName;
+            }
+            catch (Exception ex)
+            {
+                return string.Empty;
+            }
+        }
+        public static bool DeleteFile(string filePath)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(filePath))
+                    return false;
+
+                if (File.Exists(filePath))
+                    File.Delete(filePath);
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                // Log the exception if required
+                Console.WriteLine($"Error deleting file: {ex.Message}");
+                return false;
+            }
+        }
+
+        #endregion
+        public static async void CreateLogger(ProjectVariables _projectVariables, Exception ex)
+        {
+            await MailSender.SendErrorMessage($"URL: {_projectVariables.BaseUrl}<br/> Exception Message:  {ex.Message} <br/> Stack Trace: {ex.StackTrace}");
+        }
     }
 }

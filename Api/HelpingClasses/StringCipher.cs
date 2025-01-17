@@ -134,5 +134,12 @@ namespace ITValet.HelpingClasses
                 }
             }
         }
+
+        public static int DecryptionId(string userId)
+        {
+            userId = GeneralPurpose.ConversionEncryptedId(userId);
+            var decrypt = DecryptId(userId);
+            return decrypt;
+        }
     }
 }

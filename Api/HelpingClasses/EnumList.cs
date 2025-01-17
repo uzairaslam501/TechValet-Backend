@@ -14,6 +14,7 @@
         Employee = 2,
         Customer = 3,
         Valet = 4,
+        Seo = 5,
     }
 
     public enum PaymentStatusCheckResult
