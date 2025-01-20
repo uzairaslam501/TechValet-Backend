@@ -29,7 +29,10 @@ namespace ITValet.Controllers
         private readonly IUserEducationRepo userEducationRepo;
         private readonly IUserSkillRepo userSkillRepo;
 
-        public AdminController(IUserEducationRepo _userEducationRepo, IUserExperienceRepo _userExperienceRepo, IUserSkillRepo _userSkillRepo, IUserRepo _userRepo, IOrderRepo orderService, IPayPalGateWayService payPalGateWayService, IJwtUtils _jwtUtils, IOptions<ProjectVariables> options, IUserAvailableSlotRepo _userAvailableSlotRepo, INotificationService _userPackageRepo, IHubContext<NotificationHubSocket> notificationHubSocket)
+        public AdminController(IUserEducationRepo _userEducationRepo, IUserExperienceRepo _userExperienceRepo, 
+            IUserSkillRepo _userSkillRepo, IUserRepo _userRepo, IOrderRepo orderService, IPayPalGateWayService payPalGateWayService, 
+            IJwtUtils _jwtUtils, IOptions<ProjectVariables> options, IUserAvailableSlotRepo _userAvailableSlotRepo, 
+            INotificationService _userPackageRepo, IHubContext<NotificationHubSocket> notificationHubSocket)
         {
             userPackageRepo = _userPackageRepo;
             userRepo = _userRepo;

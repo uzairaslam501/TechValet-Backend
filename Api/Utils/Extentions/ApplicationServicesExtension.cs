@@ -1,5 +1,6 @@
 ﻿using ITValet.HelpingClasses;
 using ITValet.JWTAuthentication;
+using ITValet.Models;
 using ITValet.NotificationHub;
 using ITValet.Services;
 
@@ -10,6 +11,7 @@ namespace ITValet.Utils.Extentions
         public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddControllers();
+            services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
             services.AddHttpContextAccessor();
 
             // Dependency Injection
@@ -37,6 +39,9 @@ namespace ITValet.Utils.Extentions
             services.AddScoped<IOrderReasonRepo, OrderReasonRepo>();
             services.AddScoped<INotificationRepo, NotificationRepo>();
             services.AddScoped<IUserRatingRepo, UserRatingRepo>();
+
+            services.AddTransient<IBlogRepo, BlogRepo>();
+            services.AddTransient<IFrequentlyAskedQuestionRepo, FrequentlyAskedQuestionRepo>();
         }
 
         private static void RegisterServices(IServiceCollection services, IConfiguration configuration)
