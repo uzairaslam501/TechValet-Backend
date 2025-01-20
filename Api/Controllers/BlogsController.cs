@@ -72,7 +72,7 @@ namespace ITValet.Controllers
         }
 
         [HttpDelete]
-        [Route("DeleteBlog")]
+        [Route("DeleteBlog/{Id}")]
         public async Task<ActionResult> DeleteBlog(string Id)
         {
             if (!ModelState.IsValid)

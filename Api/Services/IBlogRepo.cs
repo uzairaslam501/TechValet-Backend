@@ -1,11 +1,9 @@
 ﻿using AutoMapper;
 using ITValet.HelpingClasses;
-using ITValet.JWTAuthentication;
 using ITValet.Models;
 using ITValet.Utils.Helpers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using Org.BouncyCastle.Asn1.Ocsp;
 
 namespace ITValet.Services
 {
@@ -23,12 +21,14 @@ namespace ITValet.Services
 
     public class BlogRepo : IBlogRepo
     {
-        private readonly AppDbContext _context;
         private readonly IMapper _mapper;
+        private readonly IUserRepo _userRepo;
+        private readonly AppDbContext _context;
         private readonly ProjectVariables _projectVariables;
-        public BlogRepo(AppDbContext _appDbContext, IMapper mapper, IOptions<ProjectVariables> options)
+        public BlogRepo(AppDbContext _appDbContext, IUserRepo userRepo, IMapper mapper, IOptions<ProjectVariables> options)
         {
             _context = _appDbContext;
+            _userRepo = userRepo;
             _mapper = mapper;
             _projectVariables = options.Value;
         }
@@ -44,7 +44,8 @@ namespace ITValet.Services
                 getObj.Slug = uniqueSlug;
                 getObj.IsActive = (int)EnumActiveStatus.Active;
                 getObj.CreatedAt = GeneralPurpose.DateTimeNow();
-
+                getObj.PublishedDate = GeneralPurpose.DateTimeNow();
+                
                 if (viewModel.Image != null && viewModel.Image.Length > 0)
                 {
                     var imagePath = await GeneralPurpose.UploadFiles(viewModel.Image, "Blogs");
@@ -71,13 +72,11 @@ namespace ITValet.Services
         {
             try
             {
-                var getResponse = await GetBlogById(viewModel.EncId!);
-                if(getResponse.Status is false)
-                {
+                var getObj = await Get(viewModel.EncId!);
+                if(getObj == null)
                     return GeneralPurpose.GenerateResponse(false, "400", "Record not found, might be deleted");
-                }
-                Blog getObj = getResponse.Data as Blog;
-                string oldImage = getObj.Image;
+
+                string oldImage = getObj?.Image;
 
                 string uniqueSlug = await GetUniqueSlug(viewModel.Slug!, getObj.Id);
 
@@ -94,6 +93,10 @@ namespace ITValet.Services
                     }
                     else
                         return GeneralPurpose.GenerateResponse(false, "400", "File not uploaded. Try with another one!");
+                }
+                else
+                {
+                    mappedObj.Image = oldImage;
                 }
 
 
@@ -126,7 +129,7 @@ namespace ITValet.Services
                 if (!isDeleted)
                     return GeneralPurpose.GenerateResponse(false, "400", "Something' went wrong. Try again later!");
 
-                return GeneralPurpose.GenerateResponse(true, "200", GlobalMessages.DeletedMessage);
+                return GeneralPurpose.GenerateResponse(true, "200", GlobalMessages.DeletedMessage, blog);
             }
             catch (Exception ex)
             {
@@ -153,7 +156,7 @@ namespace ITValet.Services
 
         public async Task<ResponseDto> GetBlogList(int start, int length, string? sortColumnName, string? sortDirection,
             string? searchValue, bool isSkill = false, string skillName = "")
-        {
+       {
             try
             {
                 var blogsList = await GetAll(isSkill, skillName);
@@ -187,15 +190,20 @@ namespace ITValet.Services
                 }
 
                 var viewModelList = new List<BlogViewModel>();
+                var getUser = new User();
                 foreach (var item in blogsList)
                 {
                     var viewModel = _mapper.Map<BlogViewModel>(item);
-
+                    if(getUser?.Id != item.CreatedBy)
+                    {
+                        getUser = await _userRepo.GetUserById((int)item.CreatedBy!);
+                    }
                     // vehicle image
                     viewModel.Image = string.IsNullOrEmpty(item.Image)
                     ?
                     "" : _projectVariables.BaseUrl + item.Image;
-
+                    viewModel.PublishedBy = getUser?.FirstName + " " + getUser?.LastName;
+                    viewModel.PublisherImage = string.IsNullOrEmpty(getUser?.ProfilePicture) ? "" : _projectVariables.BaseUrl + getUser?.ProfilePicture;
 
                     viewModelList.Add(viewModel);
                 }
@@ -218,12 +226,20 @@ namespace ITValet.Services
 
         public async Task<bool> SlugExists(string slug, int? id = 0)
         {
-            if(id != 0)
-            return await _context.Blogs.AnyAsync(b => b.IsActive == (int)EnumActiveStatus.Active && 
-                                                      b.Id != id &&
-                                                      b.Slug == slug);
-            else
-            return await _context.Blogs.AnyAsync(b => b.IsActive == (int)EnumActiveStatus.Active && b.Slug == slug);
+            try
+            {
+                if (id != 0)
+                    return await _context.Blog.AnyAsync(b => b.IsActive == (int)EnumActiveStatus.Active &&
+                                                              b.Id != id &&
+                                                              b.Slug == slug);
+                else
+                    return await _context.Blog.AnyAsync(b => b.IsActive == (int)EnumActiveStatus.Active && b.Slug == slug);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                throw ex;
+            }
         }
 
         #region Private Methods
@@ -231,7 +247,7 @@ namespace ITValet.Services
         {
             try
             {
-                _context.Blogs.Add(blog);
+                _context.Blog.Add(blog);
                 await _context.SaveChangesAsync();
                 return true;
             }
@@ -260,7 +276,7 @@ namespace ITValet.Services
             try
             {
                 int decryptedId = StringCipher.DecryptionId(id);
-                var getObj = await _context.Blogs.Where(x=> 
+                var getObj = await _context.Blog.Where(x=> 
                                                         x.IsActive == (int)EnumActiveStatus.Active && 
                                                         x.Id == decryptedId).FirstOrDefaultAsync();
                 return getObj;
@@ -277,17 +293,17 @@ namespace ITValet.Services
             {
                 if (isSkill && !string.IsNullOrEmpty(skillName))
                 {
-                    return await _context.Blogs.Where(x => x.IsActive == (int)EnumActiveStatus.Active &&
+                    return await _context.Blog.Where(x => x.IsActive == (int)EnumActiveStatus.Active &&
                                                            !string.IsNullOrEmpty(x.Skill) &&
                                                            x.Skill.Contains(skillName)).ToListAsync();
                 }
                 else if (isSkill)
                 {
-                    return await _context.Blogs.Where(x => x.IsActive == (int)EnumActiveStatus.Active &&
+                    return await _context.Blog.Where(x => x.IsActive == (int)EnumActiveStatus.Active &&
                                                            !string.IsNullOrEmpty(x.Skill)).ToListAsync();
                 }
                 else
-                    return await _context.Blogs.Where(x => x.IsActive == (int)EnumActiveStatus.Active).ToListAsync();
+                    return await _context.Blog.Where(x => x.IsActive == (int)EnumActiveStatus.Active).ToListAsync();
             }
             catch (Exception ex)
             {

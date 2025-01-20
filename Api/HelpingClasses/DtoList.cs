@@ -1254,7 +1254,7 @@ namespace ITValet.HelpingClasses
         public decimal BalancePending { get; set; }
     }
 
-    #region Blogs
+    #region Blog
     public class BlogViewModel
     {
         public int? Id { get; set; }
@@ -1267,7 +1267,9 @@ namespace ITValet.HelpingClasses
         public string? Content { get; set; }
         public string? Image { get; set; } // FeaturedImageUrl
         public string? Tags { get; set; }
-        public DateTime? PublishedDate { get; set; }
+        public string? PublishedDate { get; set; }
+        public string? PublishedBy { get; set; }
+        public string? PublisherImage { get; set; }
         public int? CreatedBy { get; set; }
         public string? Skill { get; set; }
     }
@@ -1288,7 +1290,7 @@ namespace ITValet.HelpingClasses
         public string? Skill { get; set; }
     }
     
-    #endregion Blogs
+    #endregion Blog
 
     #region FAQ
     #endregion FAQ
