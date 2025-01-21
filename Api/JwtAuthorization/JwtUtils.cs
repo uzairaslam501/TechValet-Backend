@@ -77,6 +77,8 @@ namespace ITValet.JWTAuthentication
                 var timeZone = jwtToken.Claims.First(x => x.Type == "timeZone").Value;
                 var userStatus = jwtToken.Claims.First(x => x.Type == "userStatus").Value;
 
+                // Extract expiration date
+                var tokenExpire = jwtToken.ValidTo; // UTC time of expiration
                 UserClaims loggedinUser = new UserClaims()
                 {
                     Id = userId,
@@ -87,7 +89,8 @@ namespace ITValet.JWTAuthentication
                     Email = userEmail,
                     Role = userRole,
                     Timezone = timeZone,
-                    Status = userStatus
+                    Status = userStatus,
+                    TokenExpire = tokenExpire.ToString()
                 };
 
                 return loggedinUser;

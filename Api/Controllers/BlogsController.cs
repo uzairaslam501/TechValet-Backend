@@ -1,6 +1,5 @@
 ﻿using ITValet.Filters;
 using ITValet.HelpingClasses;
-using ITValet.JwtAuthorization;
 using ITValet.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -60,7 +59,7 @@ namespace ITValet.Controllers
         [HttpPost]
         [Route("BlogDatatableWithSkill")]
         public async Task<ActionResult> BlogDatatableWithSkill(int start = 0, int length = 10, string? sortColumnName = "", 
-            string? sortDirection = "", string? searchValue = "", string skillName = "")
+            string? sortDirection = "", string? searchValue = "", string? skillName = "")
         {
             if (!ModelState.IsValid)
             {
@@ -92,6 +91,30 @@ namespace ITValet.Controllers
                 return BadRequest(ModelState);
             }
             var response = await _blogRepo.GetBlogById(id);
+            return Ok(response);
+        }
+
+        [HttpGet]
+        [Route("GetBlogBySkill/{skillName}")]
+        public async Task<IActionResult> GetBlogBySkill(string skillName)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            var response = await _blogRepo.GetBlogBySkill(skillName);
+            return Ok(response);
+        }
+
+        [HttpGet]
+        [Route("GetSkills")]
+        public async Task<IActionResult> GetSkills()
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            var response = await _blogRepo.GetSkills();
             return Ok(response);
         }
 

@@ -413,6 +413,102 @@ namespace ITValet.Controllers
 
         #endregion
 
+
+        #region Renew Token
+
+        [HttpPost("RenewToken")]
+        public async Task<ActionResult<ResponseDto>> PostRenewToken([FromHeader] string Authorization)
+        {
+            try
+            {
+                UserClaims? getUserFromToken = null;
+
+                if (!string.IsNullOrEmpty(Authorization))
+                {
+                    getUserFromToken = jwtUtils.ValidateToken(Authorization);
+                }
+                else
+                {
+                    var tokenFromHeader = Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+                    if (string.IsNullOrEmpty(tokenFromHeader))
+                    {
+                        return Unauthorized(new ResponseDto
+                        {
+                            Status = false,
+                            StatusCode = "401",
+                            Message = "Authorization header is missing or invalid."
+                        });
+                    }
+                    getUserFromToken = jwtUtils.ValidateToken(tokenFromHeader);
+                }
+
+                if (getUserFromToken == null || string.IsNullOrEmpty(getUserFromToken.Email))
+                {
+                    return Unauthorized(new ResponseDto
+                    {
+                        Status = false,
+                        StatusCode = "401",
+                        Message = "Invalid or expired token."
+                    });
+                }
+
+
+                // Parse expiration date
+                if (!DateTime.TryParse(getUserFromToken.TokenExpire, out var tokenExpireDate))
+                {
+                    return BadRequest(new ResponseDto
+                    {
+                        Status = false,
+                        StatusCode = "400",
+                        Message = "Invalid token expiration date."
+                    });
+                }
+
+                // Renew token if it is close to expiration
+                var remainingTime = tokenExpireDate - GeneralPurpose.DateTimeNow();
+                if (remainingTime.CompareTo(TimeSpan.FromMinutes(5)) <= 0)
+                {
+                    var user = await userRepo.GetUserByEmail(getUserFromToken.Email);
+                    if (user == null)
+                    {
+                        return NotFound(new ResponseDto
+                        {
+                            Status = false,
+                            StatusCode = "404",
+                            Message = GlobalMessages.LoginNotFound
+                        });
+                    }
+
+                    var isCompleteValetAccount = user.Role == 4
+                        ? await HandleValetAccountLogic(user)
+                        : 1;
+
+                    getUserFromToken = CreateUserClaims(user);
+                    getUserFromToken.IsCompleteValetAccount = isCompleteValetAccount.ToString();
+                }
+
+                // Return the renewed token
+                return Ok(new ResponseDto
+                {
+                    Data = getUserFromToken,
+                    Status = true,
+                    StatusCode = "200",
+                    Message = "Token renewed successfully."
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ResponseDto
+                {
+                    Status = false,
+                    StatusCode = "500",
+                    Message = "An error occurred while renewing the token."
+                });
+            }
+        }
+
+        #endregion
+
         #region Helpers
         private async Task<int> HandleValetAccountLogic(User user)
         {

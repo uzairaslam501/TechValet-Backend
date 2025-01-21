@@ -9,7 +9,9 @@ namespace ITValet.Services
 {
     public interface IBlogRepo
     {
+        Task<ResponseDto> GetSkills();
         Task<ResponseDto> GetBlogById(string id);
+        Task<ResponseDto> GetBlogBySkill(string skillName);
         Task<ResponseDto> GetBlogList(int start, int length, string? sortColumnName, string? sortDirection,
             string? searchValue, bool isSkill = false, string skillName = "");
         Task<ResponseDto> AddBlog(AddUpdateBlogViewModel viewModel);
@@ -154,9 +156,43 @@ namespace ITValet.Services
             }
         }
 
+        public async Task<ResponseDto> GetBlogBySkill(string skillName)
+        {
+            try
+            {
+                var getObj = await GetBySkill(skillName);
+                if (getObj == null)
+                    return GeneralPurpose.GenerateResponse(false, "400", GlobalMessages.RecordNotFound);
+
+                var responseData = _mapper.Map<BlogViewModel>(getObj);
+                return GeneralPurpose.GenerateResponse(true, "200", GlobalMessages.RecordFound, responseData);
+            }
+            catch (Exception)
+            {
+                return GeneralPurpose.GenerateResponse(false, "400", GlobalMessages.SystemFailureMessage);
+            }
+        }
+
+        public async Task<ResponseDto> GetSkills()
+        {
+            try
+            {
+                var getObj = await GetAll(true);
+                var getSkills = getObj.Select(x => x.Skill).ToList();
+                if (getSkills == null)
+                    return GeneralPurpose.GenerateResponse(false, "400", GlobalMessages.RecordNotFound);
+
+                return GeneralPurpose.GenerateResponse(true, "200", GlobalMessages.RecordFound, getSkills);
+            }
+            catch (Exception)
+            {
+                return GeneralPurpose.GenerateResponse(false, "400", GlobalMessages.SystemFailureMessage);
+            }
+        }
+
         public async Task<ResponseDto> GetBlogList(int start, int length, string? sortColumnName, string? sortDirection,
             string? searchValue, bool isSkill = false, string skillName = "")
-       {
+        {
             try
             {
                 var blogsList = await GetAll(isSkill, skillName);
@@ -287,7 +323,22 @@ namespace ITValet.Services
             }
         }
 
-        private async Task<IEnumerable<Blog>> GetAll(bool isSkill = false, string skillName = "")
+        private async Task<Blog?> GetBySkill(string skill)
+        {
+            try
+            {
+                var getObj = await _context.Blog.Where(x =>
+                                                        x.IsActive == (int)EnumActiveStatus.Active &&
+                                                        !string.IsNullOrEmpty(x.Skill) && x.Skill.ToLower() == skill.ToLower()).FirstOrDefaultAsync();
+                return getObj;
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
+
+        private async Task<IEnumerable<Blog>> GetAll(bool isSkill = false, string? skillName = "")
         {
             try
             {
@@ -307,7 +358,7 @@ namespace ITValet.Services
                                               .ToListAsync();
                 }
                 else
-                    return await _context.Blog.Where(x => x.IsActive == (int)EnumActiveStatus.Active)
+                    return await _context.Blog.Where(x => x.IsActive == (int)EnumActiveStatus.Active && string.IsNullOrEmpty(x.Skill))
                                               .OrderByDescending(x => x.Id)
                                               .ToListAsync();
             }
