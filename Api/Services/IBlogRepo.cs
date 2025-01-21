@@ -295,15 +295,21 @@ namespace ITValet.Services
                 {
                     return await _context.Blog.Where(x => x.IsActive == (int)EnumActiveStatus.Active &&
                                                            !string.IsNullOrEmpty(x.Skill) &&
-                                                           x.Skill.Contains(skillName)).ToListAsync();
+                                                           x.Skill.Contains(skillName))
+                                              .OrderByDescending(x => x.Id)
+                                              .ToListAsync();
                 }
                 else if (isSkill)
                 {
                     return await _context.Blog.Where(x => x.IsActive == (int)EnumActiveStatus.Active &&
-                                                           !string.IsNullOrEmpty(x.Skill)).ToListAsync();
+                                                           !string.IsNullOrEmpty(x.Skill))
+                                              .OrderByDescending(x => x.Id)
+                                              .ToListAsync();
                 }
                 else
-                    return await _context.Blog.Where(x => x.IsActive == (int)EnumActiveStatus.Active).ToListAsync();
+                    return await _context.Blog.Where(x => x.IsActive == (int)EnumActiveStatus.Active)
+                                              .OrderByDescending(x => x.Id)
+                                              .ToListAsync();
             }
             catch (Exception ex)
             {
