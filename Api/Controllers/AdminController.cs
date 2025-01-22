@@ -664,7 +664,6 @@ namespace ITValet.Controllers
                 if (obj.Role == 4 || obj.Role == 3)
                 {
                     bool chkVerificationMailSent = await MailSender.SendEmailForITValetAdminVerified(obj.Email, obj.UserName, (int)obj.Role);
-                    bool chkConfirmationMailSent = await MailSender.EmailAccountVerification(StringCipher.EncryptId(obj.Id), obj.UserName, obj.Email, (int)obj.Role, projectVariables.BaseUrl);
                 }
                 return Ok(true);
             }

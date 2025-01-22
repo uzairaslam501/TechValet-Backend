@@ -65,6 +65,16 @@ namespace ITValet.Controllers
                     Message = GlobalMessages.LoginNotFound
                 });
             }
+            if(user.IsActive != 1)
+            {
+                return Ok(new ResponseDto
+                {
+                    Status = true,
+                    StatusCode = "205",
+                    Message = "Email Verification Pending, you have to verify your email before login",
+                    Data = "EmailVerfication"
+                });
+            }
 
             var isCompleteValetAccount = user.Role == 4
                 ? await HandleValetAccountLogic(user)
@@ -98,8 +108,8 @@ namespace ITValet.Controllers
 
             // Map user details
             var obj = new User();
-            MapUser(user, obj);
-            SetRoles(user, obj);
+            obj = MapUser(user, obj);
+            obj = SetRoles(user, obj);
 
             // Add user
             if (!await userRepo.AddUser(obj))
@@ -107,9 +117,10 @@ namespace ITValet.Controllers
 
             // Send verification email
             if (obj.Role == (int)EnumRoles.Customer || obj.Role == (int)EnumRoles.Valet)
-                await MailSender.SendEmailForITValetAdminVerfication(obj.Email!, obj.UserName!, user.Role!);
+                await MailSender.EmailAccountVerification(StringCipher.EncryptId(obj.Id), obj.UserName!,
+                    obj.Email!, (int)obj.Role, projectVariables.ReactUrl);
 
-            return Ok(GeneralPurpose.GenerateResponseCode(true, "200", GlobalMessages.SuccessMessage, obj));
+            return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Vertification Email has been sent to your email.", obj));
         }
 
         private bool MatchPassword(string password, string confirmPassword)
@@ -117,9 +128,9 @@ namespace ITValet.Controllers
             return password == confirmPassword;
         }
 
-        private void MapUser(RegisterUserDto user, User obj)
+        private User MapUser(RegisterUserDto user, User obj)
         {
-            obj = new User
+            return obj = new User
             {
                 FirstName = user.Firstname,
                 LastName = user.Lastname,
@@ -131,12 +142,12 @@ namespace ITValet.Controllers
                 City = user.City,
                 ZipCode = user.PostalCode,
                 Timezone = user.Timezone,
-                IsActive = 1,
+                IsActive = 3,
                 CreatedAt = GeneralPurpose.DateTimeNow()
             };
         }
 
-        private void SetRoles(RegisterUserDto user, User obj)
+        private User SetRoles(RegisterUserDto user, User obj)
         {
             
             if (!Enum.TryParse<EnumRoles>(user.Role, true, out var role))
@@ -149,6 +160,8 @@ namespace ITValet.Controllers
                 obj.PricePerHour = 24.99m;
                 obj.HST = 13;
             }
+
+            return obj;
         }
 
         #endregion
@@ -310,26 +323,25 @@ namespace ITValet.Controllers
         #endregion
 
         #region Account
-        [HttpGet("ConfirmAccount")]
-        public async Task<IActionResult> ConfirmAccount(string Id, long t)
+        [HttpGet("EmailVerification/{Id}")]
+        public async Task<IActionResult> EmailVerification(string Id, long t)
         {
             var dt = DateTime.Now.Ticks;
             if (dt < t)
             {
-                User obj = await userRepo.GetUserById(DecryptionId(Id));
+                var userId = StringCipher.DecryptionId(Id);
+                var obj = await userRepo.GetUserById(userId);
 
                 if (obj == null)
-                {
-                    return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = "No User Found" });
-                }
-                obj.IsActive = (int)EnumActiveStatus.Active;
+                    return NotFound(GeneralPurpose.GenerateResponse( false, "400", "No User Found"));
+                
+                
+                obj.IsActive = (int)EnumActiveStatus.AdminVerificationPending;
 
                 if (!await userRepo.SaveChanges())
-                {
-                    return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = "Failed Activate Your Account" });
-                }
+                    return BadRequest(GeneralPurpose.GenerateResponse(false, "400", GlobalMessages.SystemFailureMessage));
             }
-            return Ok(new ResponseDto() { Status = true, StatusCode = "200", Message = "Your Account Activated Successfully" });
+            return Ok(GeneralPurpose.GenerateResponse(true, "200", "Email has been verified successfully, need admin aprroval", dt));
         }
 
         [HttpGet("PostForgotPassword")]
@@ -412,7 +424,6 @@ namespace ITValet.Controllers
         }
 
         #endregion
-
 
         #region Renew Token
 
@@ -505,6 +516,52 @@ namespace ITValet.Controllers
                     Message = "An error occurred while renewing the token."
                 });
             }
+        }
+
+        #endregion
+
+        #region Emails
+        [HttpPost("ResendVerificationEmail/{email}")]
+        public async Task<ActionResult<ResponseDto>> ResendVerificationEmail(string email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                return BadRequest(new ResponseDto
+                {
+                    Status = false,
+                    StatusCode = "400",
+                    Message = GlobalMessages.InvalidEmail // Updated for clarity.
+                });
+            }
+
+            // Try to find user by username or email
+            var getUser = await userRepo.GetUserInfoByNameOrEmail(email);
+
+            if (getUser == null)
+            {
+                return BadRequest(new ResponseDto
+                {
+                    Status = false,
+                    StatusCode = "400",
+                    Message = GlobalMessages.InvalidEmail
+                });
+            }
+
+            // Send verification email
+            await MailSender.EmailAccountVerification(
+                StringCipher.EncryptId(getUser.Id),
+                getUser.UserName ?? string.Empty,
+                getUser.Email ?? string.Empty,
+                (int)getUser.Role,
+                projectVariables.ReactUrl
+            );
+
+            return Ok(new ResponseDto
+            {
+                Status = true,
+                StatusCode = "200",
+                Message = "Verification email has been sent.",
+            });
         }
 
         #endregion

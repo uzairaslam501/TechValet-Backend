@@ -134,7 +134,8 @@ namespace ITValet.Controllers
         [HttpGet("GetUserPackageByUserId/{userId}")]
         public async Task<ActionResult> GetUserPackageByUserId(string userId)
         {
-            var getuserPackage = await _userPackageService.GetUserPackageByUserId(Convert.ToInt32(userId));
+            var userIds = StringCipher.DecryptionId(userId);
+            var getuserPackage = await _userPackageService.GetUserPackageByUserId(userIds);
 
             if (getuserPackage == null)
             {

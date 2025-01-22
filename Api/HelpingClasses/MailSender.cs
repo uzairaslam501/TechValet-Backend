@@ -21,7 +21,7 @@ namespace ITValet.HelpingClasses
                 try
                 {
                     string Username = "";
-                    Subject = "IT-Valet : Forgot Password";
+                    Subject = "Tech-Valet : Forgot Password";
                     string description = "You are getting this email because you have requested to reset " +
                         "your account password.<br/> Click the button below to change your " +
                         "password. <br/>" +
@@ -53,7 +53,7 @@ namespace ITValet.HelpingClasses
                 try
                 {
                     
-                    string Subject = "IT-Valet : Exception Email";
+                    string Subject = "Tech-Valet : Exception Email";
                     string email = "muhammad.hassan93b@gmail.com";
 
                     return SendEmail(email, Subject, msg);
@@ -73,7 +73,7 @@ namespace ITValet.HelpingClasses
         {
             try
             {
-                string subject = "IT-Valet : Set Your New Time Availability";
+                string subject = "Tech-Valet : Set Your New Time Availability";
                 string description = $"Hello {username},<br/><br/>Your previous week's time availability has expired. Please set your new availability by clicking the link below:<br/><br/>";
 
                 string url = ProjectVariables.AccountUrl; 
@@ -113,7 +113,7 @@ namespace ITValet.HelpingClasses
         {
             try
             {
-                string subject = "IT-Valet : Sign Up Verification";
+                string subject = "Tech-Valet : Sign Up Verification";
                 string description = "We have successfully forwarded your request to our administrator for review. " +
                     "<br> Once your " + role + " account has been approved, you will receive a verification " +
                     "email to finalize the process.";
@@ -142,9 +142,9 @@ namespace ITValet.HelpingClasses
                 }
                 else
                 {
-                    Role = "IT-Valet";
+                    Role = "Tech-Valet";
                 }
-                string subject = "IT-Valet : " + Role + " Account Verified";
+                string subject = "Tech-Valet : " + Role + " Account Verified";
                 string description = "The admin has confirmed the verification of your account. <br> You can now effectively utilize your account as a " + Role;
 
                 string url = "";
@@ -163,8 +163,8 @@ namespace ITValet.HelpingClasses
         {
             try
             {
-                string subject = "IT-Valet: Complete Your Profile to Access More Opportunities";
-                string description = $"Hello {username},<br/><br/>We trust you're enjoying your time with IT-Valet!<br/><br/>To unlock a world of opportunities and maximize your experience on our platform, we kindly urge you to complete your profile. A fully filled-out profile not only boosts your visibility to potential clients but also enables us to connect you with projects that align with your skills and expertise. Please ensure your PayPal and Stripe accounts are linked to your profile, as this will increase your chances of receiving more orders. If your profile remains incomplete, it won't be visible to our valued customers. Therefore, we strongly recommend linking both accounts.<br/><br/>";
+                string subject = "Tech-Valet: Complete Your Profile to Access More Opportunities";
+                string description = $"Hello {username},<br/><br/>We trust you're enjoying your time with Tech-Valet!<br/><br/>To unlock a world of opportunities and maximize your experience on our platform, we kindly urge you to complete your profile. A fully filled-out profile not only boosts your visibility to potential clients but also enables us to connect you with projects that align with your skills and expertise. Please ensure your PayPal and Stripe accounts are linked to your profile, as this will increase your chances of receiving more orders. If your profile remains incomplete, it won't be visible to our valued customers. Therefore, we strongly recommend linking both accounts.<br/><br/>";
                 string url = "";
                 string buttonText = "";
                 string mailBody = PopulateBody(subject, username, description, url, buttonText); 
@@ -182,7 +182,7 @@ namespace ITValet.HelpingClasses
             try
             {
                 string subject = "Warning: Profile Review Analysis";
-                string description = $"Hello {username},<br/><br/>We hope you're enjoying your experience on IT-Valet!<br/><br/>We recently conducted an analysis of your profile and noticed that you have received some negative reviews. Maintaining a positive user experience is vital for both you and our platform.<br/><br/>This is a friendly reminder to take proactive steps to improve your performance and address any issues that may have led to these bad reviews. Your account status is important to us, and we want to see you succeed.<br/><br/>Continuing to receive bad reviews may result in actions taken on your account, such as temporary suspension or permanent blocking. We encourage you to strive for excellence in your transactions.<br/><br/>Thank you for your cooperation and understanding.";
+                string description = $"Hello {username},<br/><br/>We hope you're enjoying your experience on Tech-Valet!<br/><br/>We recently conducted an analysis of your profile and noticed that you have received some negative reviews. Maintaining a positive user experience is vital for both you and our platform.<br/><br/>This is a friendly reminder to take proactive steps to improve your performance and address any issues that may have led to these bad reviews. Your account status is important to us, and we want to see you succeed.<br/><br/>Continuing to receive bad reviews may result in actions taken on your account, such as temporary suspension or permanent blocking. We encourage you to strive for excellence in your transactions.<br/><br/>Thank you for your cooperation and understanding.";
                 string url = "";
                 string buttonText = "";
                 string mailBody = PopulateBody(subject, username, description, url, buttonText);
@@ -199,7 +199,7 @@ namespace ITValet.HelpingClasses
             try
             {
                 string subject = "Account Blocked: Action Required";
-                string description = $"Hello {username},<br/><br/>We regret to inform you that your IT-Valet account has been temporarily blocked due to a high number of negative reviews on your recent transactions.<br/><br/>To resolve this matter and seek assistance, please contact our admin authority at [Admin Contact Email] or [Admin Contact Phone Number]. We are here to help you understand the situation and work towards a resolution.<br/><br/>Your account status is important to us, and we hope to see you back on the platform soon with improved performance and user experience.<br/><br/>Thank you for your understanding.";
+                string description = $"Hello {username},<br/><br/>We regret to inform you that your Tech-Valet account has been temporarily blocked due to a high number of negative reviews on your recent transactions.<br/><br/>To resolve this matter and seek assistance, please contact our admin authority at [Admin Contact Email] or [Admin Contact Phone Number]. We are here to help you understand the situation and work towards a resolution.<br/><br/>Your account status is important to us, and we hope to see you back on the platform soon with improved performance and user experience.<br/><br/>Thank you for your understanding.";
                 string url = "";
                 string buttonText = "";
                 string mailBody = PopulateBody(subject, username, description, url, buttonText);
@@ -212,34 +212,43 @@ namespace ITValet.HelpingClasses
             }
         }
 
-        public static async Task<bool> EmailAccountVerification(string userId, string UserName, string email, int role, string ProjectVariable)
+        public static async Task<bool> EmailAccountVerification(string userId, string UserName, string email, int role, string systemUrl)
         {
             try
             {
-                string Role = "";
-                if (role == 3)
-                {
-                    Role = "Customer";
-                }
-                else
-                {
-                    Role = "IT-Valet";
-                }
-                string SubjectBody = "";
-                string description = "";
-                long t = DateTime.Now.AddDays(1).Ticks;
-                string subject = "IT-Valet : " + Role + " Account Verification";
-                description = "You are getting this email because you have requested to create your account as " + Role + ".<br/>Click the button below to verify your account.</br>If you did not request a " + Role + " account, Please ignore this email<br/><p style='margin: 0px;'><a style='padding: 10px 30px 30px 30px; line-height: 25px; font-size: 18px; font-weight: 400; color: #1B75BB;'>Note: The Link Will Expire After 24 Hours</a><br/></p>";
-                string Url = ProjectVariable + "Auth/ConfirmAccount?Id=" + userId + "&t=" + t;
-                string ButtonText = "Confirm Account";
-                string mailBody = PopulateBody(SubjectBody, UserName, description, Url, ButtonText);
-                return SendEmail(email, subject, mailBody);
+                string roleDescription = role == 3 ? "Customer" : "Tech-Valet";
+                string subject = $"Tech-Valet: {roleDescription} Account Verification";
+
+                long expirationTime = DateTime.Now.AddDays(1).Ticks;
+                string verificationUrl = $"{systemUrl}account-verification/{userId}/{expirationTime}";
+                string buttonText = "Verify My Account";
+
+                string emailBody = $@"
+                        <div style='font-family: Arial, sans-serif; color: #333; line-height: 1.6; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;'>
+                            <h1 style='color: #1B75BB; text-align: center;'>Welcome to Tech-Valet, {UserName}!</h1>
+                            <p>Hello {UserName},</p>
+                            <p>Thank you for signing up as a <strong>{roleDescription}</strong> on Tech-Valet. To complete your account setup, please verify your email address by clicking the button below:</p>
+                            <div style='text-align: center; margin: 20px 0;'>
+                                <a href='{verificationUrl}' 
+                                   style='background-color: #1B75BB; color: #fff; text-decoration: none; padding: 10px 20px; font-size: 15px; border-radius: 5px;'>
+                                   {buttonText}
+                                </a>
+                            </div>
+                            <p style='font-size: 14px; color: #555;'>If you did not sign up for a Tech-Valet account, please disregard this email. This link will expire in <strong>24 hours</strong>.</p>
+                            <p>Best regards,</p>
+                            <p><strong>Tech-Valet Team</strong></p>
+                            <hr style='border: none; border-top: 1px solid #eee; margin: 20px 0;'>
+                            <p style='font-size: 12px; color: #999; text-align: center;'>This is an automated email. Please do not reply.</p>
+                        </div>";
+
+                return SendEmail(email, subject, emailBody);
             }
             catch
             {
                 return false;
             }
         }
+
 
         public static async Task<bool> EmailForgetPassword(string userId, string UserName, string email, string ProjectVariable)
         {
@@ -248,7 +257,7 @@ namespace ITValet.HelpingClasses
                 string SubjectBody = "";
                 string description = "";
                 long t = DateTime.Now.AddDays(1).Ticks;
-                string subject = "IT-Valet : Account Password Recovery";
+                string subject = "Tech-Valet : Account Password Recovery";
                 description = "You are getting this email because you have requested to recover your account Password. Click the button below to verify Recover your password.</br>If you did not request a Account Password Recovery, Please ignore this email<br/><p style='margin: 0px;'><a style='padding: 10px 30px 30px 30px; line-height: 25px; font-size: 18px; font-weight: 400; color: #1B75BB;'>Note: The Link Will Expire After 24 Hours</a><br/></p>";
                 string Url = ProjectVariable + "Auth/RenewPassword?Id=" + userId + "&t=" + t;
                 string ButtonText = "Recover Password";
@@ -455,38 +464,6 @@ namespace ITValet.HelpingClasses
 
             return MailBody;
         }
-
-        //private static bool SendEmail(string email, string subject, string MailBody)
-        //{
-        //    try
-        //    {
-        //        RestClient client = new RestClient();
-        //        var Url = "https://api.mailgun.net/v3";
-        //        client = new RestClient(Url);
-
-        //        RestRequest request = new RestRequest();
-        //        //To Set the Authenticator In Latest Versions of Rest Client
-        //        request.Authenticator = new HttpBasicAuthenticator("api", "496e6c6979cb786921579085c5b07222-8d821f0c-bde767e8");
-
-        //        request.AddParameter("domain", "usmandev.ca", ParameterType.UrlSegment);
-        //        request.Resource = "{domain}/messages";
-        //        request.AddParameter("from", ProjectVariables.FromEmail);
-        //        request.AddParameter("to", email);
-        //        request.AddParameter("subject", "IT Valet | Password Reset");
-        //        request.AddParameter("html", MailBody);
-
-        //        string response = client.Post(request).Content.ToString();
-
-        //        if (response.ToLower().Contains("queued"))
-        //            return true;
-        //        else
-        //            return false;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return false;
-        //    }
-        //}
 
         public static bool SendEmail(string receiverEmail, string SubjectTitle, string EmailBody)
         {

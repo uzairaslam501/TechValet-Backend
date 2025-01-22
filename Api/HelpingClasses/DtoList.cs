@@ -925,6 +925,7 @@ namespace ITValet.HelpingClasses
     {
         public int ClientId { get; set; }
         public int ValetId { get; set; }
+        public string? EncValetId { get; set; }
         public int OrderId { get; set; }
         public int OfferId { get; set; }
         public bool PayByPackage { get; set; }

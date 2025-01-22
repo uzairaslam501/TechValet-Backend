@@ -39,6 +39,8 @@ namespace ITValet.Services
         Task<bool> SaveChanges();
         Task<List<CustomerInfo>> GetCustomerInfoRecord(List<int?> customerIds);
 
+        Task<User> GetUserInfoByNameOrEmail(string username);
+
     }
 
     public class UserRepo : IUserRepo
@@ -248,7 +250,14 @@ namespace ITValet.Services
             }
             return null;
         }
-        
+
+        public async Task<User> GetUserInfoByNameOrEmail(string username)
+        {
+            var getUser = await _context.User.FirstOrDefaultAsync(x => (x.Email!.ToLower() == username.Trim().ToLower() ||
+            x.UserName!.ToLower() == username.Trim().ToLower()) && x.IsActive != (int)EnumActiveStatus.Deleted);
+            return getUser;
+        }
+
         public async Task<int> GetUserCount(int Role, EnumActiveStatus statuses)
         {
             return await _context.User.CountAsync(x => x.IsActive == (int)statuses && x.Role == Role);

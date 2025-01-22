@@ -350,6 +350,11 @@ namespace ITValet.Controllers
         {
             try
             {
+                if (!string.IsNullOrEmpty(orderDto.EncValetId))
+                {
+                    var decryptValetId =  StringCipher.DecryptionId(orderDto.EncValetId);
+                    orderDto.ValetId = decryptValetId;
+                }
                 // Validate order price
                 if (orderDto.OrderPrice <= 0m)
                     return BadRequest(new ResponseDto { Status = false, StatusCode = "400", Message = "Price can't be negative" });

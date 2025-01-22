@@ -2,11 +2,12 @@
 {
     public enum EnumActiveStatus
     {
-        Deleted = 0,
-        Active = 1,
-        AdminVerificationPending = 2,
-        EmailVerificationPending = 3,
-        AccountOnHold = 4,
+        Deleted = 0, // records are currenly in the system but not active
+        Active = 1, // records are currently in the system and active
+        AdminVerificationPending = 2, // verified by email, but need to admin approval
+        EmailVerificationPending = 3, // email has been sent but didnt verified yet
+        AccountOnHold = 4, //If Profile got bad reviews
+        AccountCompletion = 5 //If user profile is not completed
     }
     public enum EnumRoles
     {
