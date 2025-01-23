@@ -1,4 +1,5 @@
-﻿using ITValet.Filters;
+﻿using AutoMapper;
+using ITValet.Filters;
 using ITValet.HelpingClasses;
 using ITValet.JWTAuthentication;
 using ITValet.JwtAuthorization;
@@ -17,34 +18,36 @@ namespace ITValet.Controllers
     [ApiController]
     public class AdminController : ControllerBase
     {
-        private readonly IUserRepo userRepo;
-        private readonly INotificationService userPackageRepo;
-        private readonly IUserAvailableSlotRepo userAvailableSlotRepo;
+        public readonly IMapper _mapper;
         private readonly IJwtUtils jwtUtils;
+        private readonly IUserRepo userRepo;
         private readonly IOrderRepo _orderService;
-        private readonly IPayPalGateWayService _payPalGateWayService;
-        private readonly ProjectVariables projectVariables;
-        private readonly IHubContext<NotificationHubSocket> _notificationHubSocket;
-        private readonly IUserExperienceRepo userExperienceRepo;
-        private readonly IUserEducationRepo userEducationRepo;
         private readonly IUserSkillRepo userSkillRepo;
+        private readonly ProjectVariables projectVariables;
+        private readonly INotificationService userPackageRepo;
+        private readonly IUserEducationRepo userEducationRepo;
+        private readonly IUserExperienceRepo userExperienceRepo;
+        private readonly IUserAvailableSlotRepo userAvailableSlotRepo;
+        private readonly IPayPalGateWayService _payPalGateWayService;
+        private readonly IHubContext<NotificationHubSocket> _notificationHubSocket;
 
-        public AdminController(IUserEducationRepo _userEducationRepo, IUserExperienceRepo _userExperienceRepo, 
+        public AdminController(IMapper mapper, IUserEducationRepo _userEducationRepo, IUserExperienceRepo _userExperienceRepo, 
             IUserSkillRepo _userSkillRepo, IUserRepo _userRepo, IOrderRepo orderService, IPayPalGateWayService payPalGateWayService, 
             IJwtUtils _jwtUtils, IOptions<ProjectVariables> options, IUserAvailableSlotRepo _userAvailableSlotRepo, 
             INotificationService _userPackageRepo, IHubContext<NotificationHubSocket> notificationHubSocket)
         {
-            userPackageRepo = _userPackageRepo;
-            userRepo = _userRepo;
+            _mapper = mapper;
             jwtUtils = _jwtUtils;
+            userRepo = _userRepo;
+            _orderService = orderService;
+            userSkillRepo = _userSkillRepo;
             projectVariables = options.Value;
+            userPackageRepo = _userPackageRepo;
+            userEducationRepo = _userEducationRepo;
+            userExperienceRepo = _userExperienceRepo;
             userAvailableSlotRepo = _userAvailableSlotRepo;
             _notificationHubSocket = notificationHubSocket;
-            _orderService = orderService;
             _payPalGateWayService = payPalGateWayService;
-            userExperienceRepo = _userExperienceRepo;
-            userSkillRepo = _userSkillRepo;
-            userEducationRepo = _userEducationRepo;
         }
 
         [HttpGet("PostIndex")]
@@ -751,39 +754,34 @@ namespace ITValet.Controllers
         [HttpPost("PostAddUser")]
         public async Task<IActionResult> PostAddUser(PostAddUserDto user)
         {
-            var obj = new User();
+            // Validate email
+            if (!await userRepo.ValidateEmail(user.Email!))
+                return Conflict(GlobalMessages.DuplicateEmail);
 
-            if (!await userRepo.ValidateEmail(user.Email))
-            {
-                return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = "Duplicate email, please try another." });
-            }
+            // Validate username
+            if (!await userRepo.ValidateUsername(user.UserName!))
+                return Conflict(GlobalMessages.DuplicateUsername);
 
-            obj.FirstName = user.FirstName;
-            obj.LastName = user.LastName;
-            obj.UserName = user.UserName;
-            obj.Contact = user.Contact;
-            obj.Email = user.Email;
+            if (!GeneralPurpose.MatchPassword(user.Password!, user.ConfirmPassword!))
+                return BadRequest("Password and Confirm Password must be same.");
+
+
+            var obj = _mapper.Map<User>(user);
+
+            obj = GeneralPurpose.SetRoles(user.Role, obj);
             obj.Password = StringCipher.Encrypt(user.Password);
-            obj.BirthDate = Convert.ToDateTime(user.BirthDate);
-            obj.Country = user.Country;
-            obj.State = user.State;
-            obj.City = user.City;
-            obj.ZipCode = user.ZipCode;
-            obj.Timezone = user.Timezone;
-            obj.Availability = Convert.ToInt32(user.Availability);
-            obj.Status = Convert.ToInt32(user.Status);
-            obj.Gender = user.Gender;
-            obj.Role = Convert.ToInt32(user.Role);
-            obj.IsActive = 1;
-            obj.PricePerHour = Convert.ToDecimal(24.99);
+            obj.IsActive = (int)EnumActiveStatus.Active;
             obj.CreatedAt = GeneralPurpose.DateTimeNow();
 
+            // Add user
             if (!await userRepo.AddUser(obj))
-            {
-                return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = "Database updation failed." });
-            }
+                return BadRequest(GlobalMessages.SystemFailureMessage);
 
-            return Ok(new ResponseDto() { Status = true, StatusCode = "200", Message = "Account has been created" });
+            // Send verification email
+            if (obj.Role == (int)EnumRoles.Customer || obj.Role == (int)EnumRoles.Valet)
+                await MailSender.SendEmailWhenAdminCreateAccount(obj, user.Role!, projectVariables.ReactUrl);
+
+            return Ok(GeneralPurpose.GenerateResponseCode(true, "200", GlobalMessages.SuccessMessage, obj));
         }
 
         [HttpPut("PostUpdateUser")]

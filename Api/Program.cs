@@ -12,6 +12,7 @@ builder.Services.ConfigureStripe(builder.Configuration);
 builder.Services.AddSwaggerDocumentation();
 builder.Services.AddCorsPolicy();
 builder.Services.AddSignalR();
+builder.Services.AddHealthChecks(); //For checking the health of system
 
 var app = builder.Build();
 
@@ -29,5 +30,5 @@ app.UseEndpoints(endpoints =>
     endpoints.MapHub<NotificationHubSocket>("/NotificationHubSocket");
     endpoints.MapControllers();
 });
-
+app.MapHealthChecks("/health"); // Endpoint to check the health of the system
 app.Run();

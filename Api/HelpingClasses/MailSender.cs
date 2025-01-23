@@ -1,4 +1,5 @@
-﻿using MimeKit;
+﻿using ITValet.Models;
+using MimeKit;
 using Newtonsoft.Json.Linq;
 using RestSharp;
 using RestSharp.Authenticators;
@@ -249,7 +250,6 @@ namespace ITValet.HelpingClasses
             }
         }
 
-
         public static async Task<bool> EmailForgetPassword(string userId, string UserName, string email, string ProjectVariable)
         {
             try
@@ -263,6 +263,29 @@ namespace ITValet.HelpingClasses
                 string ButtonText = "Recover Password";
                 string mailBody = PopulateBody(SubjectBody, UserName, description, Url, ButtonText);
                 return SendEmail(email, subject, mailBody);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public static async Task<bool> SendEmailWhenAdminCreateAccount(User obj, string role, string baseUrl)
+        {
+            try
+            {
+                string subject = "Tech-Valet: Your Account Has Been Created";
+                string description = "We are pleased to inform you that an account has been created for you by the administrator. " +
+                    "<br> As a " + role + ", you can now sign in and start using the platform. Below are your login credentials: " +
+                    "<br><br><b>Username:</b> " + obj.UserName +
+                    "<br><b>Password:</b> " + StringCipher.Decrypt(obj.Password) +
+                    "<br><br>For security purposes, we strongly recommend changing your password immediately after signing in.";
+
+                string url = baseUrl + "Login";
+                string buttonText = "Try Sign-In";
+                string mailBody = PopulateBody(subject, obj.UserName, description, url, buttonText);
+
+                return SendEmail(obj.Email, subject, mailBody);
             }
             catch
             {
@@ -393,7 +416,7 @@ namespace ITValet.HelpingClasses
                                                             "<tbody>" +
                                                             "<tr>" +
                                                                 "<td class='v-container-padding-padding' style='overflow-wrap:break-word;word-break:break-word;padding:50px 60px 0px;font-family:'Raleway',sans-serif;' align='left'>" +
-                                                                "<h1 class='v-text-align v-font-size' style='margin: 0px; line-height: 140%; text-align: left; word-wrap: break-word; font-size: 20px; font-weight: 400;'><strong>Subject: " + subject + " </strong></h1>" +
+                                                                "<h1 class='v-text-align v-font-size' style='margin: 0px; line-height: 140%; text-align: left; word-wrap: break-word; font-size: 20px; font-weight: 400;'><strong>" + subject + " </strong></h1>" +
                                                                 "</td>" +
                                                             "</tr>" +
                                                             "</tbody>" +

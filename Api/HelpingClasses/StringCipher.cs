@@ -16,13 +16,16 @@ namespace ITValet.HelpingClasses
             byte[] key = { };
             try
             {
-                key = System.Text.Encoding.UTF8.GetBytes("A0D1nX0Q");
+                key = Encoding.UTF8.GetBytes("A0D1nX0Q");
                 DESCryptoServiceProvider des = new DESCryptoServiceProvider();
                 MemoryStream ms = new MemoryStream();
                 CryptoStream cs = new CryptoStream(ms, des.CreateEncryptor(key, rgbIV), CryptoStreamMode.Write);
                 cs.Write(inputByteArray, 0, inputByteArray.Length);
                 cs.FlushFinalBlock();
-                return Convert.ToBase64String(ms.ToArray());
+
+                // Replace '+' with '-'
+                string base64String = Convert.ToBase64String(ms.ToArray());
+                return base64String.Replace('+', '-').Replace('/', '_'); // Optionally replace '/' with '_'
             }
             catch (Exception e)
             {
@@ -30,12 +33,17 @@ namespace ITValet.HelpingClasses
             }
         }
 
+
         public static int DecryptId(string EncId)
         {
             if (EncId.Contains(' '))
             {
                 EncId = EncId.Replace(' ', '+');
             }
+
+            // Revert '-' to '+' and '_' to '/' before decoding
+            EncId = EncId.Replace('-', '+').Replace('_', '/');
+
             int id = -1;
             id = Decryptid(HttpUtility.UrlDecode(EncId));
             string str = "";
@@ -46,6 +54,7 @@ namespace ITValet.HelpingClasses
             }
             return id;
         }
+
 
         private static int Decryptid(string EncId)
         {

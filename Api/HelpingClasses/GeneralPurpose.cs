@@ -376,6 +376,51 @@ namespace ITValet.HelpingClasses
         }
 
         #endregion
+
+        #region Add User
+
+        public static bool MatchPassword(string password, string confirmPassword)
+        {
+            return password == confirmPassword;
+        }
+
+        public static User MapUser(RegisterUserDto user, User obj)
+        {
+            return obj = new User
+            {
+                FirstName = user.Firstname,
+                LastName = user.Lastname,
+                UserName = user.Username,
+                Email = user.Email,
+                Password = StringCipher.Encrypt(user.Password!),
+                Country = user.Country,
+                State = user.State,
+                City = user.City,
+                ZipCode = user.PostalCode,
+                Timezone = user.Timezone,
+                IsActive = 3,
+                CreatedAt = GeneralPurpose.DateTimeNow()
+            };
+        }
+
+        public static User SetRoles(string userRole, User obj)
+        {
+
+            if (!Enum.TryParse<EnumRoles>(userRole, true, out var role))
+                throw new ArgumentException("Invalid or missing role");
+
+            obj.Role = (int)role;
+
+            if (role == EnumRoles.Valet)
+            {
+                obj.PricePerHour = 24.99m;
+                obj.HST = 13;
+            }
+
+            return obj;
+        }
+
+        #endregion
         public static async void CreateLogger(ProjectVariables _projectVariables, Exception ex)
         {
             await MailSender.SendErrorMessage($"URL: {_projectVariables.BaseUrl}<br/> Exception Message:  {ex.Message} <br/> Stack Trace: {ex.StackTrace}");

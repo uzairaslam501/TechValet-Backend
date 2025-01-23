@@ -8,6 +8,13 @@ public class MapperProfile : Profile
 {
     public MapperProfile()
     {
+        CreateMap<PostAddUserDto, User>()
+        .ForMember(dest => dest.Role, opt => opt.MapFrom(src =>
+            Enum.IsDefined(typeof(EnumRoles), src.Role)
+                ? (int)Enum.Parse(typeof(EnumRoles), src.Role, true)
+                : (int?)null
+        ));
+
         CreateMap<AddUpdateBlogViewModel, Blog>() // src , dest
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src =>
                 string.IsNullOrEmpty(src.EncId) ? 

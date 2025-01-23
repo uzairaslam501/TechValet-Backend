@@ -103,13 +103,13 @@ namespace ITValet.Controllers
             if (!await userRepo.ValidateUsername(user.Username!))
                 return Conflict(GlobalMessages.DuplicateUsername);
 
-            if (!MatchPassword(user.Password!, user.ConfirmPassword!))
+            if (!GeneralPurpose.MatchPassword(user.Password!, user.ConfirmPassword!))
                 return BadRequest("Password and Confirm Password must be same.");
 
             // Map user details
             var obj = new User();
-            obj = MapUser(user, obj);
-            obj = SetRoles(user, obj);
+            obj = GeneralPurpose.MapUser(user, obj);
+            obj = GeneralPurpose.SetRoles(user.Role, obj);
 
             // Add user
             if (!await userRepo.AddUser(obj))
@@ -121,47 +121,6 @@ namespace ITValet.Controllers
                     obj.Email!, (int)obj.Role, projectVariables.ReactUrl);
 
             return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Vertification Email has been sent to your email.", obj));
-        }
-
-        private bool MatchPassword(string password, string confirmPassword)
-        {
-            return password == confirmPassword;
-        }
-
-        private User MapUser(RegisterUserDto user, User obj)
-        {
-            return obj = new User
-            {
-                FirstName = user.Firstname,
-                LastName = user.Lastname,
-                UserName = user.Username,
-                Email = user.Email,
-                Password = StringCipher.Encrypt(user.Password!),
-                Country = user.Country,
-                State = user.State,
-                City = user.City,
-                ZipCode = user.PostalCode,
-                Timezone = user.Timezone,
-                IsActive = 3,
-                CreatedAt = GeneralPurpose.DateTimeNow()
-            };
-        }
-
-        private User SetRoles(RegisterUserDto user, User obj)
-        {
-            
-            if (!Enum.TryParse<EnumRoles>(user.Role, true, out var role))
-                throw new ArgumentException("Invalid or missing role");
-
-            obj.Role = (int)role;
-
-            if (role == EnumRoles.Valet)
-            {
-                obj.PricePerHour = 24.99m;
-                obj.HST = 13;
-            }
-
-            return obj;
         }
 
         #endregion
