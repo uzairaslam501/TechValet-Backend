@@ -133,12 +133,12 @@ namespace ITValet.Controllers
         #region CustomerPackage
 
         [HttpGet("GetUserPackageByUserId")]
-        public async Task<IActionResult> GetUserPackageByUserId(int start, int length, string? sortColumnName, string? sortDirection,
-            string? searchValue, string? userId)
+        public async Task<IActionResult> GetUserPackageByUserId(int start, int length, string? sortColumnName = "", string? sortDirection = "",
+            string? searchValue = "", string? userId = "")
         {
             try
             {
-                var decryptUserId = StringCipher.DecryptionId(userId);
+                var decryptUserId = StringCipher.DecryptionId(userId!);
                 var userPackages = await _userPackageService.GetUserPackageListByUserId(decryptUserId);
                 var userPackageList = userPackages.ToList();
 
@@ -187,34 +187,9 @@ namespace ITValet.Controllers
             }
             catch (Exception ex)
             {
+                GeneralPurpose.CreateLogger(projectVariables, ex);
                 return BadRequest(GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage));
             }
-        }
-
-        public async Task<ActionResult> GetUserPackageByUserId(string userId)
-        {
-            var userIds = StringCipher.DecryptionId(userId);
-            var getuserPackage = await _userPackageService.GetUserPackageByUserId(userIds);
-
-            if (getuserPackage == null)
-            {
-                return Ok(new ResponseDto() { Status = true, StatusCode = "200", Message = GlobalMessages.InsufficientRemainingSession });
-            }
-
-            UserPackageDto obj = new UserPackageDto()
-            {
-                Id = getuserPackage.Id,
-                PackageName = getuserPackage.PackageName,
-                PackageType = getuserPackage.PackageType,
-                RemainingSessions = getuserPackage.RemainingSessions,
-                StartDateTime = getuserPackage.StartDateTime,
-                EndDateTime = getuserPackage.EndDateTime,
-                TotalSessions = getuserPackage.TotalSessions,
-                CustomerId = getuserPackage.CustomerId,
-                PackagePaidBy = getuserPackage.PaidBy
-            };
-
-            return Ok(new ResponseDto() { Data = obj, Status = true, StatusCode = "200", Message = "Record Fetch Successfully" });
         }
 
         [HttpGet("GetPackageById/{id}")]
