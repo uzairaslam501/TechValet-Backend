@@ -455,7 +455,7 @@ namespace ITValet.Services
                         obj.OrderStatus = order.OrderStatus;
                         obj.StartDateTime = order.StartDateTime;
                         obj.EndDateTime = order.EndDateTime;
-                        obj.OrderDetailUrl = projectVariables.BaseUrl + "User/OrderDetail?orderId=" + obj.OrderEncId;
+                        obj.OrderDetailUrl = $"{projectVariables.ReactUrl}order-details/${obj.OrderEncId}";
                         orderEvents.Add(obj);
                     }
                 }
@@ -493,7 +493,7 @@ namespace ITValet.Services
                         OrderStatus = order.OrderStatus,
                         StartDateTime = order.StartDateTime,
                         EndDateTime = order.EndDateTime,
-                        OrderDetailUrl = projectVariables.BaseUrl + "User/OrderDetail?orderId=" + StringCipher.EncryptId(order.Id)
+                        OrderDetailUrl = $"{projectVariables.ReactUrl}order-details/${StringCipher.EncryptId(order.Id)}"
                     };
 
                     orderEvents.Add(obj);

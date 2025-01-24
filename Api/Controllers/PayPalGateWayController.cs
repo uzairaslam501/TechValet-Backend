@@ -253,7 +253,7 @@ namespace ITValet.Controllers
                             Title = "Order Accepted",
                             IsRead = 0,
                             IsActive = (int)EnumActiveStatus.Active,
-                            Url = projectVariables.BaseUrl + "User/OrderDetail?orderId=" + StringCipher.EncryptId(checkoutObj.OrderId),
+                            Url = $"{projectVariables.ReactUrl}order-details/${StringCipher.EncryptId(checkoutObj.OrderId)}",
                             CreatedAt = GeneralPurpose.DateTimeNow(),
                             Description = "Customer Accepted Your Delivery",
                             NotificationType = (int)NotificationType.OrderCancellationRequested
