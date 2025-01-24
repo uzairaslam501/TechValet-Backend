@@ -181,7 +181,7 @@ namespace ITValet.Services
         {
             try
             {
-                var Id = DecryptionId(userId);
+                var Id = StringCipher.DecryptionId(userId);
                 var ratingList = await _context.UserRating.Where(x => x.ValetId == Id).ToListAsync();
 
                 // If no ratings exist, return early to avoid further processing
@@ -217,7 +217,7 @@ namespace ITValet.Services
                         {
                             Reviews = rating.Reviews,
                             Stars = rating.Stars,
-                            PublishDate = rating.CreatedAt.Value.Date.ToString("yyyy-MM-dd"),
+                            PublishDate = rating.CreatedAt != null ? rating.CreatedAt.Value.Date.ToString("yyyy-MM-dd") : "",
                         };
 
                         var customerRecord = customerRecords.FirstOrDefault(c => c.Id == rating.CustomerId);

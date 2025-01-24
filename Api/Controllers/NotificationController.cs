@@ -96,7 +96,7 @@ namespace ITValet.Controllers
 
                 viewNotificationDtoList.Add(viewNotificationDto);
             }
-            //viewNotificationDtoList = viewNotificationDtoList.Take(10).ToList(); 
+            viewNotificationDtoList = viewNotificationDtoList.Take(20).ToList(); 
             return Ok(new { Status = true, StatusCode = "200", Data = viewNotificationDtoList });
         }
 
