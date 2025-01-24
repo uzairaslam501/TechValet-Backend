@@ -778,7 +778,7 @@ namespace ITValet.Controllers
                 return BadRequest(GlobalMessages.SystemFailureMessage);
 
             // Send verification email
-            if (obj.Role == (int)EnumRoles.Customer || obj.Role == (int)EnumRoles.Valet)
+            if (obj.Role == (int)EnumRoles.Customer || obj.Role == (int)EnumRoles.Valet || obj.Role == (int)EnumRoles.Seo)
                 await MailSender.SendEmailWhenAdminCreateAccount(obj, user.Role!, projectVariables.ReactUrl);
 
             return Ok(GeneralPurpose.GenerateResponseCode(true, "200", GlobalMessages.SuccessMessage, obj));

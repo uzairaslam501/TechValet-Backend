@@ -297,8 +297,14 @@ namespace ITValet.HelpingClasses
 
     public class UpdatePasswordDto
     {
-        public string? OldPassword { get; set; }
-        public string? Password { get; set; }
+        [Required(ErrorMessage = "Old Password is required")]
+        public string OldPassword { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "New Password is required")]
+        public string NewPassword { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Confirm Password is required")]
+        public string ConfirmPassword { get; set; } = string.Empty;
     }
 
     public class BookedSlotTiming

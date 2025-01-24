@@ -207,31 +207,26 @@ namespace ITValet.Controllers
         [CustomAuthorize]
         [HttpPut]
         [Route("UpdatePassword/{userId}")]
-        public async Task<ActionResult> PostUpdatePassword(string userId, UpdatePasswordDto user)
+        public async Task<ActionResult> PostUpdatePassword(string userId, UpdatePasswordDto passwordDto)
         {
-            UserClaims? obj = jwtUtils.ValidateToken(Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last());
+            int id = StringCipher.DecryptionId(userId);
 
-            if (obj == null)
-            {
-                return Ok(new ResponseDto() { Status = false, StatusCode = "404", Message = GlobalMessages.RecordNotFound });
-            }
+            var getLoggedInUser = await userRepo.GetUserById(id);
+            if (getLoggedInUser == null)
+                return BadRequest(GlobalMessages.RecordNotFound);
 
-            var getLoggedInUser = await userRepo.GetUserById((int)obj.Id);
+            if (StringCipher.Decrypt(getLoggedInUser.Password) != passwordDto.OldPassword)
+                return BadRequest(GlobalMessages.OldPassword);
 
-            if (StringCipher.Decrypt(getLoggedInUser.Password) != user.OldPassword)
-            {
-                return Ok(new ResponseDto() { Status = false, StatusCode = "404", Message = GlobalMessages.OldPassword });
-            }
+            if (!GeneralPurpose.MatchPassword(passwordDto.NewPassword!, passwordDto.ConfirmPassword!))
+                return BadRequest("Password and Confirm Password must be same.");
 
-            getLoggedInUser.Password = StringCipher.Encrypt(user.Password.Trim());
-
+            getLoggedInUser.Password = StringCipher.Encrypt(passwordDto.NewPassword.Trim());
 
             if (!await userRepo.UpdateUser(getLoggedInUser))
-            {
-                return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
-            }
+                return BadRequest(GlobalMessages.SystemFailureMessage);
 
-            return Ok(new ResponseDto() { Data = getLoggedInUser, Status = true, StatusCode = "200", Message = GlobalMessages.PasswordUpdated });
+            return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Password Updated Successfully!", getLoggedInUser));
         }
         #endregion
 
