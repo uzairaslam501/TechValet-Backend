@@ -7,11 +7,10 @@
             services.AddCors(options =>
             {
                 options.AddPolicy("CORSPolicy", policy =>
-                    policy
-                    .AllowAnyOrigin()
-                    .AllowAnyMethod()
-                    .AllowAnyHeader()
-                    );
+                    policy.AllowAnyMethod()
+                          .AllowAnyHeader()
+                          .AllowCredentials()
+                          .SetIsOriginAllowed(_ => true));
             });
 
             return services;

@@ -2,9 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Newtonsoft.Json;
-using System;
-using System.IO;
-using System.Threading.Tasks;
+using System.Collections.Concurrent;
 
 public class LogApiRequestResponseFilter : ActionFilterAttribute
 {
@@ -39,7 +37,7 @@ public class LogApiRequestResponseFilter : ActionFilterAttribute
                 StatusCode = statusCode
             };
 
-            LogToJsonFile(logEntry);
+            LoggingService.EnqueueLog(logEntry);
         }
     }
 
@@ -67,6 +65,66 @@ public class LogApiRequestResponseFilter : ActionFilterAttribute
 
             // Write the updated log content to the file
             File.WriteAllText(logFileName, logEntryJson);
+        }
+    }
+}
+
+
+public class LoggingService
+{
+    private static readonly ConcurrentQueue<object> LogQueue = new ConcurrentQueue<object>();
+    private static readonly string LogFilePath = Path.Combine(Directory.GetCurrentDirectory(), "logger.json");
+    private static readonly Timer LogTimer;
+
+    static LoggingService()
+    {
+        // Initialize the timer to process logs every 30 seconds
+        LogTimer = new Timer(ProcessLogs, null, TimeSpan.Zero, TimeSpan.FromSeconds(60));
+    }
+
+    public static void EnqueueLog(object logEntry)
+    {
+        if (logEntry != null)
+        {
+            LogQueue.Enqueue(logEntry);
+        }
+    }
+
+    private static void ProcessLogs(object state)
+    {
+        if (!LogQueue.IsEmpty)
+        {
+            var logsToWrite = new List<string>();
+
+            // Dequeue all log entries
+            while (LogQueue.TryDequeue(out var logEntry))
+            {
+                logsToWrite.Add(JsonConvert.SerializeObject(logEntry, Formatting.Indented));
+            }
+
+            if (logsToWrite.Any())
+            {
+                // Write logs to the file
+                lock (LogFilePath)
+                {
+                    if (!File.Exists(LogFilePath))
+                    {
+                        // Create a new JSON array if the file doesn't exist
+                        File.WriteAllText(LogFilePath, "[" + string.Join(",", logsToWrite) + "]");
+                    }
+                    else
+                    {
+                        // Append to the existing JSON array
+                        var content = File.ReadAllText(LogFilePath);
+                        var lastIndex = content.LastIndexOf("]");
+                        if (lastIndex > 0)
+                        {
+                            content = content.Remove(lastIndex, 1) + "," + string.Join(",", logsToWrite) + "]";
+                            File.WriteAllText(LogFilePath, content);
+                        }
+                    }
+                }
+            }
         }
     }
 }

@@ -4,6 +4,7 @@ using ITValet.JWTAuthentication;
 using ITValet.JwtAuthorization;
 using ITValet.Models;
 using ITValet.Services;
+using ITValet.Utils.Helpers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 
@@ -131,7 +132,65 @@ namespace ITValet.Controllers
 
         #region CustomerPackage
 
-        [HttpGet("GetUserPackageByUserId/{userId}")]
+        [HttpGet("GetUserPackageByUserId")]
+        public async Task<IActionResult> GetUserPackageByUserId(int start, int length, string? sortColumnName, string? sortDirection,
+            string? searchValue, string? userId)
+        {
+            try
+            {
+                var decryptUserId = StringCipher.DecryptionId(userId);
+                var userPackages = await _userPackageService.GetUserPackageListByUserId(decryptUserId);
+                var userPackageList = userPackages.ToList();
+
+                // Initialize BaseService
+                var baseService = new DatatableHelper<UserPackage>();
+
+                // Apply sorting
+                userPackageList = baseService.ApplySorting(userPackageList, sortColumnName, sortDirection);
+
+                // Apply filtering
+                if (!string.IsNullOrEmpty(searchValue))
+                {
+                    searchValue = searchValue.ToLower().Trim();
+                    userPackageList = baseService.ApplyFiltering(userPackageList, p =>
+                        (p.PackageName != null && p.PackageName.ToLower().Contains(searchValue)) ||
+                        (p.TotalSessions != null && p.TotalSessions.ToString().Contains(searchValue)) ||
+                        (p.RemainingSessions != null && p.RemainingSessions.ToString().Contains(searchValue)) ||
+                        (p.PackageType != null && p.PackageType.ToString().Contains(searchValue))).ToList();
+                }
+
+                int totalRows = userPackageList.Count();
+                int totalRowsAfterFiltering = totalRows;
+
+                // Apply pagination
+                if (totalRowsAfterFiltering > 0 && start < totalRowsAfterFiltering)
+                {
+                    userPackageList = baseService.ApplyPagination(userPackageList, start, length);
+                }
+
+                var dtoList = new List<UserPackageListViewModel>();
+                foreach (var userPackage in userPackageList)
+                {
+                    var userPackageDtos = MappingHelper.MapUserPackageToDtos(userPackage);
+                    dtoList.Add(userPackageDtos);
+                };
+
+                var response = new
+                {
+                    draw = (start / length) + 1,
+                    data = dtoList,
+                    recordsTotal = totalRows,
+                    recordsFiltered = totalRowsAfterFiltering
+                };
+
+                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", GlobalMessages.RecordFound, response));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage));
+            }
+        }
+
         public async Task<ActionResult> GetUserPackageByUserId(string userId)
         {
             var userIds = StringCipher.DecryptionId(userId);

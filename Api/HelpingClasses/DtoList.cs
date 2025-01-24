@@ -179,6 +179,20 @@ namespace ITValet.HelpingClasses
         public int? CustomerId { get; set; }
     }
 
+    public class UserPackageListViewModel
+    {
+        public int? Id { get; set; }
+        public string? UserPackageEncId { get; set; }
+        public string? PackageName { get; set; }
+        public string? Customer { get; set; }
+        public string? PackageType { get; set; } // 1 For Yearly 2 For 2 Years
+        public string? StartDateTime { get; set; }
+        public string? EndDateTime { get; set; }
+        public string? TotalSessions { get; set; }
+        public string? RemainingSessions { get; set; }
+        public string? CustomerId { get; set; }
+    }
+
     public class CustomerInfo
     {
         public int Id { get; set; }

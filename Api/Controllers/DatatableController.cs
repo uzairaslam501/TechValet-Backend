@@ -195,10 +195,14 @@ namespace ITValet.Controllers
                     userPackageList = baseService.ApplyPagination(userPackageList, start, length);
                 }
 
-                var dtoList = new List<UserPackageListDto>();
+                var dtoList = new List<UserPackageListViewModel>();
                 foreach (var userPackage in userPackageList) {
-                    var customer = await _userRepo.GetUserById((int)userPackage.CustomerId!);
-                    var customerName = customer != null ? $"{customer.FirstName} {customer.LastName}" : null;
+                    var customerName = "";
+                         if(userPackage.CustomerId != null)
+                    {
+                        var customer = await _userRepo.GetUserById((int)userPackage.CustomerId!);
+                        customerName = customer != null ? $"{customer.FirstName} {customer.LastName}" : null;
+                    }
                     var userPackageDtos = MappingHelper.MapUserPackageToDtos(userPackage);
                     userPackageDtos.Customer = customerName;
                     dtoList.Add(userPackageDtos);
@@ -1139,12 +1143,6 @@ namespace ITValet.Controllers
 
 
         #region Helpers
-        private int DecryptionId(string userId)
-        {
-            var validEncrypted = GeneralPurpose.ConversionEncryptedId(userId);
-            return StringCipher.DecryptId(validEncrypted);
-        }
-
         private async void CreateLogger(Exception ex)
         {
             await MailSender.SendErrorMessage($"URL: {_projectVariables.BaseUrl}<br/> Exception Message:  {ex.Message} <br/> Stack Trace: {ex.StackTrace}");

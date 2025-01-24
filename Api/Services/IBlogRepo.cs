@@ -62,7 +62,7 @@ namespace ITValet.Services
                     return GeneralPurpose.GenerateResponse(false, "500", "Something's went wrong. Try again later!");
 
                 var responseData = _mapper.Map<BlogViewModel>(getObj);
-                return GeneralPurpose.GenerateResponse(false, "200", "Record added successfully.", responseData);
+                return GeneralPurpose.GenerateResponse(true, "200", "Record added successfully.", responseData);
             }
             catch (Exception ex)
             {
@@ -107,7 +107,7 @@ namespace ITValet.Services
                     return GeneralPurpose.GenerateResponse(false, "500", "Something's went wrong. Try again later!");
 
                 var responseData = _mapper.Map<BlogViewModel>(mappedObj);
-                return GeneralPurpose.GenerateResponse(false, "200", GlobalMessages.UpdateMessage, responseData);
+                return GeneralPurpose.GenerateResponse(true, "200", GlobalMessages.UpdateMessage, responseData);
             }
             catch (Exception ex)
             {

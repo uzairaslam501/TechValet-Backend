@@ -73,18 +73,18 @@ namespace ITValet.Utils.Helpers
             return requestServicesDtos;
         }
 
-        public static UserPackageListDto MapUserPackageToDtos(UserPackage packageObj)
+        public static UserPackageListViewModel MapUserPackageToDtos(UserPackage packageObj)
         {
-            return new UserPackageListDto
+            return new UserPackageListViewModel
             {
                 Id = packageObj.Id,
                 PackageName = packageObj.PackageName,
-                PackageType = packageObj.PackageType,
-                TotalSessions = packageObj.TotalSessions,
-                RemainingSessions = packageObj.RemainingSessions,
-                StartDateTime = packageObj.StartDateTime,
-                EndDateTime = packageObj.EndDateTime,
-                CustomerId = packageObj.CustomerId,
+                PackageType = packageObj.PackageType.ToString(),
+                TotalSessions = packageObj.TotalSessions.ToString(),
+                RemainingSessions = packageObj.RemainingSessions.ToString(),
+                StartDateTime = packageObj.StartDateTime!.Value.ToString("yyyy-MMM-dd HH:mm"),
+                EndDateTime = packageObj.EndDateTime!.Value.ToString("yyyy-MMM-dd HH:mm"),
+                CustomerId = packageObj.CustomerId.ToString(),
             };
         }
 
