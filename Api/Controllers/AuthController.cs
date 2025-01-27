@@ -145,16 +145,6 @@ namespace ITValet.Controllers
 
             UpdateUserProperties(user, obj);
 
-            if (!await userRepo.ValidateEmail(obj.Email!, obj.Id))
-            {
-                return Ok(new ResponseDto
-                {
-                    Status = false,
-                    StatusCode = "400",
-                    Message = GlobalMessages.DuplicateEmail
-                });
-            }
-
             if (!await userRepo.UpdateUser(obj))
             {
                 return Ok(new ResponseDto
@@ -202,7 +192,6 @@ namespace ITValet.Controllers
 
             return Ok(new ResponseDto() { Status = false, StatusCode = "406", Message = "Invalid Request" });
         }
-
 
         [CustomAuthorize]
         [HttpPut]
@@ -559,7 +548,7 @@ namespace ITValet.Controllers
 
         private UserClaims CreateUserClaims(User obj)
         {
-            var baseUri = $"{projectVariables.BaseUrl}/profiles/";
+            var baseUri = $"{projectVariables.BaseUrl}";
             return new UserClaims
             {
                 Id = obj.Id,

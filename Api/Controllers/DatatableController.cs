@@ -160,13 +160,14 @@ namespace ITValet.Controllers
             }
         }
 
-        [HttpGet("GetUserPackageDatatableAsync")]
-		public async Task<IActionResult> GetUserPackageDatatableAsync(int start, int length, string? sortColumnName, string? sortDirection, string? searchValue, int? UserId)
+        [HttpGet("GetPackagesRecord")]
+		public async Task<IActionResult> GetUserPackageDatatableAsync(int start, int length, string? sortColumnName, string? sortDirection,
+            string? searchValue)
 		{
 			try
 			{
                 UserClaims? getUserFromToken = jwtUtils.ValidateToken(Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last());
-                var userPackages = await _userPackageService.GetUserPackageListByUserId((int)getUserFromToken!.Id!);
+                var userPackages = await _userPackageService.GetUserPackageList();
                 var userPackageList = userPackages.ToList();
 
                 // Initialize BaseService
@@ -663,16 +664,11 @@ namespace ITValet.Controllers
             }
         }
 
-        [CustomAuthorize(new EnumRoles[] { EnumRoles.Admin })]
+
         [HttpGet("GetStripeOrdersRecord")]
-        public async Task<IActionResult> GetStripeOrdersRecord(
-             int start,
-             int length,
-             string? userName = "",
-             string? itValet = "",
-             string? sortColumn = "",
-             string sortColumnDirection = "",
-             string? searchValue = "")
+        public async Task<IActionResult> GetStripeOrdersRecord(int start, int length, string? sortColumnName = "", string? sortDirection = "",
+             string? searchValue = "", string? userName = "", string? itValet = ""
+             )
         {
             try
             {
@@ -695,7 +691,7 @@ namespace ITValet.Controllers
                 var baseService = new DatatableHelper<StripeOrderDetailForAdminDb>();
 
                 // Apply sorting
-                stripeOrdersRecord = baseService.ApplySorting(stripeOrdersRecord, sortColumn, sortColumnDirection);
+                stripeOrdersRecord = baseService.ApplySorting(stripeOrdersRecord, sortColumnName, sortDirection);
                 
                 // Apply filtering
                 if (!string.IsNullOrEmpty(searchValue))
@@ -1140,6 +1136,69 @@ namespace ITValet.Controllers
             }
         }
 
+
+        #region Orders
+        #region Orders
+
+        [HttpGet("CompletedOrder/{userId}")]
+        public async Task<IActionResult> GetAllCompletedOrders(string userId, int start, int length,string? sortColumnName = "",
+            string? sortDirection = "", string? searchValue = "")
+        {
+
+            try
+            {
+                var decryptUserId = StringCipher.DecryptionId(userId);
+                var completedOrderRecords = await orderRepo.GetCompletedOrderRecord(decryptUserId);
+                var orderListMaterialized = completedOrderRecords.ToList();
+                // Initialize BaseService
+                var baseService = new DatatableHelper<Order>();
+
+                // Apply sorting
+                orderListMaterialized = baseService.ApplySorting(orderListMaterialized, sortColumnName, sortDirection);
+
+                // Apply filtering
+                if (!string.IsNullOrEmpty(searchValue))
+                {
+                    string search = searchValue.ToLower().Trim();
+                    orderListMaterialized = baseService.ApplyFiltering(orderListMaterialized, o =>
+                        (o.OrderTitle != null && o.OrderTitle.ToLower().Contains(search)) ||
+                        (o.OrderPrice != null && o.OrderPrice.ToString().Contains(search)) ||
+                        (o.IsDelivered != null && o.IsDelivered.ToString().Contains(search))
+                    ).ToList();
+                }
+
+                // Record counts
+                int totalRows = orderListMaterialized.Count();
+                int totalRowsAfterFiltering = totalRows;
+
+                // Apply pagination
+                if (totalRowsAfterFiltering > 0 && start < totalRowsAfterFiltering)
+                {
+                    orderListMaterialized = baseService.ApplyPagination(orderListMaterialized, start, length);
+                }
+
+                // Map data to DTOs
+                var orderDtos = MappingHelper.MapCompletedOrderRecordsToDtos(orderListMaterialized);
+
+
+                var response = new
+                {
+                    draw = (start / length) + 1,
+                    data = orderDtos,
+                    recordsTotal = totalRows,
+                    recordsFiltered = totalRowsAfterFiltering
+                };
+
+                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", GlobalMessages.RecordFound, response));
+            }
+            catch (Exception ex)
+            {
+                CreateLogger(ex);
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage));
+            }
+        }
+        #endregion
+        #endregion
 
 
         #region Helpers

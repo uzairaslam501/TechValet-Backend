@@ -291,6 +291,25 @@ namespace ITValet.Utils.Helpers
             return tagListDto;
         }
 
+        public static List<CompletedOrderRecord> MapCompletedOrderRecordsToDtos(List<Order> completedOrders)
+        {
+            List<CompletedOrderRecord> completedOrdersDto = new List<CompletedOrderRecord>();
+            foreach (var order in completedOrders)
+            {
+                CompletedOrderRecord obj = new CompletedOrderRecord()
+                {
+                    EncOrderId = StringCipher.EncryptId(order.Id),
+                    OrderPrice = order.OrderPrice.ToString(),
+                    OrderPaidBy = GeneralPurpose.OrderPaidBy(order.PayPalPaymentId, order.CapturedId, order.StripeChargeId, order.PackageBuyFrom),
+                    EarnedFromOrder = "$"+ GeneralPurpose.EarnedAmountFromOrder((decimal)order.OrderPrice!),
+                    OrderTitle = order.OrderTitle,
+                    CompletedAt = order.EndDateTime!.Value.ToString("yyyy-MMM-dd HH:mm"),
+                };
+                completedOrdersDto.Add(obj);
+            }
+            return completedOrdersDto;
+        }
+
         public static List<User> FilterUsersList(List<User> ulist, string? Name = "",
             string? Email = "", string? Contact = "", string? Country = "",
             string? State = "", string? City = "", string? IsActive = "")

@@ -32,7 +32,7 @@ namespace ITValet.Services
         Task<Order?> UpdateOrderByPayPal(string paymentId, string CapturedID);
         Task<Order?> UpdateOrderStatusForPayPal(AcceptOrder orderDetail);
         Task<List<int>> GetOrdersIdThatHasPendingAmount(int valetId);
-        Task<List<CompletedOrderRecord>> GetCompletedOrderRecord(int valetId);
+        Task<List<Order>> GetCompletedOrderRecord(int valetId);
         Task<List<decimal?>> CalculateStripeCompletedOrder(int valetId);
         Task<List<decimal?>> GetStripeEarnings(int valetId);
         Task<List<OrderEventsViewModal>> GetOrderEventRecordByOrderStatus(int id, int? role, bool InProgress, bool cancelled, bool completed);
@@ -567,62 +567,37 @@ namespace ITValet.Services
             }
         }
         
-        public async Task<List<CompletedOrderRecord>> GetCompletedOrderRecord(int valetId)
+        public async Task<List<Order>> GetCompletedOrderRecord(int valetId)
         {
             try
             {
                 List<CompletedOrderRecord> records = new List<CompletedOrderRecord>();
                 var completedOrder = await _context.Order.Where(x => x.ValetId == valetId
                                    && (x.OrderStatus == 1 || x.OrderStatus == 2)).ToListAsync();
-                if (completedOrder.Any())
-                {
-                    foreach (var item in completedOrder)
-                    {
-                        CompletedOrderRecord record = new CompletedOrderRecord();
-                        record.EncOrderId = StringCipher.EncryptId(item.Id);
-                        record.OrderTitle = item.OrderTitle;
-                        record.OrderPrice = item.OrderPrice.ToString();
-                        record.EarnedFromOrder = await EarnedAmountFromOrder(item.OrderPrice.Value);
-                        record.OrderPaidBy = await OrderPaidBy(item.PayPalPaymentId, item.CapturedId, item.StripeChargeId, item.PackageBuyFrom);
-                        record.CompletedAt = item.EndDateTime.ToString();
+                //if (completedOrder.Any())
+                //{
+                //    foreach (var item in completedOrder)
+                //    {
+                //        CompletedOrderRecord record = new CompletedOrderRecord();
+                //        record.EncOrderId = StringCipher.EncryptId(item.Id);
+                //        record.OrderTitle = item.OrderTitle;
+                //        record.OrderPrice = item.OrderPrice.ToString();
+                //        record.EarnedFromOrder = await EarnedAmountFromOrder(item.OrderPrice.Value);
+                //        record.OrderPaidBy = await OrderPaidBy(item.PayPalPaymentId, item.CapturedId, item.StripeChargeId, item.PackageBuyFrom);
+                //        record.CompletedAt = item.EndDateTime.ToString();
 
-                        records.Add(record);
-                    }
-                }
-                return records;
+                //        records.Add(record);
+                //    }
+                //}
+                return completedOrder;
             }
             catch (Exception ex)
             {
-                return new List<CompletedOrderRecord>();
+                return new List<Order>();
             }
         }
 
-        private async Task<string> OrderPaidBy(string? PaymentId, string? CaptureId, string? StripeChargeId, string? PackageBuyFrom)
-        {
-            string orderPaidBy = string.Empty; 
-
-            if (!string.IsNullOrEmpty(PackageBuyFrom))
-            {
-                orderPaidBy = PackageBuyFrom;
-            }
-            else if (!string.IsNullOrEmpty(PaymentId) && !string.IsNullOrEmpty(CaptureId))
-            {
-                orderPaidBy = "PAYPAL";
-            }
-            else if (!string.IsNullOrEmpty(StripeChargeId))
-            {
-                orderPaidBy = "STRIPE";
-            }
-
-            return orderPaidBy;
-        }
-
-        private async Task<string> EarnedAmountFromOrder(decimal OrderPrice)
-        {
-            var orderHstFee = GeneralPurpose.CalculateHSTFee(OrderPrice);
-            decimal earnedAmount = OrderPrice - orderHstFee;
-            return earnedAmount.ToString("0.00");
-        }
+        
 
         public async Task<List<int>> GetOrdersIdThatHasPendingAmount(int valetId)
         {

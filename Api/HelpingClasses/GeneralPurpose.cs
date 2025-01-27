@@ -421,6 +421,35 @@ namespace ITValet.HelpingClasses
         }
 
         #endregion
+
+        #region Order Payment
+        public static string OrderPaidBy(string? PaymentId, string? CaptureId, string? StripeChargeId, string? PackageBuyFrom)
+        {
+            string orderPaidBy = string.Empty;
+
+            if (!string.IsNullOrEmpty(PackageBuyFrom))
+            {
+                orderPaidBy = PackageBuyFrom;
+            }
+            else if (!string.IsNullOrEmpty(PaymentId) && !string.IsNullOrEmpty(CaptureId))
+            {
+                orderPaidBy = "PAYPAL";
+            }
+            else if (!string.IsNullOrEmpty(StripeChargeId))
+            {
+                orderPaidBy = "STRIPE";
+            }
+
+            return orderPaidBy;
+        }
+
+        public static string EarnedAmountFromOrder(decimal OrderPrice)
+        {
+            var orderHstFee = CalculateHSTFee(OrderPrice);
+            decimal earnedAmount = OrderPrice - orderHstFee;
+            return earnedAmount.ToString("0.00");
+        }
+        #endregion
         public static async void CreateLogger(ProjectVariables _projectVariables, Exception ex)
         {
             await MailSender.SendErrorMessage($"URL: {_projectVariables.BaseUrl}<br/> Exception Message:  {ex.Message} <br/> Stack Trace: {ex.StackTrace}");

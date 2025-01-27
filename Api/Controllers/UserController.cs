@@ -1700,68 +1700,7 @@ namespace ITValet.Controllers
         }
         #endregion
 
-        #region Orders
-
-        [HttpPost("GetAllCompletedOrders")]
-        public async Task<IActionResult> GetAllCompletedOrders(string? ValetId)
-        {
-            int Id = Convert.ToInt32(ValetId);
-            var getAllCompletedOrderRecord = await orderRepo.GetCompletedOrderRecord(Id);
-            // Apply filter based on searches
-            var draw = Request.Form["draw"].FirstOrDefault();
-            var start = Request.Form["start"].FirstOrDefault();
-            var length = Request.Form["length"].FirstOrDefault();
-            var sortColumn = Request.Form["columns[" + Request.Form["order[0][column]"].FirstOrDefault() + "][name]"].FirstOrDefault();
-            var sortColumnDirection = Request.Form["order[0][dir]"].FirstOrDefault();
-            var searchValue = Request.Form["search[value]"].FirstOrDefault();
-            int pageSize = length != null ? Convert.ToInt32(length) : 0;
-            int skip = start != null ? Convert.ToInt32(start) : 0;
-            if (sortColumn != "" && sortColumn != null)
-            {
-                if (!string.IsNullOrEmpty(sortColumn) && sortColumn != "0")
-                {
-                    if (sortColumnDirection == "asc")
-                    {
-                        getAllCompletedOrderRecord = getAllCompletedOrderRecord.OrderByDescending(x => x.GetType().GetProperty(sortColumn).GetValue(x)).ToList();
-                    }
-                    else
-                    {
-                        getAllCompletedOrderRecord = getAllCompletedOrderRecord.OrderBy(x => x.GetType().GetProperty(sortColumn).GetValue(x)).ToList();
-                    }
-                }
-            }
-            int totalrows = getAllCompletedOrderRecord.Count();
-
-            if (!string.IsNullOrEmpty(searchValue))
-            {
-                getAllCompletedOrderRecord = getAllCompletedOrderRecord.Where(x =>
-                                    (x.OrderTitle != null && x.OrderTitle.ToLower().Contains(searchValue)) ||
-                                    (x.EarnedFromOrder != null && x.EarnedFromOrder.ToLower().Contains(searchValue)) ||
-                                    (x.CompletedAt != null && x.CompletedAt.ToLower().Contains(searchValue)) ||
-                                    (x.OrderPrice != null && x.OrderPrice.ToLower().Contains(searchValue)) ||
-                                    (x.OrderPaidBy != null && x.OrderPaidBy.ToLower().Contains(searchValue))
-                                ).ToList();
-            }
-            int totalrowsafterfilterinig = getAllCompletedOrderRecord.Count();
-
-            getAllCompletedOrderRecord = getAllCompletedOrderRecord.Skip(skip).Take(pageSize).ToList();
-            List<CompletedOrderRecord> completedOrders = new List<CompletedOrderRecord>();
-            foreach (var order in getAllCompletedOrderRecord)
-            {
-                CompletedOrderRecord obj = new CompletedOrderRecord()
-                {
-                   EncOrderId = order.EncOrderId,
-                   OrderPrice = order.OrderPrice,
-                   OrderPaidBy = order.OrderPaidBy,
-                   EarnedFromOrder = order.EarnedFromOrder,
-                   OrderTitle = order.OrderTitle,
-                   CompletedAt = order.CompletedAt,
-                };
-                completedOrders.Add(obj);
-            }
-            return new ObjectResult(new { data = completedOrders, draw = draw, recordsTotal = totalrows, recordsFiltered = totalrowsafterfilterinig });
-        }
-        #endregion
+        
 
         #region Helpers
 
