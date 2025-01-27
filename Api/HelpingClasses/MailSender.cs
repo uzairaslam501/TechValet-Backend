@@ -1,13 +1,5 @@
 ﻿using ITValet.Models;
 using MimeKit;
-using Newtonsoft.Json.Linq;
-using RestSharp;
-using RestSharp.Authenticators;
-using Stripe;
-using System;
-using System.Diagnostics;
-using System.Net.Mail;
-using System.Security.Policy;
 
 namespace ITValet.HelpingClasses
 {
@@ -70,14 +62,13 @@ namespace ITValet.HelpingClasses
             }
         }
 
-        public static async Task<bool> SendEmailForSetTimeAvailability(string email, string username)
+        public static async Task<bool> SendEmailForSetTimeAvailability(string email, string username, string url)
         {
             try
             {
                 string subject = "Tech-Valet : Set Your New Time Availability";
                 string description = $"Hello {username},<br/><br/>Your previous week's time availability has expired. Please set your new availability by clicking the link below:<br/><br/>";
 
-                string url = ProjectVariables.AccountUrl; 
                 string buttonText = "Set Availability";
 
                 string mailBody = PopulateBody(subject, username, description, url, buttonText);
@@ -90,14 +81,13 @@ namespace ITValet.HelpingClasses
             }
         }
 
-        public static async Task<bool> SendEmailForPaymentMaintenance(string email, string username)
+        public static async Task<bool> SendEmailForPaymentMaintenance(string email, string username, string url)
         {
             try
             {
                 string subject = "Payment Status Update: Maintenance in Progress";
                 string description = $"Hello {username},<br/><br/>We would like to inform you that your payment is currently undergoing maintenance or is in process. We apologize for any inconvenience this may cause. Rest assured, we are working diligently to resolve this as soon as possible.<br/><br/>";
 
-                string url = ProjectVariables.OrderDetailUrl; // You can replace this with the appropriate URL for your help center or support.
                 string buttonText = "Contact Support";
 
                 string mailBody = PopulateBody(subject, username, description, url, buttonText);

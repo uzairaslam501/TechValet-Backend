@@ -47,11 +47,13 @@ namespace ITValet.Services
     {
         private readonly AppDbContext _context;
         private readonly ProjectVariables _projectVariables;
+        private readonly StripeApiKeys _stripeKeys;
 
-        public UserRepo(AppDbContext _appDbContext, IOptions<ProjectVariables> projectVariable)
+        public UserRepo(AppDbContext _appDbContext, IOptions<ProjectVariables> projectVariable, IOptions<StripeApiKeys> stripeKeys)
         {
             _context = _appDbContext;
             _projectVariables = projectVariable.Value;
+            _stripeKeys = stripeKeys.Value;
         }
 
         public async Task<List<User?>> GetSkilledUsersByIds(List<int?> userIds)
@@ -442,7 +444,7 @@ namespace ITValet.Services
                 var orderHstFee = GeneralPurpose.CalculateHSTFee(calculatedAmount);
                 decimal earnedAmount = calculatedAmount - orderHstFee;
                 var amountTransferToValet = earnedAmount;
-                StripeConfiguration.ApiKey = GlobalMessages.StripeApiKey;
+                StripeConfiguration.ApiKey = _stripeKeys.StripeApiKey;
                 // Perform the transfer to the connected account
                 var TransferAmountToValet = amountTransferToValet * 100;
                 var transferCreateOptions = new TransferCreateOptions

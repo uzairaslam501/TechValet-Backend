@@ -8,12 +8,6 @@
         public string BaseUrl { get; set; } = null!;
         public string FrontEnd { get; set; } = null!;
         public string ReactUrl { get; set; } = null!;
-
-        public static string StripeAccountVerifySuccessUrl = "User/Account?message=Stripe Account Verification Success";
-        public static string StripeAccountVerifyFailedUrl = "User/Account?messages=Account Verification Failed";
-        public static string AccountUrl = "http://nodlayslahore-001-site50.atempurl.com/account";
-        public static string OrderDetailUrl = "http://nodlayslahore-001-site50.atempurl.com/order-details/";
-        public static string ForStripeUrl = "http://nodlayslahore-001-site50.atempurl.com/";
     }
 
     public class ReturnUrls
@@ -26,7 +20,8 @@
 
     public class StripeApiKeys
     {
-        public string? StripeApiKey { get; set; }
+        public string? StripeApiKey { get; set; } //Secret Key
+        public string? StripeClientId { get; set; } // Published Key
     }
 
     public class Zoom
@@ -38,10 +33,6 @@
 
     public static class GlobalMessages
     {
-        public static string ZoomAccountId = "BWKIKMwhTTiCbxE_Hbuuhw";
-        public static string ZoomClientId = "eFCpqz8STwOwm15dRqQVAg";
-        public static string ZoomClientSecret = "r6k2lDM1yCzsWmGPNmWD51fyIOxhS3Se";
-        public static string StripeApiKey = "sk_test_51LdJU1JGItIO6che6rYKSSzY2NEhOmMJtbUKUAxe1H95dl8oQPI6jWPmWHNBLfRsC8PdeqVi2TY1CFWjwsxWrlfp00D0eREv8W";
         public static string SuccessMessage = "The record has been added successfully.";
         public static string UpdateMessage = "The record has been updated successfully.";
         public static string DeletedMessage = "The record has been deleted successfully.";
