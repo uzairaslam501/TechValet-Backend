@@ -639,12 +639,17 @@ namespace ITValet.Controllers
             return Ok(new ResponseDto() { Data = obj, Status = true, StatusCode = "200", Message = "Record Fetch Successfully" });
         }
 
-        [HttpPut("DeleteUser")]
-        public async Task<bool> DeleteUser(int UserId)
+        [HttpDelete("DeleteUser")]
+        public async Task<IActionResult> DeleteUser(string id)
         {
-            bool ChkUserDeleted = await userRepo.DeleteUser(UserId);
-            await _notificationHubSocket.Clients.All.SendAsync("LogOutDeletedUser", UserId);
-            return ChkUserDeleted;
+            int userId = StringCipher.DecryptionId(id);
+            bool isDeleted = await userRepo.DeleteUser(userId);
+            await _notificationHubSocket.Clients.All.SendAsync("LogOutDeletedUser", userId);
+
+            if (isDeleted)
+                return Ok(GeneralPurpose.GenerateResponse(true, "200", GlobalMessages.DeletedMessage));
+            else
+                return Ok(GeneralPurpose.GenerateResponse(false, "400", GlobalMessages.SystemFailureMessage));
         }
 
         [HttpPut("UpdateUserActiveness")]
@@ -784,8 +789,8 @@ namespace ITValet.Controllers
             return Ok(GeneralPurpose.GenerateResponseCode(true, "200", GlobalMessages.SuccessMessage, obj));
         }
 
-        [HttpPut("PostUpdateUser")]
-        public async Task<IActionResult> PostUpdateUser(PostUpdateUserDto user)
+        [HttpPut("PostUpdateUser/{Id}")]
+        public async Task<IActionResult> PostUpdateUser(string Id, PostUpdateUserDto user)
         {
             int getUserId;
             if (!string.IsNullOrEmpty(user.UserEncId))
@@ -800,11 +805,11 @@ namespace ITValet.Controllers
 
             if (obj == null)
             {
-                return Ok(new ResponseDto() { Status = false, StatusCode = "404", Message = "No record found." });
+                return BadRequest(GlobalMessages.RecordNotFound);
             }
             if (!await userRepo.ValidateEmail(obj.Email, obj.Id))
             {
-                return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = "Duplicate email, please try another." });
+                return BadRequest(GlobalMessages.DuplicateEmail);
             }
 
             obj.FirstName = !string.IsNullOrEmpty(user.FirstName) ? user.FirstName : obj.FirstName;
@@ -833,10 +838,10 @@ namespace ITValet.Controllers
 
             if (!await userRepo.UpdateUser(obj))
             {
-                return Ok(new ResponseDto() { Data = obj, Status = false, StatusCode = "400", Message = "Database updation failed." });
+                return Ok(GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage));
             }
 
-            return Ok(obj);
+            return Ok(GeneralPurpose.GenerateResponseCode(true, "200", GlobalMessages.UpdateMessage, obj));
         }
 
         [CustomAuthorize(new EnumRoles[] { EnumRoles.Admin })]

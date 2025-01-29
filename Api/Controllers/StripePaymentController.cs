@@ -347,12 +347,13 @@ namespace ITValet.Controllers
         }
 
         [CustomAuthorize(EnumRoles.Admin)]
-        [HttpPost("StripeRefund")]
-        public async Task<IActionResult> StripeRefund(string chargeId, int orderId)
+        [HttpPost("StripeRefund/{orderId}")]
+        public async Task<IActionResult> StripeRefund(string orderId, string chargeId)
         {
             try
             {
-                var refundResult = await ProcessRefund(chargeId, orderId);
+                var decryptOrderId = StringCipher.DecryptionId(orderId);
+                var refundResult = await ProcessRefund(chargeId, decryptOrderId);
 
                 if (refundResult)
                     return Ok(new ResponseDto()
@@ -379,10 +380,11 @@ namespace ITValet.Controllers
         }
 
         [CustomAuthorize(EnumRoles.Admin)]
-        [HttpPost("CancelOrderAndRevertSession")]
-        public async Task<IActionResult> CancelOrderAndRevertSession(int orderId)
+        [HttpPost("CancelOrderAndRevertSession/{orderId}")]
+        public async Task<IActionResult> CancelOrderAndRevertSession(string orderId)
         {
-            var result = await _paypalGatewayService.CancelOrderAndRevertSessionAsync(orderId);
+            var decryptOrderId = StringCipher.DecryptionId(orderId);
+            var result = await _paypalGatewayService.CancelOrderAndRevertSessionAsync(decryptOrderId);
 
             return result
                 ? Ok(new ResponseDto()

@@ -370,7 +370,7 @@ namespace ITValet.Services
 
         private async Task<string> GetUniqueSlug(string slug, int? id = 0)
         {
-            string uniqueSlug = slug;
+            string uniqueSlug = slug.Trim().Replace(" ", "-");
             if (await SlugExists(uniqueSlug, id))
             {
                 int randomNumber = new Random().Next(1, 1000);

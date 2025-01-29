@@ -512,8 +512,11 @@ namespace ITValet.Services
             try
             {
                 var stripeOrdersRecord = await _context.Order.
-                    Where(x => (x.StripeStatus == (int)StripePaymentStatus.PaymentReceived && x.OrderStatus == 0 || x.StripeStatus == (int)StripePaymentStatus.Refunded && x.OrderStatus == 4 ||
-                         x.StripeStatus == (int)StripePaymentStatus.SessionUsed && x.OrderStatus == 0 || x.StripeStatus == (int)StripePaymentStatus.SessionReverted && x.OrderStatus == 4 || x.StripeStatus == (int)StripePaymentStatus.SentToValet && x.OrderStatus == 1)
+                    Where(x => (x.StripeStatus == (int)StripePaymentStatus.PaymentReceived && x.OrderStatus == 0 ||
+                    x.StripeStatus == (int)StripePaymentStatus.Refunded && x.OrderStatus == 4 ||
+                         x.StripeStatus == (int)StripePaymentStatus.SessionUsed && x.OrderStatus == 0 ||
+                         x.StripeStatus == (int)StripePaymentStatus.SessionReverted && x.OrderStatus == 4 ||
+                         x.StripeStatus == (int)StripePaymentStatus.SentToValet && x.OrderStatus == 1)
                          && (x.StripeChargeId != null || x.PackageBuyFrom == "STRIPE") && x.IsActive == (int)EnumActiveStatus.Active).ToListAsync();
 
                 var userIds = stripeOrdersRecord.Select(obj => obj.ValetId).
@@ -521,23 +524,46 @@ namespace ITValet.Services
                               Where(id => id.HasValue).Select(id => id.Value).
                               Distinct().ToList();
                 var userNames = await _userService.GetUserNames(userIds);
-                var result = stripeOrdersRecord
-                .Select(obj => new StripeOrderDetailForAdminDb
+                var result = new List<StripeOrderDetailForAdminDb>();
+                foreach(var obj in stripeOrdersRecord)
                 {
-                    Id = obj.Id,
-                    CustomerName = obj.CustomerId.HasValue ? userNames.GetValueOrDefault(obj.CustomerId.Value, "Unknown") : "Unknown",
-                    ITValet = obj.ValetId.HasValue ? userNames.GetValueOrDefault(obj.ValetId.Value, "Unknown") : "Unknown",
-                    OrderEncId = StringCipher.EncryptId(obj.Id),
-                    StripeId = obj.StripeChargeId,
-                    StripeStatus = obj.StripeStatus.ToString(),
-                    OrderPrice = obj.OrderPrice.ToString(),
-                    OrderStatus = obj.OrderStatus.ToString(),
-                    PaidByPackage = obj.PackageBuyFrom,
-                    OrderTitle = obj.OrderTitle,
-                    IsDelivered = obj.IsDelivered.ToString(),
-                    PaymentStatus = CalculatePaymentStatus(obj.StripeChargeId, obj.PackageBuyFrom, obj.OrderStatus, obj.StripeStatus)
-                })
-                .ToList();
+                    var item = new StripeOrderDetailForAdminDb()
+                    {
+                        Id = obj.Id,
+                        CustomerName = obj.CustomerId.HasValue ? userNames.GetValueOrDefault(obj.CustomerId.Value, "Unknown") : "Unknown",
+                        ITValet = obj.ValetId.HasValue ? userNames.GetValueOrDefault(obj.ValetId.Value, "Unknown") : "Unknown",
+                        OrderEncId = StringCipher.EncryptId(obj.Id),
+                        StripeId = obj.StripeChargeId,
+                        StripeStatus = obj.StripeStatus.ToString(),
+                        OrderPrice = obj.OrderPrice.ToString(),
+                        PaidByPackage = obj.PackageBuyFrom,
+                        OrderTitle = obj.OrderTitle,
+                        IsDelivered = obj.IsDelivered.ToString(),
+                        OrderStatus = obj.OrderStatus.ToString(),
+                        PaymentStatus = CalculatePaymentStatus(obj.StripeChargeId, obj.PackageBuyFrom, obj.OrderStatus, obj.StripeStatus)
+                    };
+                    if (item.OrderStatus == "0" && item.StripeStatus == "1")
+                    {
+                        item.ButtonHandle = "Refund";
+                    }
+                    else if (item.OrderStatus == "4" && item.StripeStatus == "3")
+                    {
+                        item.ButtonHandle = "Session";
+                    }
+                    else if (item.OrderStatus == "1" && item.StripeStatus == "5")
+                    {
+                        item.ButtonHandle = "Completed";
+                    }
+                    else if (item.OrderStatus == "4" && item.StripeStatus == "2")
+                    {
+                        item.ButtonHandle = "Refunded";
+                    }
+                    else if (item.OrderStatus == "4" && item.StripeStatus == "4")
+                    {
+                        item.ButtonHandle = "Session Refunded";
+                    }
+                    result.Add(item);
+                }
 
                 return result;
             }

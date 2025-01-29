@@ -828,6 +828,7 @@ namespace ITValet.HelpingClasses
         public string? IsDelivered { get; set; }
         public string? PaymentStatus { get; set; }
         public string? StripeStatus { get; set; }
+        public string? ButtonHandle { get; set; } //this prop help in react to create the button on frontend
     }
 
     public class CheckOutDTO
