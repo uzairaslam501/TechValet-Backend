@@ -95,6 +95,18 @@ namespace ITValet.Controllers
         }
 
         [HttpGet]
+        [Route("GetBlogBySlug/{slug}")]
+        public async Task<IActionResult> GetBlogBySlug(string slug)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            var response = await _blogRepo.GetBlogBySlug(slug);
+            return Ok(response);
+        }
+
+        [HttpGet]
         [Route("GetBlogBySkill/{skillName}")]
         public async Task<IActionResult> GetBlogBySkill(string skillName)
         {

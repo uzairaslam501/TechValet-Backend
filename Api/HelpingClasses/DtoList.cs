@@ -636,11 +636,11 @@ namespace ITValet.HelpingClasses
         public string? RequestServiceEncId { get; set; }
         public string? ServiceTitle { get; set; }
         public string? ServiceDescription { get; set; }
-        public string? FromDateTime { get; set; }
-        public string? ToDateTime { get; set; }
+        public string? RequestedStartDateTime { get; set; }
+        public string? RequestedEndDateTime { get; set; }
         public string? ServiceLanguage { get; set; }
-        public int? RequestServiceUserId { get; set; }
-        public int? RequestServiceType { get; set; }
+        public string? RequestServiceUserId { get; set; }
+        public string? RequestServiceType { get; set; }
         public string? RequestServiceSkill { get; set; }
     }
 

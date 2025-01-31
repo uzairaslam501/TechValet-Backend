@@ -11,6 +11,7 @@ namespace ITValet.Services
     {
         Task<ResponseDto> GetSkills();
         Task<ResponseDto> GetBlogById(string id);
+        Task<ResponseDto> GetBlogBySlug(string slug);
         Task<ResponseDto> GetBlogBySkill(string skillName);
         Task<ResponseDto> GetBlogList(int start, int length, string? sortColumnName, string? sortDirection,
             string? searchValue, bool isSkill = false, string skillName = "");
@@ -144,6 +145,23 @@ namespace ITValet.Services
             try
             {
                 var getObj = await Get(id);
+                if (getObj == null)
+                    return GeneralPurpose.GenerateResponse(false, "400", GlobalMessages.RecordNotFound);
+
+                var responseData = _mapper.Map<BlogViewModel>(getObj);
+                return GeneralPurpose.GenerateResponse(true, "200", GlobalMessages.RecordFound, responseData);
+            }
+            catch (Exception)
+            {
+                return GeneralPurpose.GenerateResponse(false, "400", GlobalMessages.SystemFailureMessage);
+            }
+        }
+
+        public async Task<ResponseDto> GetBlogBySlug(string slug)
+        {
+            try
+            {
+                var getObj = await GetBySlug(slug);
                 if (getObj == null)
                     return GeneralPurpose.GenerateResponse(false, "400", GlobalMessages.RecordNotFound);
 
@@ -315,6 +333,21 @@ namespace ITValet.Services
                 var getObj = await _context.Blog.Where(x=> 
                                                         x.IsActive == (int)EnumActiveStatus.Active && 
                                                         x.Id == decryptedId).FirstOrDefaultAsync();
+                return getObj;
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
+
+        private async Task<Blog?> GetBySlug(string slug)
+        {
+            try
+            {
+                var getObj = await _context.Blog.Where(x =>
+                                                        x.IsActive == (int)EnumActiveStatus.Active &&
+                                                        !string.IsNullOrEmpty(x.Slug) && x.Slug.ToLower() == slug.ToLower()).FirstOrDefaultAsync();
                 return getObj;
             }
             catch (Exception ex)
