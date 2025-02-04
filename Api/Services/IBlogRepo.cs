@@ -10,6 +10,7 @@ namespace ITValet.Services
     public interface IBlogRepo
     {
         Task<ResponseDto> GetSkills();
+        Task<ResponseDto> GetBlogCounts();
         Task<ResponseDto> GetBlogById(string id);
         Task<ResponseDto> GetBlogBySlug(string slug);
         Task<ResponseDto> GetBlogBySkill(string skillName);
@@ -137,6 +138,30 @@ namespace ITValet.Services
             catch (Exception ex)
             {
                 return GeneralPurpose.GenerateResponse(false, "500", GlobalMessages.SystemFailureMessage);
+            }
+        }
+
+        public async Task<ResponseDto> GetBlogCounts()
+        {
+            try
+            {
+                var getSkills = await GetAll(true);
+                var skillCount = getSkills.Count();
+
+                var getBlogs = await GetAll();
+                var blogCount = getBlogs.Count();
+
+                var count = new
+                {
+                    skillCount,
+                    blogCount,
+                };
+
+                return GeneralPurpose.GenerateResponse(true, "200", GlobalMessages.RecordFound, count);
+            }
+            catch (Exception)
+            {
+                return GeneralPurpose.GenerateResponse(false, "400", GlobalMessages.SystemFailureMessage);
             }
         }
 

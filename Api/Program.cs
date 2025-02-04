@@ -20,10 +20,10 @@ var app = builder.Build();
 app.UseSwaggerDocumentation();
 app.UseCors("CORSPolicy");
 app.UseHttpsRedirection();
+app.UseStaticFiles();
 app.UseRouting();
 app.UseAuthorization();
 app.UseMiddleware<JwtMiddleware>();
-app.UseStaticFiles();
 
 app.UseEndpoints(endpoints =>
 {

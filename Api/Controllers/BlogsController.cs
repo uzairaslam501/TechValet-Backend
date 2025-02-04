@@ -18,6 +18,13 @@ namespace ITValet.Controllers
 
         #region Blog
 
+        [HttpGet("Dashbaord")]
+        public async Task<IActionResult> GetBlogsDashboard()
+        {
+            var response = await _blogRepo.GetBlogCounts();
+            return Ok(response);
+        }
+
         [HttpPost]
         [Route("InsertBlog")]
         public async Task<IActionResult> InsertBlog([FromForm] AddUpdateBlogViewModel viewModel)

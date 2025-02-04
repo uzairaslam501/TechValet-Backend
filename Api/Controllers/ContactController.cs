@@ -1,6 +1,5 @@
 ﻿using ITValet.Filters;
 using ITValet.HelpingClasses;
-using ITValet.JwtAuthorization;
 using ITValet.Models;
 using ITValet.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -25,9 +24,10 @@ namespace ITValet.Controllers
         [HttpPost("PostAddContact")]
         public async Task<IActionResult> PostAddContact(PostAddContact addContact)
         {
+
             var obj = new Contact();
 
-            obj.Name = addContact.Name;
+            obj.Name = addContact.FirstName + " " + addContact.LastName;
             obj.Email = addContact.Email;
             obj.Subject = addContact.Subject;
             obj.Message = addContact.Message;
@@ -35,11 +35,9 @@ namespace ITValet.Controllers
             obj.CreatedAt = GeneralPurpose.DateTimeNow();
 
             if (!await contactUsRepo.AddContact(obj))
-            {
-                return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = "Database updation failed." });
-            }
+                return BadRequest(GeneralPurpose.GenerateResponse(false, "400", GlobalMessages.SystemFailureMessage));
 
-            return Ok(new ResponseDto() { Status = true, StatusCode = "200", Message = "AvailableSlot has been added to your account" });
+            return Ok(GeneralPurpose.GenerateResponse(true, "200", "Your query has been sent successfully"));
         }
 
 
