@@ -310,6 +310,83 @@ namespace ITValet.Utils.Helpers
             return completedOrdersDto;
         }
 
+        #region PayPal Tab (Admin Side)
+
+        public static List<PayPalOrderDetailsForAdminDB> MapPaypalOrderDetailToDtos(IEnumerable<PayPalOrderDetailsForAdminDB> payPalOrderDetails)
+        {
+            List<PayPalOrderDetailsForAdminDB> paypalOrderDto = new List<PayPalOrderDetailsForAdminDB>();
+
+            foreach (var orderObj in payPalOrderDetails)
+            {
+                PayPalOrderDetailsForAdminDB obj = new PayPalOrderDetailsForAdminDB()
+                {
+                    Id = orderObj.Id,
+                    ITValet = orderObj.ITValet,
+                    OrderTitle = orderObj.OrderTitle,
+                    OrderEncId = orderObj.OrderEncId,
+                    OrderPrice = orderObj.OrderPrice,
+                    OrderStatus = orderObj.OrderStatus,
+                    PaymentStatus = orderObj.PaymentStatus,
+                    CustomerName = orderObj.CustomerName,
+                    CaptureId = orderObj.CaptureId,
+                    PaidByPackage = orderObj.PaidByPackage,
+                };
+                paypalOrderDto.Add(obj);
+            }
+
+            return paypalOrderDto;
+        }
+
+        public static List<PayPalTransactionDetailsForAdminDB> MapPaypalTransactionDetailToDtos(IEnumerable<PayPalTransactionDetailsForAdminDB> paypalTransactionDetails)
+        {
+            List<PayPalTransactionDetailsForAdminDB> paypalRecordDto = new List<PayPalTransactionDetailsForAdminDB>();
+            foreach (var transactionObj in paypalTransactionDetails)
+            {
+                PayPalTransactionDetailsForAdminDB obj = new PayPalTransactionDetailsForAdminDB()
+                {
+                    ITValetName = transactionObj.ITValetName,
+                    OrderTitle = transactionObj.OrderTitle,
+                    OrderPrice = transactionObj.OrderPrice,
+                    TransactionStatus = transactionObj.TransactionStatus,
+                    PlatformFee = transactionObj.PlatformFee,
+                    CustomerName = transactionObj.CustomerName,
+                    OrderEncId = transactionObj.OrderEncId,
+                    PayOutItemId = transactionObj.PayOutItemId,
+                    SentAmount = transactionObj.SentAmount,
+                    PayPalEmailAccount = transactionObj.PayPalEmailAccount,
+                    ExpectedDateToTransmitPayment = transactionObj.ExpectedDateToTransmitPayment,
+                };
+                paypalRecordDto.Add(obj);
+            }
+
+            return paypalRecordDto;
+        }
+
+        public static List<PayPalUnclaimedTransactionDetailsForAdminDB> MapPaypalUnclaimedTransactionToDtos(IEnumerable<PayPalUnclaimedTransactionDetailsForAdminDB> unclaimedTransactionDetails)
+        {
+            List<PayPalUnclaimedTransactionDetailsForAdminDB> paypalRecordDto = new List<PayPalUnclaimedTransactionDetailsForAdminDB>();
+            foreach (var unclaimedObj in unclaimedTransactionDetails)
+            {
+                PayPalUnclaimedTransactionDetailsForAdminDB obj = new PayPalUnclaimedTransactionDetailsForAdminDB()
+                {
+                    ITValetName = unclaimedObj.ITValetName,
+                    OrderTitle = unclaimedObj.OrderTitle,
+                    Reason = unclaimedObj.Reason,
+                    TransactionStatus = unclaimedObj.TransactionStatus,
+                    UnclaimedAmountStatus = unclaimedObj.UnclaimedAmountStatus,
+                    CustomerName = unclaimedObj.CustomerName,
+                    OrderEncId = unclaimedObj.OrderEncId,
+                    PayPalEmailAccount = unclaimedObj.PayPalEmailAccount,
+                };
+                paypalRecordDto.Add(obj);
+            }
+
+            return paypalRecordDto;
+        }
+
+        #endregion PayPal Tab (Admin Side)
+
+
         public static List<User> FilterUsersList(List<User> ulist, string? Name = "",
             string? Email = "", string? Contact = "", string? Country = "",
             string? State = "", string? City = "", string? IsActive = "")

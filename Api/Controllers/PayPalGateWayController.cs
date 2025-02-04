@@ -58,56 +58,6 @@ namespace ITValet.Controllers
         }
 
 
-        [HttpPost("paypalRefund")]
-        public async Task<IActionResult> Refund(string captureId, int orderId)
-        {
-            try
-            {
-                var config = new Dictionary<string, string> { { "mode", "sandbox" } };
-                var accessToken = new OAuthTokenCredential(_configuration["PayPal:ClientId"], _configuration["PayPal:ClientSecret"], config).GetAccessToken();
-
-                var apiContext = new APIContext(accessToken);
-
-                var capturedInfo = await _payPalGateWayService.CapturedAmount(captureId);
-                if (capturedInfo != null)
-                {
-                    var refund = new PayPal.Api.Refund
-                    {
-                        amount = new Amount
-                        {
-                            currency = capturedInfo.Currency,
-                            total = capturedInfo.PayableAmount
-                        }
-                    };
-
-                    var refundedCapture = Capture.Refund(apiContext, captureId, refund);
-                    if (refundedCapture.state == "completed")
-                    {
-                        bool refundStatus = await _payPalGateWayService.PaymentRefunding(captureId);
-                        bool orderStatusCanceled = await _orderService.UpdateOrderStatusForCancel(orderId);
-                        if (refundStatus == true)
-                        {
-                            return Ok(new ResponseDto() { Status = true, StatusCode = "200", Message = "Refunded" });
-                        }
-
-                        return Ok(new ResponseDto() { Status = true, StatusCode = "200", Message = "RefundedButInsertionFailed" });
-                    }
-
-                }
-                return Ok(new ResponseDto() { Status = false, StatusCode = "404", Message = "objectNotFound" });
-            }
-            catch (PayPal.HttpException ex)
-            {
-                await MailSender.SendErrorMessage(projectVariables.BaseUrl + " ----------<br>" + ex.Message.ToString() + "---------------" + ex.StackTrace);
-                return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
-            }
-            catch (Exception ex)
-            {
-                await MailSender.SendErrorMessage(projectVariables.BaseUrl + " ----------<br>" + ex.Message.ToString() + "---------------" + ex.StackTrace);
-                return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
-            }
-        }
-
         [HttpPost("paypalTransactionDetail")]
         public async Task<IActionResult> GetTransactionDetail(string transactionId)
         {
@@ -300,24 +250,8 @@ namespace ITValet.Controllers
             }
         }
 
-        [CustomAuthorize(new EnumRoles[] { EnumRoles.Admin })]
-        [HttpPost("CancelOrderAndRevertSession")]
-        public async Task<IActionResult> CancelOrderAndRevertSession(string OrderId)
-        {
-            int id = Convert.ToInt32(OrderId);
-            var isSessionRevert = await _payPalGateWayService.CancelOrderAndRevertSessionAsync(id);
-            var cancelOrderInCheckOutDb = await _payPalGateWayService.DeleteCheckOutOrderOfPackages(id);
-            if (isSessionRevert && cancelOrderInCheckOutDb)
-            {
-                return Ok(new ResponseDto() { Status = true, StatusCode = "200", Message = "Order Cancelled" });
-            }
-
-            return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = "Session Not Updated" });
-        }
-
 
         #region Code Refactor
-
         [HttpPost("AddAccount/{userId}")]
         public async Task<IActionResult> AddPayPalAccount(string userId, AddPayPalAccountViewModel account)
         {
@@ -625,6 +559,72 @@ namespace ITValet.Controllers
                 await LogError(ex, projectVariables.BaseUrl);
                 return Ok(PayPalPaymentHelper.CreateErrorResponse(GlobalMessages.SystemFailureMessage));
             }
+        }
+
+
+        [HttpPost("paypal-refund/{captureId}")]
+        public async Task<IActionResult> Refund(string captureId, string orderId)
+        {
+            try
+            {
+                var config = new Dictionary<string, string> { { "mode", "sandbox" } };
+                var accessToken = new OAuthTokenCredential(_configuration["PayPal:ClientId"], _configuration["PayPal:ClientSecret"], config).GetAccessToken();
+
+                var apiContext = new APIContext(accessToken);
+
+                var capturedInfo = await _payPalGateWayService.CapturedAmount(captureId);
+                if (capturedInfo != null)
+                {
+                    var refund = new PayPal.Api.Refund
+                    {
+                        amount = new Amount
+                        {
+                            currency = capturedInfo.Currency,
+                            total = capturedInfo.PayableAmount
+                        }
+                    };
+
+                    var refundedCapture = Capture.Refund(apiContext, captureId, refund);
+                    if (refundedCapture.state == "completed")
+                    {
+                        bool refundStatus = await _payPalGateWayService.PaymentRefunding(captureId);
+                        bool orderStatusCanceled = await _orderService.UpdateOrderStatusForCancel(StringCipher.DecryptionId(orderId));
+                        if (refundStatus == true)
+                        {
+                            return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Refunded"));
+                        }
+
+                        return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Refunded But Insertion Failed"));
+                    }
+
+                }
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "404", GlobalMessages.RecordNotFound));
+            }
+            catch (PayPal.HttpException ex)
+            {
+                GeneralPurpose.CreateLogger(projectVariables, ex);
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage));
+            }
+            catch (Exception ex)
+            {
+                GeneralPurpose.CreateLogger(projectVariables, ex);
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage));
+            }
+        }
+
+        [CustomAuthorize(new EnumRoles[] { EnumRoles.Admin })]
+        [HttpPost("cancelOrderAndRevertSession/{orderId}")]
+        public async Task<IActionResult> CancelOrderAndRevertSession(string orderId)
+        {
+            int id = StringCipher.DecryptionId(orderId);
+            var isSessionRevert = await _payPalGateWayService.CancelOrderAndRevertSessionAsync(id);
+            var cancelOrderInCheckOutDb = await _payPalGateWayService.DeleteCheckOutOrderOfPackages(id);
+            if (isSessionRevert && cancelOrderInCheckOutDb)
+            {
+                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Order Cancelled"));
+            }
+
+            return BadRequest(GeneralPurpose.GenerateResponseCode(false, "404", "Something' went wrong. Session not updated."));
         }
 
         private async Task<bool> UpdateOrder(decimal price, int orderId)

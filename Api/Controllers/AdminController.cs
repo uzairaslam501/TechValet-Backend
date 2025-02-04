@@ -6,6 +6,7 @@ using ITValet.JwtAuthorization;
 using ITValet.Models;
 using ITValet.NotificationHub;
 using ITValet.Services;
+using ITValet.Utils.Helpers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Options;
@@ -196,246 +197,6 @@ namespace ITValet.Controllers
             return new ObjectResult(new { data = udto, draw = draw, recordsTotal = totalrows, recordsFiltered = totalrowsafterfilterinig });
         }
 
-
-        [CustomAuthorize(new EnumRoles[] { EnumRoles.Admin })]
-        [HttpPost("GetPayPalOrdersRecord")]
-        public async Task<IActionResult> GetPayPalOrdersRecord(string? UserName = "", string? ItValet = "")
-        {
-            var paypalOrdersRecord = await _payPalGateWayService.GetPayPalOrdersRecord();
-            // Apply filter based on CustomerName
-            if (!string.IsNullOrEmpty(UserName))
-            {
-                paypalOrdersRecord = paypalOrdersRecord.Where(x =>
-                    x.CustomerName.ToLower().Contains(UserName.ToLower())
-                ).ToList();
-            }
-
-            if (!string.IsNullOrEmpty(ItValet))
-            {
-                paypalOrdersRecord = paypalOrdersRecord.Where(x =>
-                    x.ITValet.ToLower().Contains(ItValet.ToLower())
-                ).ToList();
-            }
-
-            var draw = Request.Form["draw"].FirstOrDefault();
-            var start = Request.Form["start"].FirstOrDefault();
-            var length = Request.Form["length"].FirstOrDefault();
-            var sortColumn = Request.Form["columns[" + Request.Form["order[0][column]"].FirstOrDefault() + "][name]"].FirstOrDefault();
-            var sortColumnDirection = Request.Form["order[0][dir]"].FirstOrDefault();
-            var searchValue = Request.Form["search[value]"].FirstOrDefault();
-            int pageSize = length != null ? Convert.ToInt32(length) : 0;
-            int skip = start != null ? Convert.ToInt32(start) : 0;
-            if (sortColumn != "" && sortColumn != null)
-            {
-                if (!string.IsNullOrEmpty(sortColumn) && sortColumn != "0")
-                {
-                    if (sortColumnDirection == "asc")
-                    {
-                        paypalOrdersRecord = paypalOrdersRecord.OrderByDescending(x => x.GetType().GetProperty(sortColumn).GetValue(x)).ToList();
-                    }
-                    else
-                    {
-                        paypalOrdersRecord = paypalOrdersRecord.OrderBy(x => x.GetType().GetProperty(sortColumn).GetValue(x)).ToList();
-                    }
-                }
-            }
-            int totalrows = paypalOrdersRecord.Count();
-
-            if (!string.IsNullOrEmpty(searchValue))
-            {
-                paypalOrdersRecord = paypalOrdersRecord.Where(x =>
-                                    (x.CustomerName != null && x.CustomerName.ToLower().Contains(searchValue)) ||
-                                    (x.ITValet != null && x.ITValet.ToLower().Contains(searchValue)) ||
-                                    (x.OrderTitle != null && x.OrderTitle.ToLower().Contains(searchValue)) ||
-                                    (x.OrderPrice != null && x.OrderPrice.ToLower().Contains(searchValue)) ||
-                                    (x.OrderStatus != null && x.OrderStatus.ToLower().Contains(searchValue)) ||
-                                    (x.PaymentStatus != null && x.PaymentStatus.ToLower().Contains(searchValue))
-                                ).ToList();
-            }
-            int totalrowsafterfilterinig = paypalOrdersRecord.Count();
-
-            paypalOrdersRecord = paypalOrdersRecord.Skip(skip).Take(pageSize).ToList();
-            List<PayPalOrderDetailsForAdminDB> paypalRecordDto = new List<PayPalOrderDetailsForAdminDB>();
-            foreach (var orderObj in paypalOrdersRecord)
-            {
-                PayPalOrderDetailsForAdminDB obj = new PayPalOrderDetailsForAdminDB()
-                {
-                   Id = orderObj.Id,
-                   ITValet = orderObj.ITValet,
-                   OrderTitle = orderObj.OrderTitle,
-                   OrderEncId = orderObj.OrderEncId,
-                   OrderPrice = orderObj.OrderPrice,
-                   OrderStatus = orderObj.OrderStatus,
-                   PaymentStatus = orderObj.PaymentStatus,
-                   CustomerName = orderObj.CustomerName,
-                   CaptureId = orderObj.CaptureId,
-                   PaidByPackage = orderObj.PaidByPackage,
-                };
-                paypalRecordDto.Add(obj);
-            }
-            return new ObjectResult(new { data = paypalRecordDto, draw = draw, recordsTotal = totalrows, recordsFiltered = totalrowsafterfilterinig });
-        }
-
-
-        [CustomAuthorize(new EnumRoles[] { EnumRoles.Admin })]
-        [HttpPost("GetPayPalTransactionRecord")]
-        public async Task<IActionResult> GetPayPalTransactionRecord(string? UserName = "", string? ItValet = "")
-        {
-            var paypalTransactionRecord = await _payPalGateWayService.GetPayPalTransactionsRecord();
-            // Apply filter based on searches
-            if (!string.IsNullOrEmpty(UserName))
-            {
-                paypalTransactionRecord = paypalTransactionRecord.Where(x =>
-                    x.CustomerName.ToLower().Contains(UserName.ToLower())
-                ).ToList();
-            }
-
-            if (!string.IsNullOrEmpty(ItValet))
-            {
-                paypalTransactionRecord = paypalTransactionRecord.Where(x =>
-                    x.ITValetName.ToLower().Contains(ItValet.ToLower())
-                ).ToList();
-            }
-
-            var draw = Request.Form["draw"].FirstOrDefault();
-            var start = Request.Form["start"].FirstOrDefault();
-            var length = Request.Form["length"].FirstOrDefault();
-            var sortColumn = Request.Form["columns[" + Request.Form["order[0][column]"].FirstOrDefault() + "][name]"].FirstOrDefault();
-            var sortColumnDirection = Request.Form["order[0][dir]"].FirstOrDefault();
-            var searchValue = Request.Form["search[value]"].FirstOrDefault();
-            int pageSize = length != null ? Convert.ToInt32(length) : 0;
-            int skip = start != null ? Convert.ToInt32(start) : 0;
-            if (sortColumn != "" && sortColumn != null)
-            {
-                if (!string.IsNullOrEmpty(sortColumn) && sortColumn != "0")
-                {
-                    if (sortColumnDirection == "asc")
-                    {
-                        paypalTransactionRecord = paypalTransactionRecord.OrderByDescending(x => x.GetType().GetProperty(sortColumn).GetValue(x)).ToList();
-                    }
-                    else
-                    {
-                        paypalTransactionRecord = paypalTransactionRecord.OrderBy(x => x.GetType().GetProperty(sortColumn).GetValue(x)).ToList();
-                    }
-                }
-            }
-            int totalrows = paypalTransactionRecord.Count();
-
-            if (!string.IsNullOrEmpty(searchValue))
-            {
-                paypalTransactionRecord = paypalTransactionRecord.Where(x =>
-                                    (x.CustomerName != null && x.CustomerName.ToLower().Contains(searchValue)) ||
-                                    (x.ITValetName != null && x.ITValetName.ToLower().Contains(searchValue)) ||
-                                    (x.OrderTitle != null && x.OrderTitle.ToLower().Contains(searchValue)) ||
-                                    (x.OrderPrice != null && x.OrderPrice.ToLower().Contains(searchValue)) ||
-                                    (x.PlatformFee != null && x.PlatformFee.ToLower().Contains(searchValue)) ||
-                                    (x.SentAmount != null && x.SentAmount.ToLower().Contains(searchValue)) ||
-                                    (x.PayPalEmailAccount != null && x.PayPalEmailAccount.ToLower().Contains(searchValue)) ||
-                                    (x.TransactionStatus != null && x.TransactionStatus.ToLower().Contains(searchValue)) ||
-                                    (x.ExpectedDateToTransmitPayment != null && x.ExpectedDateToTransmitPayment.ToLower().Contains(searchValue))
-                                ).ToList();
-            }
-            int totalrowsafterfilterinig = paypalTransactionRecord.Count();
-
-            paypalTransactionRecord = paypalTransactionRecord.Skip(skip).Take(pageSize).ToList();
-            List<PayPalTransactionDetailsForAdminDB> paypalRecordDto = new List<PayPalTransactionDetailsForAdminDB>();
-            foreach (var transactionObj in paypalTransactionRecord)
-            {
-                PayPalTransactionDetailsForAdminDB obj = new PayPalTransactionDetailsForAdminDB()
-                {
-                    ITValetName = transactionObj.ITValetName,
-                    OrderTitle = transactionObj.OrderTitle,
-                    OrderPrice = transactionObj.OrderPrice,
-                    TransactionStatus = transactionObj.TransactionStatus,
-                    PlatformFee = transactionObj.PlatformFee,
-                    CustomerName = transactionObj.CustomerName,
-                    OrderEncId = transactionObj.OrderEncId,
-                    PayOutItemId = transactionObj.PayOutItemId,
-                    SentAmount = transactionObj.SentAmount,
-                    PayPalEmailAccount = transactionObj.PayPalEmailAccount,
-                    ExpectedDateToTransmitPayment = transactionObj.ExpectedDateToTransmitPayment,
-                };
-                paypalRecordDto.Add(obj);
-            }
-            return new ObjectResult(new { data = paypalRecordDto, draw = draw, recordsTotal = totalrows, recordsFiltered = totalrowsafterfilterinig });
-        }
-
-        [CustomAuthorize(new EnumRoles[] { EnumRoles.Admin })]
-        [HttpPost("GetPayPalUnclaimedPaymentRecord")]
-        public async Task<IActionResult> GetPayPalUnclaimedPaymentRecord(string? UserName = "", string? ItValet = "")
-        {
-            var unclaimedPaymentRecord = await _payPalGateWayService.GetPayPalUnclaimedRecord();
-            // Apply filter based on searches
-            if (!string.IsNullOrEmpty(UserName))
-            {
-                unclaimedPaymentRecord = unclaimedPaymentRecord.Where(x =>
-                    x.CustomerName.ToLower().Contains(UserName.ToLower())
-                ).ToList();
-            }
-
-            if (!string.IsNullOrEmpty(ItValet))
-            {
-                unclaimedPaymentRecord = unclaimedPaymentRecord.Where(x =>
-                    x.ITValetName.ToLower().Contains(ItValet.ToLower())
-                ).ToList();
-            }
-
-            var draw = Request.Form["draw"].FirstOrDefault();
-            var start = Request.Form["start"].FirstOrDefault();
-            var length = Request.Form["length"].FirstOrDefault();
-            var sortColumn = Request.Form["columns[" + Request.Form["order[0][column]"].FirstOrDefault() + "][name]"].FirstOrDefault();
-            var sortColumnDirection = Request.Form["order[0][dir]"].FirstOrDefault();
-            var searchValue = Request.Form["search[value]"].FirstOrDefault();
-            int pageSize = length != null ? Convert.ToInt32(length) : 0;
-            int skip = start != null ? Convert.ToInt32(start) : 0;
-            if (sortColumn != "" && sortColumn != null)
-            {
-                if (!string.IsNullOrEmpty(sortColumn) && sortColumn != "0")
-                {
-                    if (sortColumnDirection == "asc")
-                    {
-                        unclaimedPaymentRecord = unclaimedPaymentRecord.OrderByDescending(x => x.GetType().GetProperty(sortColumn).GetValue(x)).ToList();
-                    }
-                    else
-                    {
-                        unclaimedPaymentRecord = unclaimedPaymentRecord.OrderBy(x => x.GetType().GetProperty(sortColumn).GetValue(x)).ToList();
-                    }
-                }
-            }
-            int totalrows = unclaimedPaymentRecord.Count();
-
-            if (!string.IsNullOrEmpty(searchValue))
-            {
-                unclaimedPaymentRecord = unclaimedPaymentRecord.Where(x =>
-                                    (x.CustomerName != null && x.CustomerName.ToLower().Contains(searchValue)) ||
-                                    (x.ITValetName != null && x.ITValetName.ToLower().Contains(searchValue)) ||
-                                    (x.OrderTitle != null && x.OrderTitle.ToLower().Contains(searchValue)) ||
-                                    (x.Reason != null && x.Reason.ToLower().Contains(searchValue)) ||
-                                    (x.PayPalEmailAccount != null && x.PayPalEmailAccount.ToLower().Contains(searchValue)) ||
-                                    (x.TransactionStatus != null && x.TransactionStatus.ToLower().Contains(searchValue)) 
-                                ).ToList();
-            }
-            int totalrowsafterfilterinig = unclaimedPaymentRecord.Count();
-
-            unclaimedPaymentRecord = unclaimedPaymentRecord.Skip(skip).Take(pageSize).ToList();
-            List<PayPalUnclaimedTransactionDetailsForAdminDB> paypalRecordDto = new List<PayPalUnclaimedTransactionDetailsForAdminDB>();
-            foreach (var unclaimedObj in unclaimedPaymentRecord)
-            {
-                PayPalUnclaimedTransactionDetailsForAdminDB obj = new PayPalUnclaimedTransactionDetailsForAdminDB()
-                {
-                    ITValetName = unclaimedObj.ITValetName,
-                    OrderTitle = unclaimedObj.OrderTitle,
-                    Reason = unclaimedObj.Reason,
-                    TransactionStatus = unclaimedObj.TransactionStatus,
-                    UnclaimedAmountStatus = unclaimedObj.UnclaimedAmountStatus,
-                    CustomerName = unclaimedObj.CustomerName,
-                    OrderEncId = unclaimedObj.OrderEncId,
-                    PayPalEmailAccount = unclaimedObj.PayPalEmailAccount,
-                };
-                paypalRecordDto.Add(obj);
-            }
-            return new ObjectResult(new { data = paypalRecordDto, draw = draw, recordsTotal = totalrows, recordsFiltered = totalrowsafterfilterinig });
-        }
 
         [CustomAuthorize(new EnumRoles[] { EnumRoles.Admin })]
         [HttpPost("GetStripeOrdersRecord")]
@@ -886,7 +647,178 @@ namespace ITValet.Controllers
             }
             return Ok(new ResponseDto { Status = false, StatusCode = "400", Message = "Record Not Found" });
         }
-        
+
+        #region Paypal
+        [CustomAuthorize(new EnumRoles[] { EnumRoles.Admin })]
+        [HttpGet("GetPayPalOrdersRecord")]
+        public async Task<IActionResult> GetPayPalOrdersRecord(int start, int length, string? sortColumnName, string? sortDirection,
+            string? searchValue)
+        {
+            try
+            {
+                var paypalOrdersRecord = await _payPalGateWayService.GetPayPalOrdersRecord();
+
+                // Initialize BaseService
+                var baseService = new DatatableHelper<PayPalOrderDetailsForAdminDB>();
+
+                // Apply sorting
+                paypalOrdersRecord = baseService.ApplySorting(paypalOrdersRecord, sortColumnName, sortDirection);
+
+                // Apply filtering
+                if (!string.IsNullOrEmpty(searchValue))
+                {
+                    paypalOrdersRecord = baseService.ApplyFiltering(paypalOrdersRecord, o =>
+                        o.CustomerName != null && o.CustomerName?.ToLower().Contains(searchValue.ToLower()) == true ||
+                        o.ITValet != null && o.ITValet?.ToLower().Contains(searchValue.ToLower()) == true ||
+                        o.OrderTitle != null && o.OrderTitle?.ToLower().Contains(searchValue.ToLower()) == true ||
+                        o.OrderPrice != null && o.OrderPrice?.ToLower().Contains(searchValue.ToLower()) == true ||
+                        o.OrderStatus != null && o.OrderStatus?.ToLower().Contains(searchValue.ToLower()) == true ||
+                        o.PaymentStatus != null && o.PaymentStatus?.ToLower().Contains(searchValue.ToLower()) == true);
+                }
+
+                // Record counts
+                int totalRows = paypalOrdersRecord.Count();
+                int totalRowsAfterFiltering = totalRows;
+
+                // Apply pagination
+                if (totalRowsAfterFiltering > 0 && start < totalRowsAfterFiltering)
+                {
+                    paypalOrdersRecord = baseService.ApplyPagination(paypalOrdersRecord, start, length);
+                }
+
+                // Map data to DTOs
+                var payPalOrderDetailDtos = MappingHelper.MapPaypalOrderDetailToDtos(paypalOrdersRecord);
+
+                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Record Found", new
+                {
+                    draw = (start / length) + 1,
+                    data = payPalOrderDetailDtos,
+                    recordsTotal = totalRows,
+                    recordsFiltered = totalRowsAfterFiltering
+                }));
+            }
+            catch (Exception ex)
+            {
+                GeneralPurpose.CreateLogger(projectVariables, ex);
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage));
+            }
+        }
+
+        [CustomAuthorize(new EnumRoles[] { EnumRoles.Admin })]
+        [HttpGet("GetPayPalTransactionRecord")]
+        public async Task<IActionResult> GetPayPalTransactionRecord(int start, int length, string? sortColumnName, string? sortDirection,
+            string? searchValue)
+        {
+            try
+            {
+                var paypalTransactionRecord = await _payPalGateWayService.GetPayPalTransactionsRecord();
+
+                // Initialize BaseService
+                var baseService = new DatatableHelper<PayPalTransactionDetailsForAdminDB>();
+
+                // Apply sorting
+                paypalTransactionRecord = baseService.ApplySorting(paypalTransactionRecord, sortColumnName, sortDirection);
+
+                // Apply filtering
+                if (!string.IsNullOrEmpty(searchValue))
+                {
+                    paypalTransactionRecord = baseService.ApplyFiltering(paypalTransactionRecord, x =>
+                        (x.CustomerName != null && x.CustomerName.ToLower().Contains(searchValue)) ||
+                        (x.ITValetName != null && x.ITValetName.ToLower().Contains(searchValue)) ||
+                        (x.OrderTitle != null && x.OrderTitle.ToLower().Contains(searchValue)) ||
+                        (x.OrderPrice != null && x.OrderPrice.ToLower().Contains(searchValue)) ||
+                        (x.PlatformFee != null && x.PlatformFee.ToLower().Contains(searchValue)) ||
+                        (x.SentAmount != null && x.SentAmount.ToLower().Contains(searchValue)) ||
+                        (x.PayPalEmailAccount != null && x.PayPalEmailAccount.ToLower().Contains(searchValue)) ||
+                        (x.TransactionStatus != null && x.TransactionStatus.ToLower().Contains(searchValue)) ||
+                        (x.ExpectedDateToTransmitPayment != null && x.ExpectedDateToTransmitPayment.ToLower().Contains(searchValue)));
+                }
+
+                // Record counts
+                int totalRows = paypalTransactionRecord.Count();
+                int totalRowsAfterFiltering = totalRows;
+
+                // Apply pagination
+                if (totalRowsAfterFiltering > 0 && start < totalRowsAfterFiltering)
+                {
+                    paypalTransactionRecord = baseService.ApplyPagination(paypalTransactionRecord, start, length);
+                }
+
+                // Map data to DTOs
+                var transactionDetailDtos = MappingHelper.MapPaypalTransactionDetailToDtos(paypalTransactionRecord);
+
+                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Record Found", new
+                {
+                    draw = (start / length) + 1,
+                    data = transactionDetailDtos,
+                    recordsTotal = totalRows,
+                    recordsFiltered = totalRowsAfterFiltering
+                }));
+            }
+            catch (Exception ex)
+            {
+                GeneralPurpose.CreateLogger(projectVariables, ex);
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage));
+            }
+        }
+
+        [CustomAuthorize(new EnumRoles[] { EnumRoles.Admin })]
+        [HttpGet("GetPayPalUnclaimedPaymentRecord")]
+        public async Task<IActionResult> GetPayPalUnclaimedPaymentRecord(int start, int length, string? sortColumnName, string? sortDirection,
+            string? searchValue)
+        {
+            try
+            {
+                var unclaimedPaymentRecord = await _payPalGateWayService.GetPayPalUnclaimedRecord();
+
+                // Initialize BaseService
+                var baseService = new DatatableHelper<PayPalUnclaimedTransactionDetailsForAdminDB>();
+
+                // Apply sorting
+                unclaimedPaymentRecord = baseService.ApplySorting(unclaimedPaymentRecord, sortColumnName, sortDirection);
+
+                // Apply filtering
+                if (!string.IsNullOrEmpty(searchValue))
+                {
+                    unclaimedPaymentRecord = baseService.ApplyFiltering(unclaimedPaymentRecord, x =>
+                        (x.CustomerName != null && x.CustomerName.ToLower().Contains(searchValue)) ||
+                        (x.ITValetName != null && x.ITValetName.ToLower().Contains(searchValue)) ||
+                        (x.OrderTitle != null && x.OrderTitle.ToLower().Contains(searchValue)) ||
+                        (x.Reason != null && x.Reason.ToLower().Contains(searchValue)) ||
+                        (x.PayPalEmailAccount != null && x.PayPalEmailAccount.ToLower().Contains(searchValue)) ||
+                        (x.TransactionStatus != null && x.TransactionStatus.ToLower().Contains(searchValue)));
+                }
+
+                // Record counts
+                int totalRows = unclaimedPaymentRecord.Count();
+                int totalRowsAfterFiltering = totalRows;
+
+
+                // Apply pagination
+                if (totalRowsAfterFiltering > 0 && start < totalRowsAfterFiltering)
+                {
+                    unclaimedPaymentRecord = baseService.ApplyPagination(unclaimedPaymentRecord, start, length);
+                }
+
+                // Map data to DTOs
+                var unclaimedPaymentDtos = MappingHelper.MapPaypalUnclaimedTransactionToDtos(unclaimedPaymentRecord);
+
+                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Record Found", new
+                {
+                    draw = (start / length) + 1,
+                    data = unclaimedPaymentDtos,
+                    recordsTotal = totalRows,
+                    recordsFiltered = totalRowsAfterFiltering
+                }));
+            }
+            catch (Exception ex)
+            {
+                GeneralPurpose.CreateLogger(projectVariables, ex);
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage));
+            }
+        }
+        #endregion
+
         [HttpGet]
         [Route("GetTimeZones")]
         public IActionResult GetTimeZones()
