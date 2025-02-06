@@ -284,7 +284,7 @@ namespace ITValet.Controllers
         }
 
         [HttpGet("GetContactListAsync")]
-        public async Task<IActionResult> GetContactListAsync(int start, int length, string? sortColumnName, string? sortDirection, string? searchValue, string? Name = "", string? Email = "", string? subject = "")
+        public async Task<IActionResult> GetContactListAsync(int start, int length, string? sortColumnName, string? sortDirection, string? searchValue)
         {
             try
             {
@@ -305,7 +305,8 @@ namespace ITValet.Controllers
                     contactListMaterialized = baseService.ApplyFiltering(contactListMaterialized, c =>
                         (c.Name != null && c.Name.ToLower().Contains(searchValue)) ||
                         (c.Email != null && c.Email.ToLower().Contains(searchValue)) ||
-                        (c.Subject != null && c.Subject.ToLower().Contains(searchValue))
+                        (c.Subject != null && c.Subject.ToLower().Contains(searchValue)) ||
+                        (c.Message != null && c.Message.ToLower().Contains(searchValue))
                     ).ToList();
                 }
 

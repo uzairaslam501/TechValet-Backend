@@ -6,6 +6,7 @@
         {
             if (!string.IsNullOrEmpty(sortColumnName) && sortColumnName != "0")
             {
+                sortColumnName = sortColumnName.Trim();
                 return sortDirection == "asc"
                     ? data.OrderBy(o => o.GetType().GetProperty(sortColumnName)?.GetValue(o)).ToList()
                     : data.OrderByDescending(o => o.GetType().GetProperty(sortColumnName)?.GetValue(o)).ToList();

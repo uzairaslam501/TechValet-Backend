@@ -88,60 +88,7 @@ namespace ITValet.Controllers
                 return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
             }
         }
-
-        [CustomAuthorize(new EnumRoles[] { EnumRoles.Admin })]
-        [HttpPost("canceledUnclaimedpayment")]
-        public async Task<IActionResult> CancelUnclaimedPayment(string payOutItemId)
-        {
-            try
-            {
-                PaymentCancelViewModel cancelObj = new PaymentCancelViewModel();
-                // Set up your PayPal credentials and API context
-                var clientId = _configuration["PayPal:ClientId"];
-                var clientSecret = _configuration["PayPal:ClientSecret"];
-                var environment = new SandboxEnvironment(clientId, clientSecret);
-                var client = new PayPalHttpClient(environment);
-
-                // Create a PayoutsItemCancelRequest to cancel the unclaimed payout
-                var cancelRequest = new PayoutsItemCancelRequest(payOutItemId);
-                var cancelResponse = await client.Execute(cancelRequest);
-
-                if (cancelResponse.StatusCode == HttpStatusCode.OK)
-                {
-                    if (cancelResponse.Result<PayoutItemResponse>()?.TransactionStatus == "RETURNED")
-                    {
-                        // Payment has been canceled and refunded, handle accordingly
-                        cancelObj.CancelationStatus = "RECOVER";
-                        cancelObj.CancelationReason = "We had to cancel the payment due to an inaccurate PayPal account";
-                        cancelObj.CancelByAdmin = true;
-                        cancelObj.ReturnedAmount = cancelResponse.Result<PayoutItemResponse>()?.PayoutItem?.Amount.Value;
-                        bool cancelPayment = await _payPalGateWayService.CancelUnclaimedPayment(payOutItemId, cancelObj);
-                        if (cancelPayment)
-                        {
-                            return Ok(new ResponseDto() { Status = true, StatusCode = "200", Message = "ClaimCleared" });
-                        }
-                    }
-                    return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = "ClaimNotCleared" });
-                }
-                else
-                {
-                    return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
-                }
-            }
-            catch (HttpException ex)
-            {
-                await MailSender.SendErrorMessage(projectVariables.BaseUrl + " ----------<br>" + ex.Message.ToString() + "---------------" + ex.StackTrace);
-                return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
-            }
-            catch (Exception ex)
-            {
-                await MailSender.SendErrorMessage(projectVariables.BaseUrl + " ----------<br>" + ex.Message.ToString() + "---------------" + ex.StackTrace);
-                return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
-            }
-        }
-
         
-
         [HttpPost("OrderAccepted")]
         public async Task<IActionResult> OrderAccepted(AcceptOrder orderDetail)
         {
@@ -561,7 +508,6 @@ namespace ITValet.Controllers
             }
         }
 
-
         [HttpPost("paypal-refund/{captureId}")]
         public async Task<IActionResult> Refund(string captureId, string orderId)
         {
@@ -625,6 +571,57 @@ namespace ITValet.Controllers
             }
 
             return BadRequest(GeneralPurpose.GenerateResponseCode(false, "404", "Something' went wrong. Session not updated."));
+        }
+
+        [CustomAuthorize(new EnumRoles[] { EnumRoles.Admin })]
+        [HttpPost("cancel-unclaimed-payment/{payOutItemId}")]
+        public async Task<IActionResult> CancelUnclaimedPayment(string payOutItemId)
+        {
+            try
+            {
+                PaymentCancelViewModel cancelObj = new PaymentCancelViewModel();
+                // Set up your PayPal credentials and API context
+                var clientId = _configuration["PayPal:ClientId"];
+                var clientSecret = _configuration["PayPal:ClientSecret"];
+                var environment = new SandboxEnvironment(clientId, clientSecret);
+                var client = new PayPalHttpClient(environment);
+
+                // Create a PayoutsItemCancelRequest to cancel the unclaimed payout
+                var cancelRequest = new PayoutsItemCancelRequest(payOutItemId);
+                var cancelResponse = await client.Execute(cancelRequest);
+
+                if (cancelResponse.StatusCode == HttpStatusCode.OK)
+                {
+                    if (cancelResponse.Result<PayoutItemResponse>()?.TransactionStatus == "RETURNED")
+                    {
+                        // Payment has been canceled and refunded, handle accordingly
+                        cancelObj.CancelationStatus = "RECOVER";
+                        cancelObj.CancelationReason = "We had to cancel the payment due to an inaccurate PayPal account";
+                        cancelObj.CancelByAdmin = true;
+                        cancelObj.ReturnedAmount = cancelResponse.Result<PayoutItemResponse>()?.PayoutItem?.Amount.Value;
+                        bool cancelPayment = await _payPalGateWayService.CancelUnclaimedPayment(payOutItemId, cancelObj);
+                        if (cancelPayment)
+                        {
+                            return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Claims Cleared Successfully!"));
+                        }
+                    }
+                    return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", "Something' went wrong. Claims not cleared. Try again later!"));
+                }
+                else
+                {
+                    return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.SystemFailureMessage));
+                }
+            }
+            catch (HttpException ex)
+            {
+                GeneralPurpose.CreateLogger(projectVariables, ex);
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage));
+            }
+            catch (Exception ex)
+            {
+                GeneralPurpose.CreateLogger(projectVariables, ex);
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage));
+            }
         }
 
         private async Task<bool> UpdateOrder(decimal price, int orderId)

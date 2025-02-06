@@ -120,7 +120,7 @@ namespace ITValet.Controllers
                 await MailSender.EmailAccountVerification(StringCipher.EncryptId(obj.Id), obj.UserName!,
                     obj.Email!, (int)obj.Role, projectVariables.ReactUrl);
 
-            return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Vertification Email has been sent to your email.", obj));
+            return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Vertification Mail has been sent to your E-Mail.", obj));
         }
 
         #endregion

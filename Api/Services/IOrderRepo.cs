@@ -17,7 +17,7 @@ namespace ITValet.Services
         Task<int> GetOrderId(Order Order);
         Task<bool> AddOrder2(Order Order);
         Task<bool> UpdateOrder(Order Order);
-        Task<bool> UpdateOrderStatusForCancel(int id);
+        Task<bool> UpdateOrderStatusForCancel(int id, int? session = -1);
         Task<bool> DeleteOrder(int id);
         Task<bool> DeleteOrder2(int id);
         Task<List<OrderEventsViewModal>> GetOrderEventRecordForValet(int id);
@@ -134,7 +134,7 @@ namespace ITValet.Services
             }
         }
 
-        public async Task<bool> UpdateOrderStatusForCancel(int id)
+        public async Task<bool> UpdateOrderStatusForCancel(int id, int? session = -1)
         {
             try
             {
@@ -145,6 +145,7 @@ namespace ITValet.Services
                 if (orderObj != null)
                 {
                     orderObj.OrderStatus = 4;
+                    if(session != -1){ orderObj.StripeStatus = session; }
                     await _context.SaveChangesAsync();
                     return true;
                 }

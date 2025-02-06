@@ -14,7 +14,7 @@ namespace ITValet.Services
         Task<PackageCheckOutViewModel> GetPackageByPaymentId(string paymentId);
         Task<bool> UpdatePackageRecord(PackageCheckOutViewModel package);
         Task<bool> AddPayPalOrder(OrderCheckOutViewModel order);
-        Task<bool> CancelOrderAndRevertSessionAsync(int orderId);
+        Task<bool> CancelOrderAndRevertSessionAsync(int orderId, string? way = "");
         Task<OrderCheckOutViewModel> GetOrderByPaymentId(string paymentId);
         Task<bool> UpdateOrderRecord(OrderCheckOutViewModel order);
         Task<bool> PaymentRefunding(string captureId);
@@ -728,7 +728,7 @@ namespace ITValet.Services
                 return false;
             }
         }
-        public async Task<bool> CancelOrderAndRevertSessionAsync(int orderId)
+        public async Task<bool> CancelOrderAndRevertSessionAsync(int orderId, string? way = "")
         {
             // Retrieve the order by its ID
             var order = await _orderService.GetOrderById(orderId);
@@ -750,8 +750,13 @@ namespace ITValet.Services
                     // Update the user's package with the reverted session count
                     if (await _userPackageService.UpdateUserPackageSession(currentUserPackage))
                     {
+                        var sessions = -1;
+                        if (!string.IsNullOrEmpty(way))
+                        {
+                            sessions = (int)StripePaymentStatus.SessionReverted;
+                        }
                         // Update the order status to indicate cancellation
-                        bool updateOrderStatus = await _orderService.UpdateOrderStatusForCancel(orderId);
+                        bool updateOrderStatus = await _orderService.UpdateOrderStatusForCancel(orderId, sessions);
                         return updateOrderStatus;
                     }
                 }

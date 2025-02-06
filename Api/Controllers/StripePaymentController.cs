@@ -384,7 +384,7 @@ namespace ITValet.Controllers
         public async Task<IActionResult> CancelOrderAndRevertSession(string orderId)
         {
             var decryptOrderId = StringCipher.DecryptionId(orderId);
-            var result = await _paypalGatewayService.CancelOrderAndRevertSessionAsync(decryptOrderId);
+            var result = await _paypalGatewayService.CancelOrderAndRevertSessionAsync(decryptOrderId, "stripe");
 
             return result
                 ? Ok(new ResponseDto()
