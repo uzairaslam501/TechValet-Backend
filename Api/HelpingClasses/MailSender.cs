@@ -240,18 +240,24 @@ namespace ITValet.HelpingClasses
             }
         }
 
-        public static async Task<bool> EmailForgetPassword(string userId, string UserName, string email, string ProjectVariable)
+        public static async Task<bool> EmailForgetPassword(string userId, string userName, string email, string projectVariable)
         {
             try
             {
-                string SubjectBody = "";
-                string description = "";
-                long t = DateTime.Now.AddDays(1).Ticks;
+                string SubjectBody = "Account Password Recovery";
+                long validity = GeneralPurpose.DateTimeNow().AddHours(2).Ticks;
+                
                 string subject = "Tech-Valet : Account Password Recovery";
-                description = "You are getting this email because you have requested to recover your account Password. Click the button below to verify Recover your password.</br>If you did not request a Account Password Recovery, Please ignore this email<br/><p style='margin: 0px;'><a style='padding: 10px 30px 30px 30px; line-height: 25px; font-size: 18px; font-weight: 400; color: #1B75BB;'>Note: The Link Will Expire After 24 Hours</a><br/></p>";
-                string Url = ProjectVariable + "Auth/RenewPassword?Id=" + userId + "&t=" + t;
+                string description = "You are receiving this email because you requested a password recovery. " +
+                    "Click the button below to reset your password. This link will expire in 2 hours. " +
+                    "If you did not request a password recovery, please ignore this email." +
+                    "<br/>" +
+                    "<p style='margin: 0px;'>" +
+                    "<a style='padding: 10px 30px 30px 30px; line-height: 25px; font-size: 18px; font-weight: 400; color: #1B75BB;'>Note: The Link Will Expire After 2 Hours</a><br/></p>";
+                string Url = $"{projectVariable}reset-password/{userId}/{validity}";
                 string ButtonText = "Recover Password";
-                string mailBody = PopulateBody(SubjectBody, UserName, description, Url, ButtonText);
+                
+                string mailBody = PopulateBody(SubjectBody, userName, description, Url, ButtonText);
                 return SendEmail(email, subject, mailBody);
             }
             catch

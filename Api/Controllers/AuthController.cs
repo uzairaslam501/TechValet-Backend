@@ -67,9 +67,9 @@ namespace ITValet.Controllers
             }
             if(user.IsActive != 1)
             {
-                return Ok(new ResponseDto
+                return BadRequest(new ResponseDto
                 {
-                    Status = true,
+                    Status = false,
                     StatusCode = "205",
                     Message = "Email Verification Pending, you have to verify your email before login",
                     Data = "EmailVerfication"
@@ -219,52 +219,6 @@ namespace ITValet.Controllers
         }
         #endregion
 
-        #region Manage Forgot Password
-        [HttpPost("ForgotPassword")]
-        public async Task<ActionResult> PostForgotPassword(ForgotPasswordDto forgot)
-        {
-            var BaseUrl = $"{this.Request.Scheme}://{this.Request.Host}{this.Request.PathBase}/";
-            var obj = await userRepo.GetUserByEmail(forgot.Email);
-
-            if (obj == null)
-            {
-                return Ok(new ResponseDto() { Status = false, StatusCode = "404", Message = GlobalMessages.EmailNotFound });
-            }
-            BaseUrl = BaseUrl + "ResetPassword/" + StringCipher.EncryptId(obj.Id);
-            MailSender mailSender = new MailSender();
-            if (!await mailSender.SendForgotEmail(obj.Email, BaseUrl))
-            {
-                return BadRequest(new ResponseDto() { Status = false, StatusCode = "400", Message = GlobalMessages.EmailSendFailed });
-            }
-
-            return Ok(new ResponseDto() { Status = true, StatusCode = "200", Message = "Mail sent, please check at " + obj.Email + "." });
-        }
-
-        [HttpPost("ResetPassword")]
-        public async Task<ActionResult> PostResetPassword(ResetPasswordDto reset)
-        {
-            var obj = await userRepo.GetUserById(Convert.ToInt32(DecryptionId(reset.UserId)));
-            if (reset.NewPassword != reset.ConfirmPassword)
-            {
-                return Ok(new ResponseDto() { Status = false, StatusCode = "404", Message = GlobalMessages.PasswordNotMatched });
-            }
-
-            if (obj == null)
-            {
-                return Ok(new ResponseDto() { Status = false, StatusCode = "404", Message = GlobalMessages.SystemFailureMessage });
-            }
-
-            obj.Password = StringCipher.Encrypt(reset.NewPassword.Trim());
-
-            if (!await userRepo.UpdateUser(obj))
-            {
-                return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
-            }
-
-            return Ok(new ResponseDto() { Status = true, StatusCode = "200", Message = GlobalMessages.PasswordUpdated });
-        }
-        #endregion
-
         #region Account
         [HttpGet("EmailVerification/{Id}")]
         public async Task<IActionResult> EmailVerification(string Id, long t)
@@ -287,46 +241,51 @@ namespace ITValet.Controllers
             return Ok(GeneralPurpose.GenerateResponse(true, "200", "Email has been verified successfully, need admin aprroval", dt));
         }
 
-        [HttpGet("PostForgotPassword")]
-        public async Task<IActionResult> PostForgotPassword(string Email)
+        [HttpGet("ForgotPassword/{email}")]
+        public async Task<IActionResult> PostForgotPassword(string email)
         {
 
-            User obj = await userRepo.GetUserByEmail(Email);
+            User obj = await userRepo.GetUserInfoByNameOrEmail(email);
 
             if (obj == null || obj.IsActive == 0)
-            {
-                return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = "No User Found" });
-            }
+                return BadRequest(GeneralPurpose.GenerateResponse(false, "400", GlobalMessages.RecordNotFound)); 
 
-            bool chkIfMailSent = await MailSender.EmailForgetPassword(StringCipher.EncryptId(obj.Id), obj.UserName, obj.Email, projectVariables.BaseUrl);
+            bool chkIfMailSent = await MailSender.EmailForgetPassword(StringCipher.EncryptId(obj.Id),
+                obj.UserName!, obj.Email!, 
+                projectVariables.ReactUrl);
             if (!chkIfMailSent)
-            {
-                return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = "Failed to Send Forget Password Recovery Mail" });
-            }
+                return BadRequest(GeneralPurpose.GenerateResponse(false, "400", "Failed to Send Forget Password Recovery Mail"));
 
-            return Ok(new ResponseDto() { Status = true, StatusCode = "200", Message = "Password Recovery Mail Sent Successfully" });
+            return Ok(GeneralPurpose.GenerateResponse(true, "200", "Password reset email sent. If you don't see it within an hour, please contact support.\r\n"));
         }
 
-        [HttpGet("PostRenewPassword")]
-        public async Task<IActionResult> PostRenewPassword(string Id, string Password, long t)
+        [HttpPost("PostRenewPassword")]
+        public async Task<IActionResult> PostRenewPassword(ResetPasswordDto passwordDto)
         {
-            var dt = DateTime.Now.Ticks;
-            if (dt < t)
+            var dt = GeneralPurpose.DateTimeNow().Ticks;
+            if (dt < passwordDto.Validity)
             {
-                User obj = await userRepo.GetUserById(DecryptionId(Id));
+                User? obj = await userRepo.GetUserById(DecryptionId(passwordDto.Id));
 
                 if (obj == null)
                 {
-                    return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = "No User Found" });
+                    return BadRequest(new ResponseDto() { Status = false, StatusCode = "400", Message = GlobalMessages.RecordNotFound });
                 }
-                obj.Password = StringCipher.Encrypt(Password);
+
+                if (passwordDto.NewPassword != passwordDto.ConfirmPassword)
+                {
+                    return BadRequest(new ResponseDto() { Status = false, StatusCode = "404", Message = GlobalMessages.PasswordNotMatched });
+                }
+
+                obj.Password = StringCipher.Encrypt(passwordDto.NewPassword);
 
                 if (!await userRepo.SaveChanges())
                 {
-                    return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = "Failed To Change Your Password" });
+                    return BadRequest(new ResponseDto() { Status = false, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
                 }
+                return Ok(new ResponseDto() { Status = true, StatusCode = "200", Message = "Password Updated Successfully" });
             }
-            return Ok(new ResponseDto() { Status = true, StatusCode = "200", Message = "Password Updated Successfully" });
+            return BadRequest(new ResponseDto() { Status = false, StatusCode = "400", Message = "Reset link has expired or is invalid, please request forgot link again!" });
         }
 
         #endregion
