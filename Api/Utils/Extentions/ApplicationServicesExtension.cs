@@ -1,6 +1,5 @@
 ﻿using ITValet.HelpingClasses;
 using ITValet.JWTAuthentication;
-using ITValet.Models;
 using ITValet.NotificationHub;
 using ITValet.Services;
 
@@ -50,7 +49,8 @@ namespace ITValet.Utils.Extentions
             services.Configure<StripeApiKeys>(configuration.GetSection("StripeApiKeys"));
             services.Configure<ReturnUrls>(configuration.GetSection("ReturnUrls"));
             services.Configure<Zoom>(configuration.GetSection("Zoom"));
-            
+            services.Configure<GoogleAuth>(configuration.GetSection("GoogleAuth"));
+
             services.AddScoped<IJwtUtils, JwtUtils>();
             services.AddScoped<ISearchLogService, SearchLogService>();
             services.AddScoped<INotificationService, UserPackageService>();

@@ -39,6 +39,7 @@ namespace ITValet.Services
 
         #region refactor
         Task<ResponseDto> GetOrderEventRecord(string id, string? role = "", string? filterDate = "");
+        Task<ResponseDto> GetOrderSlotsRecord(string userId, string? date = "");
         #endregion
     }
 
@@ -777,6 +778,47 @@ namespace ITValet.Services
             return orderEvents;
         }
 
+
+        public async Task<ResponseDto> GetOrderSlotsRecord(string userId, string? date = "")
+        {
+            try
+            {
+                var decrypt = DecryptionId(userId);
+                var currentDate = Convert.ToDateTime(date);
+                var orders = await _context.Order
+                    .Where(x => x.IsActive == 1 && x.ValetId == decrypt)
+                    .ToListAsync();
+
+                var emptyList = new List<OrderEventsViewModal>();
+                orders = orders.Where(x => Convert.ToDateTime(x.StartDateTime).Date == currentDate).Select(u => new Order
+                {
+                    StartDateTime = u.StartDateTime,
+                    EndDateTime = u.EndDateTime
+                }).ToList();
+                if (orders == null || !orders.Any())
+                    return GeneralPurpose.GenerateResponseCode(true, "200", GlobalMessages.RecordFound, emptyList);
+
+                var orderSlots = new List<OrderEventsViewModal>();
+
+                foreach (var item in orders)
+                {
+                    var abc = new OrderEventsViewModal
+                    {
+                        StartDateTime = item.StartDateTime,  // Fix: Use item instead of "order"
+                        EndDateTime = item.EndDateTime
+                    };
+
+                    orderSlots.Add(abc);
+                }
+
+                return GeneralPurpose.GenerateResponseCode(true, "200", GlobalMessages.RecordFound, orderSlots);
+            }
+            catch (Exception ex)
+            {
+                // Log the exception if necessary
+                return null;
+            }
+        }
         #endregion
 
         #region helpers

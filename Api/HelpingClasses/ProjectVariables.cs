@@ -31,6 +31,12 @@
         public string ClientSecret { get; set; } = string.Empty!;
     }
 
+    public class GoogleAuth
+    {
+        public string? ClientId { get; set; }
+        public string? ClientSecret { get; set; }
+    }
+
     public static class GlobalMessages
     {
         public static string SuccessMessage = "The record has been added successfully.";

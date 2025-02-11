@@ -1,4 +1,5 @@
-﻿using ITValet.Filters;
+﻿using Google.Apis.Auth;
+using ITValet.Filters;
 using ITValet.HelpingClasses;
 using ITValet.JWTAuthentication;
 using ITValet.JwtAuthorization;
@@ -8,6 +9,10 @@ using ITValet.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 
 namespace ITValet.Controllers
 {
@@ -18,6 +23,8 @@ namespace ITValet.Controllers
     {
         private readonly IUserRepo userRepo;
         private readonly IJwtUtils jwtUtils;
+        private readonly IConfiguration _config;
+        private readonly GoogleAuth _googleAuth;
         private readonly ProjectVariables projectVariables;
         private readonly IPayPalGateWayService _payPalGateWayService;
         private readonly IUserExperienceRepo userExperienceRepo;
@@ -26,14 +33,16 @@ namespace ITValet.Controllers
         private readonly IUserAvailableSlotRepo userAvailableSlotRepo;
         private readonly IHubContext<NotificationHubSocket> _notificationHubSocket;
 
-        public AuthController(IUserEducationRepo _userEducationRepo, IUserExperienceRepo _userExperienceRepo,
-            IUserSkillRepo _userSkillRepo, IPayPalGateWayService payPalGateWayService,
-            IUserRepo _userRepo, IUserAvailableSlotRepo _userAvailableSlotRepo, IJwtUtils _jwtUtils, IOptions<ProjectVariables> options,
-            IHubContext<NotificationHubSocket> notificationHubSocket)
+        public AuthController(IUserRepo _userRepo, IUserEducationRepo _userEducationRepo, IUserExperienceRepo _userExperienceRepo,
+            IUserSkillRepo _userSkillRepo, IPayPalGateWayService payPalGateWayService, 
+            IUserAvailableSlotRepo _userAvailableSlotRepo, IJwtUtils _jwtUtils, IOptions<ProjectVariables> options,
+            IHubContext<NotificationHubSocket> notificationHubSocket, IConfiguration config, IOptions<GoogleAuth> googleOptions)
         {
             userRepo = _userRepo;
             jwtUtils = _jwtUtils;
+            _config = config;
             projectVariables = options.Value;
+            _googleAuth = googleOptions.Value;
             _payPalGateWayService = payPalGateWayService;
             userExperienceRepo = _userExperienceRepo;
             userSkillRepo = _userSkillRepo;
@@ -91,6 +100,43 @@ namespace ITValet.Controllers
             });
         }
 
+        #region GoogleAuth
+        public async Task<IActionResult> GoogleCallback(string token)
+        {
+            try
+            {
+                var settings = new GoogleJsonWebSignature.ValidationSettings
+                {
+                    Audience = new List<string> { _googleAuth.ClientId }
+                };
+
+                var payload = await GoogleJsonWebSignature.ValidateAsync(token, settings);
+
+                if (payload == null)
+                {
+                    return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", "Invalid Google token."));
+                }
+
+                // Extract user details from token
+                var user = new
+                {
+                    Email = payload.Email,
+                    Name = payload.Name,
+                    Picture = payload.Picture
+                };
+
+                // Here, you can check if the user exists in your DB, create a session, etc.
+
+                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Successfully LogenIn With Google.", user));
+            }
+            catch (Exception ex)
+            {
+                await MailSender.SendErrorMessage(ex.Message);
+                return Ok(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.SystemFailureMessage)); //"Authentication failed" });
+            }
+        }
+        #endregion
+
         #region Registeration
         [HttpPost("Register")]
         public async Task<ActionResult> Register(RegisterUserDto user)
@@ -130,7 +176,7 @@ namespace ITValet.Controllers
         [Route("UpdateProfile/{userId}")]
         public async Task<ActionResult> PostUpdateProfile(string userId, UserViewModel user)
         {
-            var decrypted = DecryptionId(userId);
+            var decrypted = StringCipher.DecryptionId(userId);
             var obj = await userRepo.GetUserById(decrypted);
 
             if (obj == null)
@@ -171,7 +217,7 @@ namespace ITValet.Controllers
         {
             if (!string.IsNullOrEmpty(userId))
             {
-                var decrypt = DecryptionId(userId);
+                var decrypt = StringCipher.DecryptionId(userId);
                 var user = await userRepo.GetUserById(decrypt);
                 if (user == null)
                     return BadRequest(new ResponseDto() { Status = false, StatusCode = "404", Message = "User Not Found" });
@@ -265,7 +311,7 @@ namespace ITValet.Controllers
             var dt = GeneralPurpose.DateTimeNow().Ticks;
             if (dt < passwordDto.Validity)
             {
-                User? obj = await userRepo.GetUserById(DecryptionId(passwordDto.Id));
+                User? obj = await userRepo.GetUserById(StringCipher.DecryptionId(passwordDto.Id));
 
                 if (obj == null)
                 {
@@ -294,7 +340,7 @@ namespace ITValet.Controllers
         [HttpPut("user-activity-status/{userId}")]
         public async Task<IActionResult> UpdateUserAccountActivityStatus(string userId, string activityStatus)
         {
-            var decryptId = DecryptionId(userId);
+            var decryptId = StringCipher.DecryptionId(userId);
             if (activityStatus == "true")
                 activityStatus = "1";
             else
@@ -311,7 +357,7 @@ namespace ITValet.Controllers
         [HttpPut("user-availability/{userId}")]
         public async Task<IActionResult> UpdateUserAccountAvailabilityStatus(string userId, string availabilityOption)
         {
-            var decryptId = DecryptionId(userId);
+            var decryptId = StringCipher.DecryptionId(userId);
             if(availabilityOption == "true")
                 availabilityOption = "1";
             else
@@ -557,12 +603,6 @@ namespace ITValet.Controllers
                 await file.CopyToAsync(stream);
             }
             return uploadedFiles + "/" + imgName;
-        }
-
-        private int DecryptionId(string userId)
-        {
-            var decrypt = StringCipher.DecryptId(userId);
-            return decrypt;
         }
         #endregion
     }

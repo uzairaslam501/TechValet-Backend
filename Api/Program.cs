@@ -13,6 +13,7 @@ builder.Services.AddSwaggerDocumentation();
 builder.Services.AddCorsPolicy();
 builder.Services.AddSignalR();
 builder.Services.AddHealthChecks(); //For checking the health of system
+builder.Services.AddGoogleAuthentication(builder.Configuration); // Google Auth
 
 var app = builder.Build();
 
@@ -22,6 +23,7 @@ app.UseCors("CORSPolicy");
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
+app.UseAuthentication();
 app.UseAuthorization();
 app.UseMiddleware<JwtMiddleware>();
 

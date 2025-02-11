@@ -294,7 +294,7 @@ namespace ITValet.Controllers
         {
             try
             {
-                var decrypt = DecryptionId(userId);
+                var decrypt = StringCipher.DecryptionId(userId);
                 var userObj = await userRepo.GetUserById(decrypt);
                 userObj.StripeId = null;
                 userObj.IsVerify_StripeAccount = null;
@@ -325,7 +325,7 @@ namespace ITValet.Controllers
                 if (string.IsNullOrEmpty(userId))
                     return NotFound(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.SystemFailureMessage));
 
-                var decrypt = DecryptionId(userId);
+                var decrypt = StringCipher.DecryptionId(userId);
                 var obj = new UserEducation();
 
                 obj.DegreeName = model.DegreeName;
@@ -357,7 +357,7 @@ namespace ITValet.Controllers
                 if (string.IsNullOrEmpty(educationId))
                     throw new Exception(GlobalMessages.RecordNotFound);
 
-                var decrypt = DecryptionId(educationId);
+                var decrypt = StringCipher.DecryptionId(educationId);
                 var obj = await userEducationRepo.GetUserEducationById(decrypt);
 
                 obj.DegreeName = !string.IsNullOrEmpty(model.DegreeName) ? model.DegreeName : obj.DegreeName;
@@ -387,7 +387,7 @@ namespace ITValet.Controllers
                 if (string.IsNullOrEmpty(educationId))
                     return NotFound(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.RecordNotFound));
 
-                var decrypt = DecryptionId(educationId);
+                var decrypt = StringCipher.DecryptionId(educationId);
                 if (!await userEducationRepo.DeleteUserEducation(decrypt))
                     return NotFound(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.SystemFailureMessage));
 
@@ -408,7 +408,7 @@ namespace ITValet.Controllers
                 if (string.IsNullOrEmpty(educationId))
                     return NotFound(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.RecordNotFound));
 
-                var decrypt = DecryptionId(educationId);
+                var decrypt = StringCipher.DecryptionId(educationId);
                 var obj = await userEducationRepo.GetUserEducationById(decrypt);
                 if (obj != null)
                 {
@@ -429,7 +429,7 @@ namespace ITValet.Controllers
         {
             try
             {
-                var decrypt = DecryptionId(userId);
+                var decrypt = StringCipher.DecryptionId(userId);
                 var obj = new UserExperience();
 
                 obj.Description = Description;
@@ -456,7 +456,7 @@ namespace ITValet.Controllers
         {
             try
             {
-                var decrypt = DecryptionId(serviceId);
+                var decrypt = StringCipher.DecryptionId(serviceId);
                 var obj = await userExperienceRepo.GetUserExperienceById(decrypt);
 
                 obj.Description = !string.IsNullOrEmpty(Description) ? Description : obj.Description;
@@ -479,7 +479,7 @@ namespace ITValet.Controllers
         {
             try
             {
-                var decrypt = DecryptionId(serviceId);
+                var decrypt = StringCipher.DecryptionId(serviceId);
                 var obj = await userExperienceRepo.GetUserExperienceById(decrypt);
                 var userExperienceDto = MapToUserExperienceDto(obj);
 
@@ -499,7 +499,7 @@ namespace ITValet.Controllers
                 if (string.IsNullOrEmpty(serviceId))
                     throw new Exception(GlobalMessages.RecordNotFound);
 
-                var decrypt = DecryptionId(serviceId);
+                var decrypt = StringCipher.DecryptionId(serviceId);
                 if (!await userExperienceRepo.DeleteUserExperience(decrypt))
                     throw new Exception(GlobalMessages.SystemFailureMessage);
                 
@@ -880,7 +880,7 @@ namespace ITValet.Controllers
         public async Task<IActionResult> PostUpdateUserAvailableSlot(string userId,
             List<PostUpdateUserAvailableSlot> slots)
         {
-            var decrypt = DecryptionId(userId);
+            var decrypt = StringCipher.DecryptionId(userId);
             foreach (var slot in slots)
             {
                 var obj = await userAvailableSlotRepo.GetUserAvailableSlotById((int)slot.Id);
@@ -897,60 +897,11 @@ namespace ITValet.Controllers
             return Ok(new ResponseDto() { Status = true, StatusCode = "200", Message = GlobalMessages.UpdateMessage });
         }
 
-        [HttpGet("GetUserAvailableSlotList")]
-        public async Task<IActionResult> GetUserAvailableSlotList(string? DateTimeOfDay = "", string? Slot1 = "", string? Slot4 = "")
+        [HttpGet("GetSlots/{userId}")]
+        public async Task<IActionResult> PostUpdateUserAvailableSlot(string userId, string date)
         {
-            var listOfAvailableSlot = await userAvailableSlotRepo.GetUserAvailableSlotList();
-
-
-            var draw = Request.Form["draw"].FirstOrDefault();
-            var start = Request.Form["start"].FirstOrDefault();
-            var length = Request.Form["length"].FirstOrDefault();
-            var sortColumn = Request.Form["columns[" + Request.Form["order[0][column]"].FirstOrDefault() + "][name]"].FirstOrDefault();
-            var sortColumnDirection = Request.Form["order[0][dir]"].FirstOrDefault();
-            var searchValue = Request.Form["search[value]"].FirstOrDefault();
-            int pageSize = length != null ? Convert.ToInt32(length) : 0;
-            int skip = start != null ? Convert.ToInt32(start) : 0;
-            if (sortColumn != "" && sortColumn != null)
-            {
-                if (sortColumn != "0")
-                {
-                    if (sortColumnDirection == "asc")
-                    {
-                        listOfAvailableSlot = listOfAvailableSlot.OrderByDescending(x => x.GetType().GetProperty(sortColumn).GetValue(x)).ToList();
-                    }
-                    else
-                    {
-                        listOfAvailableSlot = listOfAvailableSlot.OrderBy(x => x.GetType().GetProperty(sortColumn).GetValue(x)).ToList();
-                    }
-                }
-            }
-            int totalrows = listOfAvailableSlot.Count();
-
-            if (!string.IsNullOrEmpty(searchValue))
-            {
-                listOfAvailableSlot = listOfAvailableSlot.ToList();
-            }
-            int totalrowsafterfilterinig = listOfAvailableSlot.Count();
-
-            listOfAvailableSlot = listOfAvailableSlot.Skip(skip).Take(pageSize).ToList();
-            List<UserAvailableSlotDto> dtos = new List<UserAvailableSlotDto>();
-            foreach (var obj in listOfAvailableSlot)
-            {
-                UserAvailableSlotDto userAvailableSlotDto = new UserAvailableSlotDto()
-                {
-                    Id = obj.Id,
-                    UserAvailableSlotEncId = StringCipher.EncryptId(obj.Id),
-                    DateTimeOfDay = obj.DateTimeOfDay.ToString(),
-                    Slot1 = obj.Slot1.ToString(),
-                    Slot2 = obj.Slot2.ToString(),
-                    Slot3 = obj.Slot3.ToString(),
-                    Slot4 = obj.Slot4.ToString(),
-                    UserId = obj.UserId
-                };
-                dtos.Add(userAvailableSlotDto);
-            }
-            return Ok(new ResponseDto() { Data = new { data = dtos, draw = draw, recordsTotal = totalrows, recordsFiltered = totalrowsafterfilterinig }, Status = true, StatusCode = "200" });
+            var getOrders = await orderRepo.GetOrderSlotsRecord(userId, date);
+            return Ok(getOrders);
         }
         #endregion
 
@@ -1277,7 +1228,7 @@ namespace ITValet.Controllers
         {
             try
             {
-                var decrypt = DecryptionId(userId);
+                var decrypt = StringCipher.DecryptionId(userId);
 
                 // Extract user from id
                 var user = await userRepo.GetUserById(decrypt);
@@ -1489,31 +1440,7 @@ namespace ITValet.Controllers
         }
 
         #endregion
-        private string Encrypt(string input)
-        {
-            StringBuilder encrypted = new StringBuilder();
-            int shift = 3;
-            foreach (char c in input)
-            {
-                if (char.IsLetter(c))
-                {
-                    char encryptedChar = (char)(c + shift);
-
-                    if ((char.IsLower(c) && encryptedChar > 'z') || (char.IsUpper(c) && encryptedChar > 'Z'))
-                    {
-                        encryptedChar = (char)(c - (26 - shift));
-                    }
-
-                    encrypted.Append(encryptedChar);
-                }
-                else
-                {
-                    encrypted.Append(c);
-                }
-            }
-
-            return encrypted.ToString();
-        }
+        
 
         #region CalenderEvent 
 
@@ -1562,7 +1489,7 @@ namespace ITValet.Controllers
         [HttpGet("user-by-id/{userId}")]
         public async Task<ActionResult<UserListDto>> GetUserByIdEncryptedId(string userId)
         {
-            var Id = DecryptionId(userId);
+            var Id = StringCipher.DecryptionId(userId);
             var user = await userRepo.GetUserById(Id);
             if (user == null)
                 return NotFound(GeneralPurpose.GenerateResponseCode(false, "404", GlobalMessages.RecordNotFound));
@@ -1582,7 +1509,7 @@ namespace ITValet.Controllers
                 if (string.IsNullOrEmpty(userId))
                     return NotFound(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.RecordNotFound));
 
-                var decrypt = DecryptionId(userId);
+                var decrypt = StringCipher.DecryptionId(userId);
 
                 var listOfEducation = await userEducationRepo.GetUserEducationByUserId(decrypt);
                 List<EducationViewModel> dtos = new List<EducationViewModel>();
@@ -1616,7 +1543,7 @@ namespace ITValet.Controllers
                 if (string.IsNullOrEmpty(userId))
                     return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.RecordNotFound));
 
-                var decrypt = DecryptionId(userId);
+                var decrypt = StringCipher.DecryptionId(userId);
                 var listOfAvailableSlot = await userAvailableSlotRepo.GetUserAvailableSlotByUserId(decrypt);
 
                 List<UserAvailableSlotDto> dtos = new List<UserAvailableSlotDto>();
@@ -1654,7 +1581,7 @@ namespace ITValet.Controllers
         {
             userId = GeneralPurpose.ConversionEncryptedId(userId);
 
-            var decrypt = DecryptionId(userId);
+            var decrypt = StringCipher.DecryptionId(userId);
             var listOfSkill = await userSkillRepo.GetUserSkillsByUserIdAsync(decrypt);
 
             var userSkills = listOfSkill.Select(skill => MapToUserSkillDto(skill)).ToList();
@@ -1671,7 +1598,7 @@ namespace ITValet.Controllers
                 if (string.IsNullOrEmpty(userId))
                     throw new Exception(GlobalMessages.RecordNotFound);
 
-                var decrypt = DecryptionId(userId);
+                var decrypt = StringCipher.DecryptionId(userId);
                 var listOfExperience = await userExperienceRepo.GetUserExperienceByUserId(decrypt);
                 List<UserExperienceDto> dtos = new List<UserExperienceDto>();
                 foreach (var obj in listOfExperience)
@@ -1690,7 +1617,7 @@ namespace ITValet.Controllers
         [HttpGet("order-events/{valetId}")]
         public async Task<IActionResult> GetOrderEvents(string valetId, string? role, string? filterDate = "")
         {
-            var decrypt = DecryptionId(valetId);
+            var decrypt = StringCipher.DecryptionId(valetId);
             var orderEvents = await orderRepo.GetOrderEventRecord(valetId, role, filterDate);
             if (orderEvents.Status == true)
                 return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "", orderEvents));
@@ -1796,11 +1723,30 @@ namespace ITValet.Controllers
         }
         #endregion
 
-        private int DecryptionId(string userId)
+        private string Encrypt(string input)
         {
-            userId = GeneralPurpose.ConversionEncryptedId(userId);
-            var decrypt = StringCipher.DecryptId(userId);
-            return decrypt;
+            StringBuilder encrypted = new StringBuilder();
+            int shift = 3;
+            foreach (char c in input)
+            {
+                if (char.IsLetter(c))
+                {
+                    char encryptedChar = (char)(c + shift);
+
+                    if ((char.IsLower(c) && encryptedChar > 'z') || (char.IsUpper(c) && encryptedChar > 'Z'))
+                    {
+                        encryptedChar = (char)(c - (26 - shift));
+                    }
+
+                    encrypted.Append(encryptedChar);
+                }
+                else
+                {
+                    encrypted.Append(c);
+                }
+            }
+
+            return encrypted.ToString();
         }
         #endregion
 
