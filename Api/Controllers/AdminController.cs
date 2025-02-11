@@ -10,7 +10,6 @@ using ITValet.Utils.Helpers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Options;
-using System.Reflection;
 
 namespace ITValet.Controllers
 {
@@ -51,8 +50,8 @@ namespace ITValet.Controllers
             _payPalGateWayService = payPalGateWayService;
         }
 
-        [HttpGet("PostIndex")]
-        public async Task<IActionResult> PostIndex()
+        [HttpGet("get-admin-dashboard-detail")]
+        public async Task<IActionResult> GetAdminDashboardDetail()
         {
             try
             {
@@ -73,272 +72,12 @@ namespace ITValet.Controllers
                     ValetVerificationPending = ValetVerificationPending.ToString(),
                 };
 
-                return Ok(new ResponseDto() { Data = response, Status = true, StatusCode = "200" });
+                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "", response));
             }
             catch (Exception ex)
             {
-                await MailSender.SendErrorMessage(ex.Message);
-                return Ok(new ResponseDto() { Status = true, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
-            }
-        }
-
-        [CustomAuthorize(new EnumRoles[] { EnumRoles.Admin, EnumRoles.Employee })]
-        [HttpPost("GetUserList")]
-        public async Task<IActionResult> GetUserList(int Role, string? pendingRec = "", string? Name = "", string? Email = "", string? Contact = "", string? Country = "",
-            string? State = "", string? City = "", string? IsActive = "")
-        {
-            var ulist = new List<User>();
-
-            if (!string.IsNullOrEmpty(pendingRec))
-            {
-                ulist = (List<User>)await userRepo.GetAccountOnHold(Role);
-            }
-            else
-            {
-                ulist = (List<User>)await userRepo.GetUserList(Role);
-            }
-            if (!string.IsNullOrEmpty(Name))
-            {
-                ulist = ulist.Where(x => x.FirstName.ToLower().Contains(Name.ToLower()) || x.LastName.ToLower().Contains(Name.ToLower()) ||
-                x.UserName.ToLower().Contains(Name.ToLower())).ToList();
-            }
-            if (!string.IsNullOrEmpty(IsActive))
-            {
-                ulist = ulist.Where(x => x.IsActive == Convert.ToInt16(IsActive)).ToList();
-            }
-            if (!string.IsNullOrEmpty(Email))
-            {
-                ulist = ulist.Where(x => x.Email.ToLower().Contains(Email.ToLower())).ToList();
-            }
-            if (!string.IsNullOrEmpty(Contact))
-            {
-                ulist = ulist.Where(x => x.Contact.ToLower().Contains(Contact.ToLower())).ToList();
-            }
-            if (!string.IsNullOrEmpty(Country))
-            {
-                ulist = ulist.Where(x => x.Country.ToLower().Contains(Country.ToLower())).ToList();
-            }
-            if (!string.IsNullOrEmpty(State))
-            {
-                ulist = ulist.Where(x => x.State.ToLower().Contains(State.ToLower())).ToList();
-            }
-            if (!string.IsNullOrEmpty(City))
-            {
-                ulist = ulist.Where(x => x.City.ToLower().Contains(City.ToLower())).ToList();
-            }
-            var draw = Request.Form["draw"].FirstOrDefault();
-            var start = Request.Form["start"].FirstOrDefault();
-            var length = Request.Form["length"].FirstOrDefault();
-            var sortColumn = Request.Form["columns[" + Request.Form["order[0][column]"].FirstOrDefault() + "][name]"].FirstOrDefault();
-            var sortColumnDirection = Request.Form["order[0][dir]"].FirstOrDefault();
-            var searchValue = Request.Form["search[value]"].FirstOrDefault();
-            int pageSize = length != null ? Convert.ToInt32(length) : 0;
-            int skip = start != null ? Convert.ToInt32(start) : 0;
-            if (sortColumn != "" && sortColumn != null)
-            {
-                if (!string.IsNullOrEmpty(sortColumn) && sortColumn != "0")
-                {
-                    if (sortColumnDirection == "asc")
-                    {
-                        ulist = ulist.OrderByDescending(x => x.GetType().GetProperty(sortColumn).GetValue(x)).ToList();
-                    }
-                    else
-                    {
-                        ulist = ulist.OrderBy(x => x.GetType().GetProperty(sortColumn).GetValue(x)).ToList();
-                    }
-                }
-            }
-            int totalrows = ulist.Count();
-
-            if (!string.IsNullOrEmpty(searchValue))
-            {
-                ulist = ulist.Where(x => x.Email.Trim().ToLower().Contains(searchValue.Trim().ToLower()) ||
-                                    x.FirstName != null && x.FirstName.Trim().ToLower().Contains(searchValue.Trim().ToLower()) ||
-                                    x.LastName != null && x.LastName.Trim().ToLower().Contains(searchValue.Trim().ToLower()) ||
-                                    x.UserName != null && x.UserName.Trim().ToLower().Contains(searchValue.Trim().ToLower()) ||
-                                    x.Contact != null && x.Contact.Trim().ToLower().Contains(searchValue.Trim().ToLower()) ||
-                                    x.Country != null && x.Country.Trim().ToLower().Contains(searchValue.Trim().ToLower()) ||
-                                    x.City != null && x.City.Trim().ToLower().Contains(searchValue.Trim().ToLower()) ||
-                                    x.State != null && x.State.Trim().ToLower().Contains(searchValue.Trim().ToLower()) ||
-                                    x.Gender != null && x.Gender.Trim().ToLower().Contains(searchValue.Trim().ToLower()) ||
-                                    x.PricePerHour != null && x.PricePerHour.ToString().Trim().ToLower().Contains(searchValue.Trim().ToLower())
-                                    ).ToList();
-            }
-            int totalrowsafterfilterinig = ulist.Count();
-
-            ulist = ulist.Skip(skip).Take(pageSize).ToList();
-            List<UserListDto> udto = new List<UserListDto>();
-            foreach (User u in ulist)
-            {
-                UserListDto obj = new UserListDto()
-                {
-                    Id = u.Id,
-                    UserEncId = StringCipher.EncryptId(u.Id),
-                    FirstName = u.FirstName,
-                    LastName = u.LastName,
-                    UserName = u.UserName,
-                    Contact = u.Contact,
-                    Email = u.Email,
-                    // Password = StringCipher.Decrypt(u.Password),
-                    Gender = u.Gender,
-                    ProfilePicture = u.ProfilePicture,
-                    Country = u.Country,
-                    State = u.State,
-                    City = u.City,
-                    Timezone = u.Timezone,
-                    Availability = u.Availability.ToString(),
-                    Status = u.Status.ToString(),
-                    BirthDate = u.BirthDate.ToString(),
-                    Role = Enum.GetName(typeof(EnumRoles), u.Role),
-                    IsActive = Enum.GetName(typeof(EnumActiveStatus), u.IsActive)
-                };
-                udto.Add(obj);
-            }
-            return new ObjectResult(new { data = udto, draw = draw, recordsTotal = totalrows, recordsFiltered = totalrowsafterfilterinig });
-        }
-
-
-        [CustomAuthorize(new EnumRoles[] { EnumRoles.Admin })]
-        [HttpPost("GetStripeOrdersRecord")]
-        public async Task<IActionResult> GetStripeOrdersRecord(string? UserName = "", string? ItValet = "")
-        {
-            var stripeOrdersRecord = await _orderService.GetStripeOrdersRecord();
-            // Apply filter based on CustomerName
-            if (!string.IsNullOrEmpty(UserName))
-            {
-                stripeOrdersRecord = stripeOrdersRecord.Where(x =>
-                    x.CustomerName.ToLower().Contains(UserName.ToLower())
-                ).ToList();
-            }
-
-            if (!string.IsNullOrEmpty(ItValet))
-            {
-                stripeOrdersRecord = stripeOrdersRecord.Where(x =>
-                    x.ITValet.ToLower().Contains(ItValet.ToLower())
-                ).ToList();
-            }
-
-            var draw = Request.Form["draw"].FirstOrDefault();
-            var start = Request.Form["start"].FirstOrDefault();
-            var length = Request.Form["length"].FirstOrDefault();
-            var sortColumn = Request.Form["columns[" + Request.Form["order[0][column]"].FirstOrDefault() + "][name]"].FirstOrDefault();
-            var sortColumnDirection = Request.Form["order[0][dir]"].FirstOrDefault();
-            var searchValue = Request.Form["search[value]"].FirstOrDefault();
-            int pageSize = length != null ? Convert.ToInt32(length) : 0;
-            int skip = start != null ? Convert.ToInt32(start) : 0;
-            if (sortColumn != "" && sortColumn != null)
-            {
-                if (!string.IsNullOrEmpty(sortColumn) && sortColumn != "0")
-                {
-                    if (sortColumnDirection == "asc")
-                    {
-                        stripeOrdersRecord = stripeOrdersRecord.OrderByDescending(x => x.GetType().GetProperty(sortColumn).GetValue(x)).ToList();
-                    }
-                    else
-                    {
-                        stripeOrdersRecord = stripeOrdersRecord.OrderBy(x => x.GetType().GetProperty(sortColumn).GetValue(x)).ToList();
-                    }
-                }
-            }
-            int totalrows = stripeOrdersRecord.Count();
-
-            if (!string.IsNullOrEmpty(searchValue))
-            {
-                stripeOrdersRecord = stripeOrdersRecord.Where(x =>
-                                    (x.CustomerName != null && x.CustomerName.ToLower().Contains(searchValue)) ||
-                                    (x.ITValet != null && x.ITValet.ToLower().Contains(searchValue)) ||
-                                    (x.OrderTitle != null && x.OrderTitle.ToLower().Contains(searchValue)) ||
-                                    (x.OrderPrice != null && x.OrderPrice.ToLower().Contains(searchValue)) ||
-                                    (x.OrderStatus != null && x.OrderStatus.ToLower().Contains(searchValue)) ||
-                                    (x.PaymentStatus != null && x.PaymentStatus.ToLower().Contains(searchValue))
-                                ).ToList();
-            }
-            int totalrowsafterfilterinig = stripeOrdersRecord.Count();
-
-            stripeOrdersRecord = stripeOrdersRecord.Skip(skip).Take(pageSize).ToList();
-            List<StripeOrderDetailForAdminDb> stripeRecordDto = new List<StripeOrderDetailForAdminDb>();
-            foreach (var orderObj in stripeOrdersRecord)
-            {
-                StripeOrderDetailForAdminDb obj = new StripeOrderDetailForAdminDb()
-                {
-                    Id = orderObj.Id,
-                    ITValet = orderObj.ITValet,
-                    OrderTitle = orderObj.OrderTitle,
-                    OrderEncId = orderObj.OrderEncId,
-                    OrderPrice = orderObj.OrderPrice,
-                    OrderStatus = orderObj.OrderStatus,
-                    PaymentStatus = orderObj.PaymentStatus,
-                    CustomerName = orderObj.CustomerName,
-                    StripeStatus = orderObj.StripeStatus,
-                    StripeId = orderObj.StripeId,
-                    IsDelivered = orderObj.IsDelivered,
-                    PaidByPackage = orderObj.PaidByPackage,
-                };
-                stripeRecordDto.Add(obj);
-            }
-            return new ObjectResult(new { data = stripeRecordDto, draw = draw, recordsTotal = totalrows, recordsFiltered = totalrowsafterfilterinig });
-        }
-
-        [CustomAuthorize(new EnumRoles[] { EnumRoles.Admin, EnumRoles.Employee })]
-        [HttpPost("GetSubscriptionDatatable")]
-        public async Task<IActionResult> GetSubscriptionDatatable(int subscriptionType = -1)
-        {
-            try
-            {
-                var userPackageListDto = await userPackageRepo.GetUserPackageLists();
-
-                var draw = Request.Form["draw"].FirstOrDefault();
-                var start = Request.Form["start"].FirstOrDefault();
-                var length = Request.Form["length"].FirstOrDefault();
-                var sortColumn = Request.Form["columns[" + Request.Form["order[0][column]"].FirstOrDefault() + "][name]"].FirstOrDefault();
-                var sortColumnDirection = Request.Form["order[0][dir]"].FirstOrDefault();
-                var searchValue = Request.Form["search[value]"].FirstOrDefault();
-                int pageSize = length != null ? Convert.ToInt32(length) : 0;
-                int skip = start != null ? Convert.ToInt32(start) : 0;
-
-                if (!string.IsNullOrEmpty(searchValue))
-                {
-                    // Implement the search functionality based on the view model's properties
-                    userPackageListDto = userPackageListDto
-                        .Where(x => x.PackageName != null && x.PackageName.Trim().ToLower().Contains(searchValue.Trim().ToLower())
-                            || (x.RemainingSessions != null && x.RemainingSessions.ToString().Contains(searchValue.ToLower()))
-                            || (x.PackageType != null && x.PackageType.ToString().Contains(searchValue.ToLower()))
-                            || (x.Customer != null && x.Customer.ToLower().Contains(searchValue.ToLower()))
-                        ).ToList();
-                }
-
-                int totalrows = userPackageListDto.Count();
-                int totalrowsafterfiltering = userPackageListDto.Count();
-
-                if (sortColumn != "" && sortColumn != null)
-                {
-                    PropertyInfo propertyInfo = typeof(UserPackageListDto).GetProperty(sortColumn);
-
-                    if (propertyInfo != null)
-                    {
-                        if (sortColumnDirection == "asc")
-                        {
-                            userPackageListDto = userPackageListDto.OrderByDescending(x => propertyInfo.GetValue(x)).ToList();
-                        }
-                        else
-                        {
-                            userPackageListDto = userPackageListDto.OrderBy(x => propertyInfo.GetValue(x)).ToList();
-                        }
-                    }
-                    else
-                    {
-                        // Handle the case where sortColumn doesn't exist in UserPackageListDto
-                    }
-                }
-
-                userPackageListDto = userPackageListDto.Skip(skip).Take(pageSize).ToList();
-
-                return new ObjectResult(new { data = userPackageListDto, draw = draw, recordsTotal = totalrows, recordsFiltered = totalrowsafterfiltering });
-            }
-            catch (Exception ex)
-            {
-                // Log the exception for debugging
-                return StatusCode(StatusCodes.Status500InternalServerError);
+                GeneralPurpose.CreateLogger(projectVariables, ex);
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.SystemFailureMessage));
             }
         }
 
@@ -408,112 +147,66 @@ namespace ITValet.Controllers
             await _notificationHubSocket.Clients.All.SendAsync("LogOutDeletedUser", userId);
 
             if (isDeleted)
-                return Ok(GeneralPurpose.GenerateResponse(true, "200", GlobalMessages.DeletedMessage));
+                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", GlobalMessages.DeletedMessage));
             else
-                return Ok(GeneralPurpose.GenerateResponse(false, "400", GlobalMessages.SystemFailureMessage));
+                return Ok(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.SystemFailureMessage));
         }
 
-        [HttpPut("UpdateUserActiveness")]
-        public async Task<IActionResult> UpdateUserActiveness(int Id)
+        [HttpPut("VerifyUserAccount/{userId}")]
+        public async Task<IActionResult> VerifyUserAccount(string userId)
         {
             try
             {
-                User? obj = await userRepo.GetUserById(Id);
+                var decrypt = StringCipher.DecryptionId(userId);
+                var user = await userRepo.GetUserById(decrypt);
 
-                if (obj == null)
-                {
-                    return Ok(new ResponseDto() { Status = false, StatusCode = "404", Message = "No record found." });
-                }
-                obj.IsActive = (int)EnumActiveStatus.EmailVerificationPending;
+                if (user == null)
+                    return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.RecordNotFound));
 
-                if (!await userRepo.SaveChanges())
+                user.IsActive = (int)EnumActiveStatus.Active;
+
+                if (await userRepo.SaveChanges())
                 {
-                    return Ok(false);
+                    await MailSender.SendEmailForITValetAdminVerified(user.Email!, user.UserName!, Enum.GetName(typeof(EnumRoles), user?.Role!)!);
+                    return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Congratulations! The account has been verified successfully"));
                 }
-                if (obj.Role == 4 || obj.Role == 3)
-                {
-                    bool chkVerificationMailSent = await MailSender.SendEmailForITValetAdminVerified(obj.Email, obj.UserName, (int)obj.Role);
-                }
-                return Ok(true);
+                else
+                    return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.RecordNotFound));
             }
             catch (Exception ex)
             {
-                await MailSender.SendErrorMessage(ex.Message);
-                return Ok(false);
+                GeneralPurpose.CreateLogger(projectVariables, ex);
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.SystemFailureMessage));
             }
         }
 
-        [HttpPut("SendActivationEmail")]
-        public async Task<IActionResult> SendActivationEmail(int Id)
+        [HttpPut("AccountOnHold/{userId}")]
+        public async Task<IActionResult> AccountOnHold(string userId)
         {
             try
             {
-                User? obj = await userRepo.GetUserById(Id);
+                var decrypt = StringCipher.DecryptionId(userId);
+                var user = await userRepo.GetUserById(decrypt);
 
-                if (obj == null)
+                if (user == null)
+                    return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.RecordNotFound));
+
+                user.IsActive = (int)EnumActiveStatus.AccountOnHold;
+
+                if (await userRepo.SaveChanges())
                 {
-                    return Ok(new ResponseDto() { Status = false, StatusCode = "404", Message = "No record found." });
+                    await MailSender.SendAccountBlockedNotification(user.Email!, user.UserName!);
+                    await _notificationHubSocket.Clients.All.SendAsync("LogOutDeletedUser", userId);
+                    return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "The Account has been blocked"));
                 }
-
-                bool chkConfirmationMailSent = await MailSender.EmailAccountVerification(StringCipher.EncryptId(obj.Id), obj.UserName, obj.Email, (int)obj.Role, projectVariables.BaseUrl);
-
-                return Ok(true);
+                else
+                    return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.RecordNotFound));
             }
             catch (Exception ex)
             {
-                await MailSender.SendErrorMessage(ex.Message);
-                return Ok(false);
+                GeneralPurpose.CreateLogger(projectVariables, ex);
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.SystemFailureMessage));
             }
-        }
-
-        [HttpGet("GetUserByIdEncryptedId")]
-        public async Task<ActionResult<UserListDto>> GetUserByIdEncryptedId(string userId)
-        {
-            int Id = StringCipher.DecryptId(userId);
-            var user = await userRepo.GetUserById(Id);
-            var userEducation = await userEducationRepo.UserEducationRecordById(Id);
-            var userExperience = await userExperienceRepo.UserExperiencedRecordById(Id);
-
-            if (user == null)
-            {
-                return NotFound(new ResponseDto() { Status = false, StatusCode = "404", Message = "No record found." });
-            }
-
-            UserListDto obj = new UserListDto()
-            {
-                Id = user.Id,
-                UserEncId = StringCipher.EncryptId(user.Id),
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                UserName = user.UserName,
-                Contact = user.Contact,
-                Email = user.Email,
-                Gender = user.Gender,
-                ProfilePicture = user.ProfilePicture != null ? projectVariables.BaseUrl + user.ProfilePicture : null,
-                Country = user.Country,
-                State = user.State,
-                City = user.City,
-                ZipCode = user.ZipCode,
-                Timezone = user.Timezone,
-                Availability = user.Availability.ToString(),
-                Status = user.Status.ToString(),
-                BirthDate = user.BirthDate.ToString(),
-                Role = Enum.GetName(typeof(EnumRoles), user.Role),
-                IsActive = Enum.GetName(typeof(EnumActiveStatus), user.IsActive),
-                Language = user.Language,
-                Description = user.Description,
-                CurrentTime = GeneralPurpose.regionChanged(Convert.ToDateTime(GeneralPurpose.DateTimeNow()), user.Timezone),
-                StripeId = user.StripeId,
-                UserEducations = userEducation,
-                UserExperienced = userExperience,
-            };
-            var date = GeneralPurpose.DateTimeNow().Date;
-            var slot = await userAvailableSlotRepo.GetUserAvailableSlotByUserIdAndDateOrDay(user.Id, date.ToString());
-            if (slot != null)
-            {
-                obj.AvailabilitySlots = slot.Slot1 + "," + slot.Slot2 + "," + slot.Slot3 + "," + slot.Slot4;
-            }
-            return Ok(new ResponseDto() { Data = obj, Status = true, StatusCode = "200", Message = "Record Fetch Successfully" });
         }
 
         [CustomAuthorize(new EnumRoles[] { EnumRoles.Admin })]
@@ -603,23 +296,6 @@ namespace ITValet.Controllers
             }
 
             return Ok(GeneralPurpose.GenerateResponseCode(true, "200", GlobalMessages.UpdateMessage, obj));
-        }
-
-        [CustomAuthorize(new EnumRoles[] { EnumRoles.Admin })]
-        [HttpDelete("UpdateUserAccountStatus")]
-        public async Task<IActionResult> UpdateUserAccountStatus(string UserId, EnumActiveStatus statuses)
-        {
-            bool chkRole = false;
-            int getUserId = StringCipher.DecryptId(UserId);
-
-            chkRole = await userRepo.UpdateUserAccountStatus(getUserId, statuses);
-
-            if (!chkRole)
-            {
-                return Ok(new ResponseDto() { Status = false, StatusCode = "406", Message = "Database Updation Failed" });
-            }
-
-            return Ok(new ResponseDto() { Status = true, StatusCode = "200", Message = "Record Updated Successfully" });
         }
 
         [CustomAuthorize(new EnumRoles[] { EnumRoles.Admin })]

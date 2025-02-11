@@ -121,23 +121,14 @@ namespace ITValet.HelpingClasses
             }
         }
 
-        public static async Task<bool> SendEmailForITValetAdminVerified(string email, string username, int role)
+        public static async Task<bool> SendEmailForITValetAdminVerified(string email, string username, string role)
         {
             try
             {
 
-                string Role = "";
-                if (role == 3)
-                {
-                    Role = "Customer";
-                }
-                else
-                {
-                    Role = "Tech-Valet";
-                }
-                string subject = "Tech-Valet : " + Role + " Account Verified";
-                string description = "The admin has confirmed the verification of your account. <br> You can now effectively utilize your account as a " + Role;
-
+                string subject = "Tech-Valet : " + role + " Account Verified";
+                string description = "Congratulations on completing the verification process for your account With this important step now finished we are excited to" +
+                    " welcome you as a verified member of Tech Valet Enjoy your journey with us.";
                 string url = "";
                 string buttonText = "";
                 string mailBody = PopulateBody(subject, username, description, url, buttonText);
@@ -185,12 +176,21 @@ namespace ITValet.HelpingClasses
                 return false;
             }
         }
+        
         public static async Task<bool> SendAccountBlockedNotification(string email, string username)
         {
             try
             {
                 string subject = "Account Blocked: Action Required";
-                string description = $"Hello {username},<br/><br/>We regret to inform you that your Tech-Valet account has been temporarily blocked due to a high number of negative reviews on your recent transactions.<br/><br/>To resolve this matter and seek assistance, please contact our admin authority at [Admin Contact Email] or [Admin Contact Phone Number]. We are here to help you understand the situation and work towards a resolution.<br/><br/>Your account status is important to us, and we hope to see you back on the platform soon with improved performance and user experience.<br/><br/>Thank you for your understanding.";
+                string description = $"Hello {username},  \r\n\r\n\r\n\r\n" +
+                    $"We regret to inform you that your Tech-Valet account has been temporarily blocked due to a significant " +
+                    $"number of negative reviews regarding your recent transactions.  \r\n\r\n\r\n\r\n" +
+                    $"To resolve this issue and get assistance, please reach out to our admin team at " +
+                    $"[Admin Contact Email] or [Admin Contact Phone Number]. We are here to help you " +
+                    $"understand the situation and work towards a solution.  \r\n\r\n\r\n\r\n" +
+                    $"Your account status is important to us, and we look forward to seeing you back on the platform soon with " +
+                    $"improved performance and user experience.  \r\n\r\n\r\n\r\n" +
+                    $"Thank you for your understanding.";
                 string url = "";
                 string buttonText = "";
                 string mailBody = PopulateBody(subject, username, description, url, buttonText);
