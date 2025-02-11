@@ -1,5 +1,6 @@
 using ITValet.HelpingClasses;
 using ITValet.Models;
+using ITValet.ViewModel;
 using Microsoft.EntityFrameworkCore;
 
 namespace ITValet.Services
@@ -13,8 +14,8 @@ namespace ITValet.Services
         Task<bool> UpdateNotification(Notification notification);
         Task<bool> DeleteNotification(int id);
         Task<bool> MarkNotification(int NotificationId);
-        Task<bool> MarkAllNotification(int UserId);
-        Task<bool> DeleteAllNotification(int userId);
+        Task<ResponseDto> MarkAllNotification(string userId);
+        Task<ResponseDto> DeleteAllNotification(string userId);
         Task<bool> DeleteAllNotificationByType(int UserId, int NotificationType);
         Task<bool> MarkAllNotificationByType(int UserId, int NotificationType);
         Task<int> GetUnreadNotificationCountByUserId(int userId, string? title = "");
@@ -125,28 +126,42 @@ namespace ITValet.Services
             }
         }
 
-        public async Task<bool> MarkAllNotification(int UserId)
+        public async Task<ResponseDto> MarkAllNotification(string userId)
         {
-            var notifications = await _context.Notification.Where(x => x.UserId == UserId && x.IsRead == 0).ToListAsync();
-            foreach (var i in notifications)
+            try
             {
-                i.IsRead = 1;
-                await UpdateNotification(i);
-            }
+                var decrypt = StringCipher.DecryptionId(userId);
+                var notifications = await _context.Notification.Where(x => x.UserId == decrypt && x.IsRead == 0).ToListAsync();
+                // Mark all as read in memory
+                notifications.ForEach(n => n.IsRead = 1);
 
-            return true;
+                // Save all changes at once
+                await _context.SaveChangesAsync();
+
+                return GeneralPurpose.GenerateResponse(true, "200", "All Notifications Marked as read");
+            }
+            catch (Exception ex)
+            {
+                return GeneralPurpose.GenerateResponse(false, "400", ex.Message);
+            }
         }
 
-        public async Task<bool> DeleteAllNotification(int userId)
+        public async Task<ResponseDto> DeleteAllNotification(string userId)
         {
-            var notifications = _context.Notification.Where(x => x.IsActive == 1 && x.UserId == userId).ToList();
-
-            foreach (var i in notifications)
+            try
             {
-                await DeleteNotification(i.Id);
-            }
+                var decrypt = StringCipher.DecryptionId(userId);
+                var notifications = _context.Notification.Where(x => x.IsActive == 1 && x.UserId == decrypt).ToList();
 
-            return true;
+                notifications.ForEach(n => n.IsActive = 0); // Delete all as read in memory
+                await _context.SaveChangesAsync();// Save all changes at once
+
+                return GeneralPurpose.GenerateResponse(true, "200", "All Notifications Deleted Successfully");
+            }
+            catch (Exception ex)
+            {
+                return GeneralPurpose.GenerateResponse(false, "400", ex.Message);
+            }
         }
         
         public async Task<bool> DeleteAllNotificationByType(int UserId, int NotificationType)

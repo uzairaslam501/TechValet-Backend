@@ -355,7 +355,7 @@ namespace ITValet.Controllers
             try
             {
                 if (string.IsNullOrEmpty(educationId))
-                    throw new Exception(GlobalMessages.RecordNotFound);
+                    return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.RecordNotFound));
 
                 var decrypt = StringCipher.DecryptionId(educationId);
                 var obj = await userEducationRepo.GetUserEducationById(decrypt);
@@ -375,6 +375,7 @@ namespace ITValet.Controllers
             }
             catch (Exception ex)
             {
+                GeneralPurpose.CreateLogger(projectVariables, ex);
                 return BadRequest(GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage));
             }
         }

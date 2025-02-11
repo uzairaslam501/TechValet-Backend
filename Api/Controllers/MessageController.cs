@@ -106,7 +106,7 @@ namespace ITValet.Controllers
         {
             try
             {
-                var decrypt = DecryptionId(userId);
+                var decrypt = StringCipher.DecryptionId(userId);
                 var user = await userRepo.GetUserById(decrypt);
 
                 if (user == null)
@@ -305,7 +305,7 @@ namespace ITValet.Controllers
             {
                 if (!string.IsNullOrEmpty(userId))
                 {
-                    var decrypt = DecryptionId(userId);
+                    var decrypt = StringCipher.DecryptionId(userId);
                     var getLoggedInUser = await userRepo.GetUserById(decrypt);
 
                     var decryptUserChat = 0;
@@ -313,7 +313,7 @@ namespace ITValet.Controllers
                     var Receiver = new Models.User();
                     if (!string.IsNullOrEmpty(GetUserChatOnTop) && GetUserChatOnTop != "undefined" && GetUserChatOnTop != "null") 
                     {
-                        decryptUserChat = DecryptionId(GetUserChatOnTop);
+                        decryptUserChat = StringCipher.DecryptionId(GetUserChatOnTop);
                         var getUserMEssages = await messagesRepo.GetMessageBySenderIdAndRecieverId(decrypt, decryptUserChat);
                         if(getUserMEssages.Count() == 0)
                         {
@@ -359,7 +359,7 @@ namespace ITValet.Controllers
                         messagesList.Add(viewModelMessage);
 
                     }
-                    if (!string.IsNullOrEmpty(GetUserChatOnTop) && GetUserChatOnTop != "null" && GetUserChatOnTop != "undefinded")
+                    if (!string.IsNullOrEmpty(GetUserChatOnTop) && GetUserChatOnTop != "null" && GetUserChatOnTop != "undefined")
                     {
                         // ID to move to the top
                         string idToMoveToTop = decryptUserChat.ToString();
@@ -368,12 +368,17 @@ namespace ITValet.Controllers
                                                   .ThenBy(user => user.Id)
                                                   .ToList();
                     }
+                    else
+                    {
+                        GetUserChatOnTop = "";
+                    }
+
                     if (!String.IsNullOrWhiteSpace(Name))
                     {
                         messagesList = messagesList.Where(a => a.Username.ToLower().Contains(Name.ToLower())).ToList();
                     }
                     if(string.IsNullOrWhiteSpace(Name) && string.IsNullOrEmpty(GetUserChatOnTop))
-                    messagesList = messagesList.OrderByDescending(msg => DateTime.Parse(msg.MessageTime)).ToList();
+                        messagesList = messagesList.OrderByDescending(msg => DateTime.Parse(msg.MessageTime)).ToList();
 
 
                     return Ok(new ResponseDto()
@@ -400,8 +405,8 @@ namespace ITValet.Controllers
                 if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(messageUserId))
                     return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.RecordNotFound));
 
-                var decrypt = DecryptionId(userId);
-                var targerDecrypt = DecryptionId(messageUserId);
+                var decrypt = StringCipher.DecryptionId(userId);
+                var targerDecrypt = StringCipher.DecryptionId(messageUserId);
 
                 var loggedInUser = await userRepo.GetUserById(decrypt);
                 var targetUser = await userRepo.GetUserById(targerDecrypt);
@@ -419,11 +424,17 @@ namespace ITValet.Controllers
                 var messages = await messagesRepo.GetMessageBySenderIdAndRecieverId(loggedInUser.Id, targetUser.Id);
                 var messagesList = messages.Select(message => MapMessageToViewModel(message, loggedInUser, targetUser)).ToList();
 
+                var groupedMessages = messages
+                    .Select(message => MapMessageToViewModel(message, loggedInUser, targetUser))
+                    .GroupBy(m => Convert.ToDateTime(m.MessageTime).Date) // Grouping by date
+                    .OrderBy(g => g.Key) // Sorting latest date first
+                    .ToDictionary(g => g.Key.ToString("yyyy-MM-dd"), g => g.ToList()); // Convert to dictionary for frontend
+
                 return Ok(new ResponseDto()
                 {
                     Status = true,
                     StatusCode = "200",
-                    Data = messagesList
+                    Data = groupedMessages
                 });
             }
             catch (Exception ex)
@@ -445,8 +456,8 @@ namespace ITValet.Controllers
         {
             try
             {
-                var decryptId = DecryptionId(orderId);
-                var decryptUserId = DecryptionId(userId);
+                var decryptId = StringCipher.DecryptionId(orderId);
+                var decryptUserId = StringCipher.DecryptionId(userId);
                 var loggedInUser = await userRepo.GetUserById(decryptUserId);
                 var order = await orderRepo.GetOrderById(decryptId);
                 var messages = await messagesRepo.GetMessageListByOrdrId(order.Id);
@@ -473,9 +484,9 @@ namespace ITValet.Controllers
         {
             try
             {
-                var decrypt = DecryptionId(postAddMessage.SenderId!);
-                var decryptRecieverId = DecryptionId(postAddMessage.ReceiverId!);
-                var decryptOrderId = DecryptionId(postAddMessage.OrderId!);
+                var decrypt = StringCipher.DecryptionId(postAddMessage.SenderId!);
+                var decryptRecieverId = StringCipher.DecryptionId(postAddMessage.ReceiverId!);
+                var decryptOrderId = StringCipher.DecryptionId(postAddMessage.OrderId!);
                 var getSender = await userRepo.GetUserById(decrypt);
                 var getReciever = await userRepo.GetUserById(decryptRecieverId);
                 var getOrder = await orderRepo.GetOrderById(decryptOrderId);
@@ -523,9 +534,9 @@ namespace ITValet.Controllers
         {
             try
             {
-                var decryptOrderId = DecryptionId(orderId);
-                var decrypt = DecryptionId(postAddMessage.SenderId!);
-                var decryptRecieverId = DecryptionId(postAddMessage.ReceiverId!);
+                var decryptOrderId = StringCipher.DecryptionId(orderId);
+                var decrypt = StringCipher.DecryptionId(postAddMessage.SenderId!);
+                var decryptRecieverId = StringCipher.DecryptionId(postAddMessage.ReceiverId!);
 
                 var getSender = await userRepo.GetUserById(decrypt);
                 var getReciever = await userRepo.GetUserById(decryptRecieverId);
@@ -584,10 +595,10 @@ namespace ITValet.Controllers
         public async Task<IActionResult> HandleCancelOrderRequest(string orderId, OrderExtentionDto obj)
         {
             // Decrypt input IDs
-            var decryptSenderId = DecryptionId(obj.SenderId!);
-            var decryptReceiverId = DecryptionId(obj.ReceiverId!);
-            var decryptOrderId = DecryptionId(orderId!);
-            var decryptOrderReasonId = DecryptionId(obj.OrderReasonId!);
+            var decryptSenderId = StringCipher.DecryptionId(obj.SenderId!);
+            var decryptReceiverId = StringCipher.DecryptionId(obj.ReceiverId!);
+            var decryptOrderId = StringCipher.DecryptionId(orderId!);
+            var decryptOrderReasonId = StringCipher.DecryptionId(obj.OrderReasonId!);
 
             // Fetch necessary entities
             var order = await orderRepo.GetOrderById(decryptOrderId);
@@ -677,10 +688,10 @@ namespace ITValet.Controllers
         public async Task<IActionResult> PostExtendDeadline(string orderId, OrderExtentionDto obj)
         {
             // Decrypt input IDs
-            var decryptSenderId = DecryptionId(obj.SenderId!);
-            var decryptReceiverId = DecryptionId(obj.ReceiverId!);
-            var decryptOrderId = DecryptionId(orderId!);
-            var decryptOrderReasonId = DecryptionId(obj.OrderReasonId!);
+            var decryptSenderId = StringCipher.DecryptionId(obj.SenderId!);
+            var decryptReceiverId = StringCipher.DecryptionId(obj.ReceiverId!);
+            var decryptOrderId = StringCipher.DecryptionId(orderId!);
+            var decryptOrderReasonId = StringCipher.DecryptionId(obj.OrderReasonId!);
 
             // Fetch necessary entities
             var order = await orderRepo.GetOrderById(decryptOrderId);
@@ -820,9 +831,9 @@ namespace ITValet.Controllers
         [HttpPost("CreateZoomMeeting")]
         public async Task<IActionResult> CreateZoomMeeting(string ReceiverId = "", string SenderId = "", string OrderId = "")
         {
-            var decryptReceiver = DecryptionId(ReceiverId);
-            var decryptSender = DecryptionId(SenderId);
-            var decryptOrder = DecryptionId(OrderId);
+            var decryptReceiver = StringCipher.DecryptionId(ReceiverId);
+            var decryptSender = StringCipher.DecryptionId(SenderId);
+            var decryptOrder = StringCipher.DecryptionId(OrderId);
 
             var getSender = await userRepo.GetUserById(decryptSender);
             var getReceiver = await userRepo.GetUserById(decryptReceiver);
@@ -1031,7 +1042,7 @@ namespace ITValet.Controllers
         [HttpPost("AcceptOrder/{orderId}")]
         public async Task<IActionResult> AcceptOrder(string orderId, OrderDeliverViewModel orderDeliverDto)
         {
-            var decryptedOrderId = DecryptionId(orderId);
+            var decryptedOrderId = StringCipher.DecryptionId(orderId);
             var order = await orderRepo.GetOrderById(decryptedOrderId);
             UpdateOrderDetails(order!);
 
@@ -1140,9 +1151,9 @@ namespace ITValet.Controllers
         [HttpPut("PostSendRevision/{oderId}")]
         public async Task<IActionResult> PostSendRevision(string? orderId, PostAddMessage postAddMessage)
         {
-            var decrypt = DecryptionId(postAddMessage.SenderId!);
-            var decryptRecieverId = DecryptionId(postAddMessage.ReceiverId!);
-            var decryptOrderId = DecryptionId(postAddMessage.OrderId!);
+            var decrypt = StringCipher.DecryptionId(postAddMessage.SenderId!);
+            var decryptRecieverId = StringCipher.DecryptionId(postAddMessage.ReceiverId!);
+            var decryptOrderId = StringCipher.DecryptionId(postAddMessage.OrderId!);
 
             var getSender = await userRepo.GetUserById(decrypt);
             var getReciever = await userRepo.GetUserById(decryptRecieverId);
@@ -1289,7 +1300,6 @@ namespace ITValet.Controllers
             return false;
         }
 
-
         #region Helpers
         #region PostAddMessages
         private async Task CreateMessage(PostAddMessage postAddMessage, Message message)
@@ -1434,6 +1444,7 @@ namespace ITValet.Controllers
                 MessageEncId = StringCipher.EncryptId(message.Id),
                 SenderEncId = StringCipher.EncryptId((int)message.SenderId!),
                 MessageTime = GeneralPurpose.regionChanged(Convert.ToDateTime(message.CreatedAt), loggedInUser.Timezone!),
+                Time = Convert.ToDateTime(GeneralPurpose.regionChanged(Convert.ToDateTime(message.CreatedAt), loggedInUser.Timezone!)).ToString("t"),
 
             };
             if (loggedInUser.Role == 4)
@@ -1662,9 +1673,9 @@ namespace ITValet.Controllers
             try
             {
                 // Decrypt input IDs
-                var decryptSenderId = DecryptionId(obj.SenderId!);
-                var decryptReceiverId = DecryptionId(obj.ReceiverId!);
-                var decryptOrderId = DecryptionId(orderId!);
+                var decryptSenderId = StringCipher.DecryptionId(obj.SenderId!);
+                var decryptReceiverId = StringCipher.DecryptionId(obj.ReceiverId!);
+                var decryptOrderId = StringCipher.DecryptionId(orderId!);
 
                 // Fetch necessary entities
                 var sender = await userRepo.GetUserById(decryptSenderId);
@@ -1762,12 +1773,5 @@ namespace ITValet.Controllers
         }
         #endregion
         #endregion
-
-        private int DecryptionId(string id)
-        {
-            id = GeneralPurpose.ConversionEncryptedId(id);
-            var decrypt = StringCipher.DecryptId(id);
-            return decrypt;
-        }
     }
 }

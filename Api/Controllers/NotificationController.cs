@@ -3,6 +3,7 @@ using ITValet.HelpingClasses;
 using ITValet.Models;
 using ITValet.Services;
 using Microsoft.AspNetCore.Mvc;
+using static Google.Apis.Requests.BatchRequest;
 
 namespace ITValet.Controllers
 {
@@ -114,11 +115,15 @@ namespace ITValet.Controllers
             return Ok(new { Status = true, StatusCode = "200", Data = chkNotification });
         }
 
-        [HttpGet("MarkAllNotifications")]
-        public async Task<IActionResult> MarkAllNotifications(string UserId)
+        [HttpGet("MarkAllAsRead/{userId}")]
+        public async Task<IActionResult> MarkAllNotifications(string userId)
         {
-            bool chkNotification = await notificationRepo.MarkAllNotification(Convert.ToInt32(UserId));
-            return Ok(chkNotification);
+            var response = await notificationRepo.MarkAllNotification(userId);
+            if(response.Status == false)
+            {
+                return BadRequest(response);
+            }
+            return Ok(response);
         }
 
         [HttpDelete]
@@ -133,17 +138,15 @@ namespace ITValet.Controllers
             return Ok(new { Status = true, StatusCode = "200", Message = "Record deleted successfully." });
         }
 
-        [HttpDelete]
-        [Route("DeleteAllNotifications")]
-        public async Task<IActionResult> DeleteAllNotifications(string UserId)
+        [HttpDelete("DeleteAll/{userId}")]
+        public async Task<IActionResult> DeleteAllNotifications(string userId)
         {
-            bool chkNotification = await notificationRepo.DeleteAllNotification(Convert.ToInt32(UserId));
-            if (!chkNotification)
+            var response = await notificationRepo.DeleteAllNotification(userId);
+            if (response.Status == false)
             {
-                return Ok(new { Status = false, StatusCode = "500", Message = "Record inserted failed." });
-
+                return BadRequest(response);
             }
-            return Ok(new { Status = true, StatusCode = "200", Message = "Record inserted successfully." });
+            return Ok(response);
 
         }
 

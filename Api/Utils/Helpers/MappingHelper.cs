@@ -138,6 +138,7 @@ namespace ITValet.Utils.Helpers
                 Country = u.Country,
                 State = u.State,
                 City = u.City,
+                ZipCode = u.ZipCode,
                 Timezone = u.Timezone,
                 Availability = u.Availability.ToString(),
                 Status = u.Status.ToString(),
