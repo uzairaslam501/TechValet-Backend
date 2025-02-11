@@ -1442,7 +1442,6 @@ namespace ITValet.Controllers
 
         #endregion
         
-
         #region CalenderEvent 
 
         [HttpGet("GetBookedAvailabilitySlot")]
@@ -1483,7 +1482,6 @@ namespace ITValet.Controllers
             return Ok(new ResponseDto() { Status = false, StatusCode = "500", Message = "Rating Record Not Found" });
         }
         #endregion'
-
 
         #region PublicApis
         [AllowAnonymous]

@@ -245,18 +245,18 @@ namespace ITValet.Controllers
 
             var getLoggedInUser = await userRepo.GetUserById(id);
             if (getLoggedInUser == null)
-                return BadRequest(GlobalMessages.RecordNotFound);
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.RecordNotFound));
 
-            if (StringCipher.Decrypt(getLoggedInUser.Password) != passwordDto.OldPassword)
-                return BadRequest(GlobalMessages.OldPassword);
+            if (StringCipher.Decrypt(getLoggedInUser.Password!) != passwordDto.OldPassword)
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.OldPassword));
 
             if (!GeneralPurpose.MatchPassword(passwordDto.NewPassword!, passwordDto.ConfirmPassword!))
-                return BadRequest("Password and Confirm Password must be same.");
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", "Password and Confirm Password must be same."));
 
             getLoggedInUser.Password = StringCipher.Encrypt(passwordDto.NewPassword.Trim());
 
             if (!await userRepo.UpdateUser(getLoggedInUser))
-                return BadRequest(GlobalMessages.SystemFailureMessage);
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.SystemFailureMessage));
 
             return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Password Updated Successfully!", getLoggedInUser));
         }
