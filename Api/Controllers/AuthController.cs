@@ -9,10 +9,6 @@ using ITValet.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
 
 namespace ITValet.Controllers
 {
@@ -101,6 +97,7 @@ namespace ITValet.Controllers
         }
 
         #region GoogleAuth
+        [HttpPost("google/callback/{token}")]
         public async Task<IActionResult> GoogleCallback(string token)
         {
             try
