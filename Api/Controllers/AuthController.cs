@@ -70,7 +70,7 @@ namespace ITValet.Controllers
                     Message = GlobalMessages.LoginNotFound
                 });
             }
-            if(user.IsActive != 1)
+            if(user.IsActive == 3)
             {
                 return BadRequest(new ResponseDto
                 {
@@ -78,6 +78,15 @@ namespace ITValet.Controllers
                     StatusCode = "205",
                     Message = "Email Verification Pending, you have to verify your email before login",
                     Data = "EmailVerfication"
+                });
+            }
+            if(user.IsActive == 4)
+            {
+                return BadRequest(new ResponseDto
+                {
+                    Status = false,
+                    StatusCode = "205",
+                    Message = "Your account is OnHold. If you've any query, feel free to contact the support team!",
                 });
             }
 

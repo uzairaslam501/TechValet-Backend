@@ -144,16 +144,18 @@ namespace ITValet.Controllers
         {
             int userId = StringCipher.DecryptionId(id);
             bool isDeleted = await userRepo.DeleteUser(userId);
-            await _notificationHubSocket.Clients.All.SendAsync("LogOutDeletedUser", userId);
 
             if (isDeleted)
+            {
+                await _notificationHubSocket.Clients.All.SendAsync("LogOutDeletedUser", userId);
                 return Ok(GeneralPurpose.GenerateResponseCode(true, "200", GlobalMessages.DeletedMessage));
+            }
             else
                 return Ok(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.SystemFailureMessage));
         }
 
         [HttpPut("VerifyUserAccount/{userId}")]
-        public async Task<IActionResult> VerifyUserAccount(string userId)
+        public async Task<IActionResult> VerifyUserAccount(string userId, string? type = "")
         {
             try
             {
@@ -167,8 +169,16 @@ namespace ITValet.Controllers
 
                 if (await userRepo.SaveChanges())
                 {
-                    await MailSender.SendEmailForITValetAdminVerified(user.Email!, user.UserName!, Enum.GetName(typeof(EnumRoles), user?.Role!)!);
-                    return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Congratulations! The account has been verified successfully"));
+                    if (type == "RemoveFromHold")
+                    {
+                        await MailSender.SendEmailReactiveUserAccount(user.Email!, user.UserName!, projectVariables.ReactUrl);
+                        return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Congratulations! The account has been activated successfully"));
+                    }
+                    else
+                    {
+                        await MailSender.SendEmailForITValetAdminVerified(user.Email!, user.UserName!, Enum.GetName(typeof(EnumRoles), user?.Role!)!);
+                        return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Account has been verified successfully"));
+                    }
                 }
                 else
                     return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.RecordNotFound));
@@ -192,11 +202,12 @@ namespace ITValet.Controllers
                     return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.RecordNotFound));
 
                 user.IsActive = (int)EnumActiveStatus.AccountOnHold;
+                //user.IsActive = (int)EnumActiveStatus.Active;
 
                 if (await userRepo.SaveChanges())
                 {
                     await MailSender.SendAccountBlockedNotification(user.Email!, user.UserName!);
-                    await _notificationHubSocket.Clients.All.SendAsync("LogOutDeletedUser", userId);
+                    await _notificationHubSocket.Clients.All.SendAsync("LogOutWhenAccountOnHold", user.Id);
                     return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "The Account has been blocked"));
                 }
                 else

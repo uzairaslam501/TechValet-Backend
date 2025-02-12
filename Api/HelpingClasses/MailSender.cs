@@ -1,5 +1,6 @@
 ﻿using ITValet.Models;
 using MimeKit;
+using System.Security.Policy;
 
 namespace ITValet.HelpingClasses
 {
@@ -127,12 +128,10 @@ namespace ITValet.HelpingClasses
             {
 
                 string subject = "Tech-Valet : " + role + " Account Verified";
-                string description = "Congratulations on completing the verification process for your account With this important step now finished we are excited to" +
-                    " welcome you as a verified member of Tech Valet Enjoy your journey with us.";
-                string url = "";
-                string buttonText = "";
-                string mailBody = PopulateBody(subject, username, description, url, buttonText);
+                string description = "Congratulations! Your account has been successfully verified. " +
+                    "We are thrilled to welcome you as a verified member of Tech Valet. Enjoy your journey with us!";
 
+                string mailBody = PopulateBody(subject, username, description);
                 return SendEmail(email, subject, mailBody);
             }
             catch
@@ -195,6 +194,25 @@ namespace ITValet.HelpingClasses
                 string buttonText = "";
                 string mailBody = PopulateBody(subject, username, description, url, buttonText);
 
+                return SendEmail(email, subject, mailBody);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public static async Task<bool> SendEmailReactiveUserAccount(string email, string username, string baseUrl)
+        {
+            try
+            {
+
+                string subject = "Account Re-Activated";
+                string description = "Your account has been re-activated. Thanks for you patience, Proceed to login now.";
+                
+                string url = baseUrl + "login";
+                
+                string mailBody = PopulateBody(subject, username, description, url, "Login");
                 return SendEmail(email, subject, mailBody);
             }
             catch
@@ -290,14 +308,14 @@ namespace ITValet.HelpingClasses
         }
 
         private static string PopulateBody(string subject, string name, string description,
-            string url, string buttonText)
+            string url = "", string buttonText = "")
         {
             if (name != "")
             {
                 name = "<strong>" + name + "</strong><br/>";
             }
             string urlSection = "";
-            if (url != "")
+            if (!string.IsNullOrEmpty(url))
             {
                 urlSection = "<table id='u_content_button_1' style='font-family:'Raleway',sans-serif;' role='presentation' cellpadding='0' cellspacing='0' width='100%' border='0'>" +
                     "<tbody>" +
@@ -333,7 +351,7 @@ namespace ITValet.HelpingClasses
             }
             else
             {
-                urlSection = "<br/><br/><br/>";
+                urlSection = "<br/><br/>";
             }
 
             #region MailBody
@@ -450,7 +468,7 @@ namespace ITValet.HelpingClasses
                                                             "</tbody>" +
                                                         "</table>" +
 
-                                                        "<table >" +
+                                                        "<table>" +
                                                         "<tbody>" +
                                                           urlSection +
                                                         "</tbody>" +

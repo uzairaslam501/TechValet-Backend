@@ -297,7 +297,8 @@ namespace ITValet.Services
         {
             try
             {
-                return await _context.User.Where(x => (x.IsActive == (int)EnumActiveStatus.Active || x.IsActive == (int)EnumActiveStatus.AdminVerificationPending || x.IsActive == (int)EnumActiveStatus.EmailVerificationPending) && x.Role == Role).OrderByDescending(x=>x.Id).ToListAsync();
+                return await _context.User.Where(x => x.IsActive != (int)EnumActiveStatus.Deleted && 
+                                                       x.Role == Role).OrderByDescending(x=>x.Id).ToListAsync();
             }
             catch(Exception ex)
             {
