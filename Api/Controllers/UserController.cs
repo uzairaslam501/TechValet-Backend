@@ -117,7 +117,7 @@ namespace ITValet.Controllers
                 int IsCompleteValetAccount = 1;
                 if (obj.Role == 4)
                 {
-                    IsCompleteValetAccount = await GeneralPurpose.CheckValuesNotEmpty(obj, userExperienceRepo, userSkillRepo, _payPalGateWayService, userEducationRepo);
+                    IsCompleteValetAccount = await GeneralPurpose.CheckValuesNotEmpty(obj, userSkillRepo);
                     if(IsCompleteValetAccount == 1)
                     {
                         if (await GetUserSlotByUserId((int)user.Id) <= 0)
@@ -657,6 +657,7 @@ namespace ITValet.Controllers
         [HttpPost("PostAddSkills/{userId}")]
         public async Task<IActionResult> PostAddUserSkill(string userId, string? skillsName)
         {
+            
             if (string.IsNullOrEmpty(skillsName))
                 return BadRequest(new ResponseDto { Status = false, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
 
@@ -671,6 +672,8 @@ namespace ITValet.Controllers
             if (!await userSkillRepo.SaveChangesAsync())
                 return BadRequest(new ResponseDto { Status = false, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
             
+            await userRepo.HandleUpdateProfileIsActive(userId);
+
             return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Skills have been added to your account.", skillsName));
         }
 
@@ -995,171 +998,7 @@ namespace ITValet.Controllers
             return Ok(new ResponseDto() { Data = service, Status = true, StatusCode = "200" });
         }
 
-        /*[HttpPost("GetRequestServicesDatatableByUserId")]
-        public async Task<IActionResult> GetRequestServicesDatatableByUserId(string? Name = "", string? SkillName = "")
-        {
-            try
-            {
-                UserClaims? getUsetFromToken = jwtUtils.ValidateToken(Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last());
-                var ulist = await requestServiceRepo.GetRequestServiceByUserId((int)getUsetFromToken.Id);
-
-                if (!string.IsNullOrEmpty(Name))
-                {
-                    ulist = ulist.Where(x => x.ServiceTitle.ToLower().Contains(Name.ToLower())).ToList();
-                }
-                var draw = Request.Form["draw"].FirstOrDefault();
-                var start = Request.Form["start"].FirstOrDefault();
-                var length = Request.Form["length"].FirstOrDefault();
-                var sortColumn = Request.Form["columns[" + Request.Form["order[0][column]"].FirstOrDefault() + "][name]"].FirstOrDefault();
-                var sortColumnDirection = Request.Form["order[0][dir]"].FirstOrDefault();
-                var searchValue = Request.Form["search[value]"].FirstOrDefault();
-                int pageSize = length != null ? Convert.ToInt32(length) : 0;
-                int skip = start != null ? Convert.ToInt32(start) : 0;
-                if (sortColumn != "" && sortColumn != null)
-                {
-                    if (sortColumn != "0")
-                    {
-                        if (sortColumnDirection == "asc")
-                        {
-                            ulist = ulist.OrderByDescending(x => x.GetType().GetProperty(sortColumn).GetValue(x)).ToList();
-                        }
-                        else
-                        {
-                            ulist = ulist.OrderBy(x => x.GetType().GetProperty(sortColumn).GetValue(x)).ToList();
-                        }
-                    }
-                }
-                int totalrows = ulist.Count();
-
-                if (!string.IsNullOrEmpty(searchValue))
-                {
-                    ulist = ulist.Where(x => x.ServiceTitle.Trim().ToLower().Contains(searchValue.Trim().ToLower()) ||
-                                        x.ServiceDescription != null && x.ServiceDescription.Trim().ToLower().Contains(searchValue.Trim().ToLower()) ||
-                                        x.ServiceLanguage != null && x.ServiceLanguage.Trim().ToLower().Contains(searchValue.Trim().ToLower())
-                                        ).ToList();
-                }
-                int totalrowsafterfilterinig = ulist.Count();
-
-                ulist = ulist.Skip(skip).Take(pageSize).ToList();
-                List<RequestServicesDto> udto = new List<RequestServicesDto>();
-                foreach (RequestService u in ulist)
-                {
-                    RequestServicesDto obj = new RequestServicesDto()
-                    {
-                        Id = u.Id,
-                        EncId = StringCipher.EncryptId(u.Id),
-                        PrefferedServiceTime = u.PrefferedServiceTime,
-                        CategoriesOfProblems = u.CategoriesOfProblems,
-                        ServiceDescription = u.ServiceDescription,
-                        FromDateTime = u.FromDateTime.ToString(),
-                        ToDateTime = u.ToDateTime.ToString(),
-                        AppointmentTime = u.FromDateTime.ToString() + " - " + u.ToDateTime.ToString(),
-                        ServiceLanguage = u.ServiceLanguage,
-                        RequestServiceType = u.RequestServiceType.ToString(),
-                        RequestServiceSkills = u.RequestServiceSkills,
-                        CreatedAt = u.CreatedAt.ToString(),
-                    };
-                    udto.Add(obj);
-                }
-                return new ObjectResult(new { data = udto, draw = draw, recordsTotal = totalrows, recordsFiltered = totalrowsafterfilterinig });
-            }
-            catch (Exception ex)
-            {
-                await MailSender.SendErrorMessage(ex.Message);
-                return Ok(new ResponseDto() { Status = false, StatusCode = "406", Message = GlobalMessages.SystemFailureMessage });
-            }
-        }*/
-
-        [HttpPost("GetRequestServicesDatatableByUserId")]
-        public async Task<IActionResult> GetRequestServicesDatatableByUserId(string? Name = "", string? SkillName = "")
-        {
-            try
-            {
-                UserClaims? getUsetFromToken = jwtUtils.ValidateToken(Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last());
-                var ulist = await requestServiceRepo.GetRequestServiceByUserId((int)getUsetFromToken.Id);
-                //string userRegionRequestedTime = GeneralPurpose.regionChanged(Convert.ToDateTime(message.CreatedAt), getUsetFromToken.Timezone);
-
-
-                if (!string.IsNullOrEmpty(Name))
-                {
-                    ulist = ulist.Where(x => x.ServiceTitle.ToLower().Contains(Name.ToLower())).ToList();
-                }
-                var draw = Request.Form["draw"].FirstOrDefault();
-                var start = Request.Form["start"].FirstOrDefault();
-                var length = Request.Form["length"].FirstOrDefault();
-                var sortColumn = Request.Form["columns[" + Request.Form["order[0][column]"].FirstOrDefault() + "][name]"].FirstOrDefault();
-                var sortColumnDirection = Request.Form["order[0][dir]"].FirstOrDefault();
-                var searchValue = Request.Form["search[value]"].FirstOrDefault();
-                int pageSize = length != null ? Convert.ToInt32(length) : 0;
-                int skip = start != null ? Convert.ToInt32(start) : 0;
-                if (sortColumn != "" && sortColumn != null)
-                {
-                    if (sortColumn != "0")
-                    {
-                        if (sortColumnDirection == "asc")
-                        {
-                            ulist = ulist.OrderByDescending(x => x.GetType().GetProperty(sortColumn).GetValue(x)).ToList();
-                        }
-                        else
-                        {
-                            ulist = ulist.OrderBy(x => x.GetType().GetProperty(sortColumn).GetValue(x)).ToList();
-                        }
-                    }
-                }
-                int totalrows = ulist.Count();
-
-                if (!string.IsNullOrEmpty(searchValue))
-                {
-                    ulist = ulist.Where(x => x.ServiceTitle.Trim().ToLower().Contains(searchValue.Trim().ToLower()) ||
-                                        x.ServiceDescription != null && x.ServiceDescription.Trim().ToLower().Contains(searchValue.Trim().ToLower()) ||
-                                        x.ServiceLanguage != null && x.ServiceLanguage.Trim().ToLower().Contains(searchValue.Trim().ToLower())
-                                        ).ToList();
-                }
-                int totalrowsafterfilterinig = ulist.Count();
-
-                ulist = ulist.Skip(skip).Take(pageSize).ToList();
-                List<RequestServicesDto> udto = new List<RequestServicesDto>();
-                foreach (RequestService u in ulist)
-                {
-                    string userRegionRequestedTime = GeneralPurpose.regionChanged(Convert.ToDateTime(u.CreatedAt), getUsetFromToken.Timezone);
-                    string userRegionRequestStartTime = "";
-                    string userRegionRequestEndTime = "";
-                    if (u.FromDateTime != null && u.ToDateTime != null)
-                    {
-                        userRegionRequestStartTime = GeneralPurpose.regionChanged(Convert.ToDateTime(u.FromDateTime), getUsetFromToken.Timezone);
-                        userRegionRequestEndTime = GeneralPurpose.regionChanged(Convert.ToDateTime(u.ToDateTime), getUsetFromToken.Timezone);
-
-                    }
-
-
-                    RequestServicesDto obj = new RequestServicesDto()
-                    {
-                        Id = u.Id,
-                        EncId = StringCipher.EncryptId(u.Id),
-                        PrefferedServiceTime = u.PrefferedServiceTime,
-                        CategoriesOfProblems = u.CategoriesOfProblems,
-                        ServiceDescription = u.ServiceDescription,
-                        FromDateTime = u.FromDateTime.ToString(),
-                        ToDateTime = u.ToDateTime.ToString(),
-                        //AppointmentTime = u.FromDateTime.ToString() + " - " + u.ToDateTime.ToString(), // Time without region
-                        AppointmentTime = userRegionRequestStartTime + " - " + userRegionRequestEndTime,
-                        ServiceLanguage = u.ServiceLanguage,
-                        RequestServiceType = u.RequestServiceType.ToString(),
-                        RequestServiceSkills = u.RequestServiceSkills,
-                        //CreatedAt = u.CreatedAt.ToString(), // Requested Time without region
-                        CreatedAt = userRegionRequestedTime,
-                    };
-                    udto.Add(obj);
-                }
-                return new ObjectResult(new { data = udto, draw = draw, recordsTotal = totalrows, recordsFiltered = totalrowsafterfilterinig });
-            }
-            catch (Exception ex)
-            {
-                await MailSender.SendErrorMessage(ex.Message);
-                return Ok(new ResponseDto() { Status = false, StatusCode = "406", Message = GlobalMessages.SystemFailureMessage });
-            }
-        }
-        #endregion
+         #endregion
 
         #region Orders
         [HttpGet("GetOrderById/{orderId}")]

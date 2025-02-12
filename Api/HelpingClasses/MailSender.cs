@@ -140,11 +140,11 @@ namespace ITValet.HelpingClasses
             }
         }
 
-        public static async Task<bool> SendAlertForCompleteTheirProfile(string email, string username)
+        public static async Task<bool> SendEmailToValetForProfileCompletion(string email, string username)
         {
             try
             {
-                string subject = "Tech-Valet: Complete Your Profile to Access More Opportunities";
+                string subject = "Tech-Valet: Complete Your Profile";
                 string description = $"Hello {username},<br/><br/>We trust you're enjoying your time with Tech-Valet!<br/><br/>To unlock a world of opportunities and maximize your experience on our platform, we kindly urge you to complete your profile. A fully filled-out profile not only boosts your visibility to potential clients but also enables us to connect you with projects that align with your skills and expertise. Please ensure your PayPal and Stripe accounts are linked to your profile, as this will increase your chances of receiving more orders. If your profile remains incomplete, it won't be visible to our valued customers. Therefore, we strongly recommend linking both accounts.<br/><br/>";
                 string url = "";
                 string buttonText = "";

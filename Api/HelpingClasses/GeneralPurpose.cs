@@ -207,44 +207,28 @@ namespace ITValet.HelpingClasses
 
             return roundedAverageRating;
         }
-        public static async Task<int> CheckValuesNotEmpty(User UserRecord, IUserExperienceRepo _userExperienceRepo, IUserSkillRepo _userSkillRepo, IPayPalGateWayService payPalGateWayService, IUserEducationRepo _userEducationRepo)
+
+        public static async Task<int> CheckValuesNotEmpty(User userObj, IUserSkillRepo _userSkillRepo)
         {
-            int IsCompleteValetAccount = 1;
-            if (
-                string.IsNullOrEmpty(UserRecord.Description) ||
-                string.IsNullOrEmpty(UserRecord.FirstName) ||
-                string.IsNullOrEmpty(UserRecord.LastName) ||
-                string.IsNullOrEmpty(UserRecord.UserName) ||
-                UserRecord.BirthDate == null ||
-                string.IsNullOrEmpty(UserRecord.State) ||
-                string.IsNullOrEmpty(UserRecord.City) ||
-                string.IsNullOrEmpty(UserRecord.ZipCode) ||
-                string.IsNullOrEmpty(UserRecord.Timezone) ||
-                string.IsNullOrEmpty(UserRecord.Gender) ||
-                string.IsNullOrEmpty(UserRecord.Country) ||
-                string.IsNullOrEmpty(UserRecord.Email) ||
-                string.IsNullOrEmpty(UserRecord.StripeId) ||
-                UserRecord.IsVerify_StripeAccount != 1
-            )
+            if (userObj == null) return 0;
+
+            var requiredFields = new List<string>
             {
-                IsCompleteValetAccount = 0;
-            }
-            if (IsCompleteValetAccount != 0)
+                userObj?.Description, userObj?.FirstName, userObj?.LastName, userObj?.UserName,
+                userObj?.State, userObj?.City, userObj?.ZipCode, userObj?.Timezone,
+                userObj?.Gender, userObj?.Country, userObj?.Email, userObj?.StripeId
+            };
+
+            if (requiredFields.Any(string.IsNullOrEmpty) || userObj?.BirthDate == null ||
+                userObj?.IsVerify_StripeAccount != 1 || userObj?.IsPayPalAccount != 1)
             {
-                var account = await payPalGateWayService.GetPayPalAccount(StringCipher.EncryptId(UserRecord.Id));
-                int UserExperienceCount = await _userExperienceRepo.GetUserExperienceCountByUserId(UserRecord.Id);
-                int UserEducationCount = await _userEducationRepo.GetUserEducationCountByUserId(UserRecord.Id);
-                int UserSkillCount = (int)await _userSkillRepo.GetUserSkillCountByIdAsync(UserRecord.Id);
-                UserSkillCount = UserSkillCount == 0 ? IsCompleteValetAccount = 0 : IsCompleteValetAccount = IsCompleteValetAccount;
-                UserExperienceCount = UserExperienceCount == 0 ? IsCompleteValetAccount = 0 : IsCompleteValetAccount = IsCompleteValetAccount;
-                UserEducationCount = UserEducationCount == 0 ? IsCompleteValetAccount = 0 : IsCompleteValetAccount = IsCompleteValetAccount;
-                if (account.Status == false)
-                {
-                    IsCompleteValetAccount = 0;
-                }
+                return 0;
             }
-            return IsCompleteValetAccount;
+
+            var userSkillCount = await _userSkillRepo.GetUserSkillCountByIdAsync(userObj.Id);
+            return userSkillCount > 0 ? 1 : 0;
         }
+
         #endregion
 
         #region Responses 

@@ -93,9 +93,7 @@ namespace ITValet.Controllers
             }
             int IsCompleteValetAccount = 1;
             if (user.Role == 4)
-            {
-                IsCompleteValetAccount = await GeneralPurpose.CheckValuesNotEmpty(user, userExperienceRepo, userSkillRepo, _payPalGateWayService, userEducationRepo);
-            }
+                IsCompleteValetAccount = await GeneralPurpose.CheckValuesNotEmpty(user, userSkillRepo);
 
             UserListDto obj = new UserListDto()
             {
@@ -165,7 +163,10 @@ namespace ITValet.Controllers
                 if (user == null)
                     return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.RecordNotFound));
 
-                user.IsActive = (int)EnumActiveStatus.Active;
+                if (type == "RemoveFromHold")
+                    user.IsActive = (int)EnumActiveStatus.Active;
+                else
+                    user.IsActive = (int)EnumActiveStatus.AccountCompletion;
 
                 if (await userRepo.SaveChanges())
                 {
@@ -177,6 +178,9 @@ namespace ITValet.Controllers
                     else
                     {
                         await MailSender.SendEmailForITValetAdminVerified(user.Email!, user.UserName!, Enum.GetName(typeof(EnumRoles), user?.Role!)!);
+                        if (user?.Role == (int)EnumRoles.Valet) 
+                            await MailSender.SendEmailToValetForProfileCompletion(user.Email!, user.UserName!);
+
                         return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Account has been verified successfully"));
                     }
                 }

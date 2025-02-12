@@ -195,7 +195,15 @@ namespace ITValet.Controllers
                 });
             }
 
+
             UpdateUserProperties(user, obj);
+            
+            var isCompleteValetAccount = obj.Role == (int)EnumRoles.Valet
+                ? await HandleValetAccountLogic(obj)
+                : 0;
+
+            if (isCompleteValetAccount == 1)
+                obj.IsActive = (int)EnumActiveStatus.Active;
 
             if (!await userRepo.UpdateUser(obj))
             {
@@ -208,6 +216,7 @@ namespace ITValet.Controllers
             }
 
             var loggedin = CreateUserClaims(obj);
+            loggedin.IsCompleteValetAccount = isCompleteValetAccount.ToString();
 
             return Ok(new ResponseDto
             {
@@ -229,15 +238,11 @@ namespace ITValet.Controllers
                     return BadRequest(new ResponseDto() { Status = false, StatusCode = "404", Message = "User Not Found" });
                 
                 user.ProfilePicture = await UploadFiles(file, "profiles");
+
                 if (!await userRepo.UpdateUser(user))
                     return BadRequest(new ResponseDto() { Status = false, StatusCode = "406", Message = "Database Update Failed" });
-                
-                var isCompleteValetAccount = user.Role == 4
-                    ? await GeneralPurpose.CheckValuesNotEmpty(user, userExperienceRepo, userSkillRepo, _payPalGateWayService, userEducationRepo)
-                    : 1;
 
                 var loggedIn = CreateUserClaims(user);
-                loggedIn.IsCompleteValetAccount = isCompleteValetAccount.ToString();
 
                 return Ok(new ResponseDto() { Data = loggedIn, Status = true, StatusCode = "200", Message = "Image Updated Successfully" });
             }
@@ -523,18 +528,7 @@ namespace ITValet.Controllers
         #region Helpers
         private async Task<int> HandleValetAccountLogic(User user)
         {
-            var isCompleteValetAccount = await GeneralPurpose.CheckValuesNotEmpty(
-                user, userExperienceRepo, userSkillRepo, _payPalGateWayService, userEducationRepo);
-
-            if (isCompleteValetAccount == 1)
-            {
-                var availableSlots = await userAvailableSlotRepo.GetUserAvailableSlotByUserId(user.Id);
-                if (!availableSlots.Any())
-                {
-                    await userAvailableSlotRepo.CreateEntriesForCurrentMonth(user.Id);
-                }
-            }
-
+            var isCompleteValetAccount = await GeneralPurpose.CheckValuesNotEmpty(user, userSkillRepo);
             return isCompleteValetAccount;
         }
 

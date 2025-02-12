@@ -41,6 +41,10 @@ namespace ITValet.Services
 
         Task<User> GetUserInfoByNameOrEmail(string username);
 
+        #region New
+        Task<User> HandleUpdateProfileIsActive(string userId);
+        #endregion
+
     }
 
     public class UserRepo : IUserRepo
@@ -48,12 +52,15 @@ namespace ITValet.Services
         private readonly AppDbContext _context;
         private readonly ProjectVariables _projectVariables;
         private readonly StripeApiKeys _stripeKeys;
+        private readonly IUserSkillRepo _userSkillRepo;
 
-        public UserRepo(AppDbContext _appDbContext, IOptions<ProjectVariables> projectVariable, IOptions<StripeApiKeys> stripeKeys)
+        public UserRepo(AppDbContext _appDbContext, IOptions<ProjectVariables> projectVariable, IOptions<StripeApiKeys> stripeKeys,
+            IUserSkillRepo userSkillRepo)
         {
             _context = _appDbContext;
             _projectVariables = projectVariable.Value;
             _stripeKeys = stripeKeys.Value;
+            _userSkillRepo = userSkillRepo;
         }
 
         public async Task<List<User?>> GetSkilledUsersByIds(List<int?> userIds)
@@ -661,6 +668,23 @@ namespace ITValet.Services
             return false; 
         }
 
+        public async Task<User> HandleUpdateProfileIsActive(string userId)
+        {
+            var decrypt = StringCipher.DecryptionId(userId);
+            var userObj = await GetUserById(decrypt);
+            if (userObj == null)
+                return null;
 
+            var isCompleteValetAccount = userObj.Role == (int)EnumRoles.Valet
+                ? await GeneralPurpose.CheckValuesNotEmpty(userObj, _userSkillRepo)
+                : 0;
+
+            if (isCompleteValetAccount == 1)
+                userObj.IsActive = (int)EnumActiveStatus.Active;
+
+            userObj.IsActive = 1;
+
+            return userObj;
+        }
     }
 }
