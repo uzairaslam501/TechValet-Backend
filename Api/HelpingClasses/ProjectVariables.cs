@@ -58,7 +58,7 @@
         public static string MessageSentFail = "Failed to Send Message";
         public static string OrderDeliverFail = "Failed to Deliver Order";
         public static string InvalidEmail = "Email Not Found";
-
+        public static string AccountRemoved = "Account has been removed successfully!";
 
         #region CustomerController
         public static string DuplicateServiceTitle = "You have previously submitted a request under this service title, please use a different name for your new request.";

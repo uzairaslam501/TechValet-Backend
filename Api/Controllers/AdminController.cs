@@ -165,8 +165,10 @@ namespace ITValet.Controllers
 
                 if (type == "RemoveFromHold")
                     user.IsActive = (int)EnumActiveStatus.Active;
-                else
+                else if (type == "AdminVerificationPending")
                     user.IsActive = (int)EnumActiveStatus.AccountCompletion;
+                else if (type == "ValetAccountCompletion")
+                    user.IsActive = (int)EnumActiveStatus.Active;
 
                 if (await userRepo.SaveChanges())
                 {
@@ -175,14 +177,19 @@ namespace ITValet.Controllers
                         await MailSender.SendEmailReactiveUserAccount(user.Email!, user.UserName!, projectVariables.ReactUrl);
                         return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Congratulations! The account has been activated successfully"));
                     }
-                    else
+                    else if (type == "AdminVerificationPending")
                     {
                         await MailSender.SendEmailForITValetAdminVerified(user.Email!, user.UserName!, Enum.GetName(typeof(EnumRoles), user?.Role!)!);
-                        if (user?.Role == (int)EnumRoles.Valet) 
+                        if (user?.Role == (int)EnumRoles.Valet)
                             await MailSender.SendEmailToValetForProfileCompletion(user.Email!, user.UserName!);
 
                         return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Account has been verified successfully"));
                     }
+                    else if (type == "ValetAccountCompletion")
+                    {
+                        return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Account verification process completed!", user));
+                    }
+                    return Ok(GeneralPurpose.GenerateResponseCode(true, "200", GlobalMessages.UpdateMessage));
                 }
                 else
                     return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.RecordNotFound));

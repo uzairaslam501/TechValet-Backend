@@ -90,7 +90,7 @@ namespace ITValet.Services
                     if (!await UpdateUserWithPayPalAccount(accountObj.ValetId ?? 0, true))
                         return GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.SystemFailureMessage);
                 }
-                return GeneralPurpose.GenerateResponseCode(true, "200", GlobalMessages.DeletedMessage, null);
+                return GeneralPurpose.GenerateResponseCode(true, "200", GlobalMessages.AccountRemoved, null);
             }
             catch (Exception ex)
             {
@@ -104,13 +104,13 @@ namespace ITValet.Services
         {
             try
             {
-                var decrypt = DecryptionId(userId);
+                var decryptId = StringCipher.DecryptionId(userId);
                 var data = new PayPalAccountInformation();
 
-                if (await IsPayPalEmailExists(paypalAccount.PayPalEmail!))
-                    return GeneralPurpose.GenerateResponseCode(false, "204", "Email already exists.");
+                if (await IsPayPalEmailExists(paypalAccount.PayPalEmail!, decryptId))
+                    return GeneralPurpose.GenerateResponseCode(false, "204", "Email already attached with another account!");
 
-                var existingPayPalAccount = await GetExistingPayPalAccount(decrypt);
+                var existingPayPalAccount = await GetExistingPayPalAccount(decryptId);
 
                 if (existingPayPalAccount != null)
                 {
@@ -119,15 +119,22 @@ namespace ITValet.Services
                 }
                 else
                 {
-                    var newPayPalAccount = MapNewPayPalAccount(decrypt, paypalAccount);
+                    var newPayPalAccount = MapNewPayPalAccount(decryptId, paypalAccount);
                     data = newPayPalAccount;
                     _context.PayPalAccount.Add(newPayPalAccount);
                 }
 
 
                 await _context.SaveChangesAsync();
-                bool updateUser = await UpdateUserWithPayPalAccount(decrypt, false);
-                return GeneralPurpose.GenerateResponseCode(true, "200", "Account information added/updated successfully.", data);
+                bool updateUser = await UpdateUserWithPayPalAccount(decryptId, false);
+
+                var payload = new PayPalAccountInformationViewModel
+                {
+                    IsPayPalAuthorized = data.IsPayPalAuthorized,
+                    PayPalEmail = data.PayPalEmail
+                };
+
+                return GeneralPurpose.GenerateResponseCode(true, "200", "Account information added/updated successfully.", payload);
             }
             catch (Exception ex)
             {
@@ -852,10 +859,13 @@ namespace ITValet.Services
             return 0;
         }
 
-        private async Task<bool> IsPayPalEmailExists(string email)
+        private async Task<bool> IsPayPalEmailExists(string email, int userId)
         {
             return await _context.PayPalAccount
-                .AnyAsync(p => p.PayPalEmail == email && p.IsActive == (int)EnumActiveStatus.Active);
+            .AnyAsync(p => p.PayPalEmail != null &&
+                           p.PayPalEmail.Trim().ToLower() == email.Trim().ToLower() &&
+                           p.IsActive == (int)EnumActiveStatus.Active &&
+                           p.ValetId != userId);
         }
 
         private async Task<PayPalAccountInformation> GetExistingPayPalAccount(int valetId)
@@ -882,7 +892,7 @@ namespace ITValet.Services
                 ValetId = valetId,
                 PayPalEmail = paypalAccount.PayPalEmail,
                 IsPayPalAuthorized = paypalAccount.IsPayPalAuthorized,
-                IsActive = paypalAccount.IsActive,
+                IsActive = (int)EnumActiveStatus.Active,
                 CreatedAt = GeneralPurpose.DateTimeNow()
             };
         }
@@ -894,6 +904,8 @@ namespace ITValet.Services
                 var userObj = await _context.User.FirstOrDefaultAsync(x => x.Id == userId);
                 if (userObj != null)
                 {
+                    if (isDelete)
+                        userObj.IsActive = (int)EnumActiveStatus.AccountCompletion;
                     userObj.IsPayPalAccount = isDelete ? 0 : 1;
                     userObj.UpdatedAt = GeneralPurpose.DateTimeNow();
                     await _context.SaveChangesAsync();

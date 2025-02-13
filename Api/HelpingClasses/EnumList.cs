@@ -7,7 +7,7 @@
         AdminVerificationPending = 2, // verified by email, but need to admin approval
         EmailVerificationPending = 3, // email has been sent but didnt verified yet
         AccountOnHold = 4, //If Profile got bad reviews
-        AccountCompletion = 5 //If user profile is not completed
+        AccountCompletion = 5 //If valet profile is not completed
     }
     public enum EnumRoles
     {

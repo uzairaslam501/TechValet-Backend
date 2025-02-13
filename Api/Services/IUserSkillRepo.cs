@@ -12,9 +12,8 @@ namespace ITValet.Services
         Task<IEnumerable<UserSkill>> GetAllActiveUserSkillsAsync();
         Task<IEnumerable<UserSkill>> GetUsersBySkillNameAsync(string skillName);
         Task<bool> AddUserSkillAsync(string userId, string skill);
-        Task<bool> UpdateUserSkillAsync(UserSkill userSkill);
         Task<bool> SoftDeleteUserSkillAsync(string id);
-        Task<int?> GetUserSkillCountByIdAsync(int id);
+        Task<int?> GetUserSkillCountByIdAsync(int userId);
         Task<bool> SaveChangesAsync();
     }
 
@@ -62,29 +61,14 @@ namespace ITValet.Services
         {
             try
             {
-                userId = GeneralPurpose.ConversionEncryptedId(userId);
-                var decryptedUserId = DecryptionId(userId);
+                var decryptedUserId = StringCipher.DecryptionId(userId);
                 var obj = MappingSkills(decryptedUserId, skill);
                 await _context.UserSkill.AddAsync(obj);
                 return true;
             }
             catch(Exception ex) 
             {
-                CreateLogger(ex);
-                return false;
-            }
-        }
-
-        public async Task<bool> UpdateUserSkillAsync(UserSkill userSkill)
-        {
-            try
-            {
-                _context.Entry(userSkill).State = EntityState.Modified;
-                return await SaveChangesAsync();
-            }
-            catch(Exception ex)
-            {
-                CreateLogger(ex);
+                GeneralPurpose.CreateLogger(_projectVariables, ex);
                 return false;
             }
         }
@@ -102,23 +86,39 @@ namespace ITValet.Services
             }
             catch (Exception ex)
             {
-                CreateLogger(ex);
+                GeneralPurpose.CreateLogger(_projectVariables, ex);
                 return false;
             }
         }
 
-        public async Task<int?> GetUserSkillCountByIdAsync(int id)
+        public async Task<int?> GetUserSkillCountByIdAsync(int userId)
         {
             try
             {
                 return await _context.UserSkill
-                    .Where(x => x.Id == id)
+                    .Where(x => x.UserId == userId && x.IsActive == 1)
                     .CountAsync();
             }
             catch (Exception ex)
             {
-                CreateLogger(ex);
+                GeneralPurpose.CreateLogger(_projectVariables, ex);
                 return 0;
+            }
+        }
+
+
+
+        private async Task<bool> UpdateUserSkillAsync(UserSkill userSkill)
+        {
+            try
+            {
+                _context.Entry(userSkill).State = EntityState.Modified;
+                return await SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                GeneralPurpose.CreateLogger(_projectVariables, ex);
+                return false;
             }
         }
 

@@ -94,7 +94,7 @@ namespace ITValet.Controllers
                 ? await HandleValetAccountLogic(user)
                 : 1;
 
-            var loggedin = CreateUserClaims(user);
+            var loggedin = await CreateUserClaims(user);
             loggedin.IsCompleteValetAccount = isCompleteValetAccount.ToString();
 
             return Ok(new ResponseDto
@@ -215,7 +215,7 @@ namespace ITValet.Controllers
                 });
             }
 
-            var loggedin = CreateUserClaims(obj);
+            var loggedin = await CreateUserClaims(obj);
             loggedin.IsCompleteValetAccount = isCompleteValetAccount.ToString();
 
             return Ok(new ResponseDto
@@ -242,7 +242,7 @@ namespace ITValet.Controllers
                 if (!await userRepo.UpdateUser(user))
                     return BadRequest(new ResponseDto() { Status = false, StatusCode = "406", Message = "Database Update Failed" });
 
-                var loggedIn = CreateUserClaims(user);
+                var loggedIn = await CreateUserClaims(user);
 
                 return Ok(new ResponseDto() { Data = loggedIn, Status = true, StatusCode = "200", Message = "Image Updated Successfully" });
             }
@@ -453,7 +453,7 @@ namespace ITValet.Controllers
                         ? await HandleValetAccountLogic(user)
                         : 1;
 
-                    getUserFromToken = CreateUserClaims(user);
+                    getUserFromToken = await CreateUserClaims(user);
                     getUserFromToken.IsCompleteValetAccount = isCompleteValetAccount.ToString();
                 }
 
@@ -551,10 +551,10 @@ namespace ITValet.Controllers
             obj.Description = !string.IsNullOrEmpty(user.Description) ? user.Description : obj.Description;
         }
 
-        private UserClaims CreateUserClaims(User obj)
+        private async Task<UserClaims> CreateUserClaims(User obj)
         {
             var baseUri = $"{projectVariables.BaseUrl}";
-            return new UserClaims
+            var claims = new UserClaims
             {
                 Id = obj.Id,
                 UserEncId = StringCipher.EncryptId((int)obj.Id),
@@ -579,8 +579,18 @@ namespace ITValet.Controllers
                 Gender = obj.Gender,
                 StripeId = obj.StripeId,
                 PricePerHour = obj.PricePerHour?.ToString(),
-                IsActive = Enum.GetName(typeof(EnumActiveStatus), obj.IsActive!)
+                IsActive = Enum.GetName(typeof(EnumActiveStatus), obj.IsActive!),
+
+                IsStripeAccountComplete = obj.IsVerify_StripeAccount == 1,
+                IsPaypalAccountComplete = obj.IsPayPalAccount == 1,
+                IsProfileComplete = !string.IsNullOrEmpty(obj.Contact) && !string.IsNullOrEmpty(obj.Gender)
             };
+
+            int? checkIfSkillls = await userSkillRepo.GetUserSkillCountByIdAsync(obj.Id);
+            if (checkIfSkillls.HasValue && checkIfSkillls > 0)
+                claims.IsSkillsComplete = true;
+
+            return claims;
         }
 
         private async Task<string> UploadFiles(IFormFile file, string? uploadedFiles = "")

@@ -171,8 +171,8 @@ namespace ITValet.Utils.Helpers
             var result = accountLinkService.Create(new AccountLinkCreateOptions
             {
                 Account = stripeAccountId,
-                RefreshUrl = $"{reactUrl}/verification-failed",
-                ReturnUrl = $"{reactUrl}/account-verified",
+                RefreshUrl = $"{reactUrl}account-verification/failed",
+                ReturnUrl = $"{reactUrl}account-verification/success",
                 Type = "account_onboarding",
                 Collect = "eventually_due",
             });

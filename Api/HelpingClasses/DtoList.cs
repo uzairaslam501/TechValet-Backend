@@ -276,6 +276,10 @@ namespace ITValet.HelpingClasses
         public string? Token { get; set; }
         public string? IsActive { get; set; }
         public string? TokenExpire { get; set; }
+        public bool? IsStripeAccountComplete { get; set; } = false;
+        public bool? IsPaypalAccountComplete { get; set; } = false;
+        public bool? IsProfileComplete { get; set; } = false;
+        public bool? IsSkillsComplete { get; set; } = false;
     }
 
     public class ResponseDto
@@ -1146,6 +1150,12 @@ namespace ITValet.HelpingClasses
     {
         public DateTime StartDateTime { get; set; }
         public DateTime EndDateTime { get; set; }
+    }
+
+    public class PayPalAccountInformationViewModel
+    {
+        public string? PayPalEmail { get; set; }
+        public bool IsPayPalAuthorized { get; set; }
     }
     #endregion
 
