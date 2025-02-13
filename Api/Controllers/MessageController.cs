@@ -125,19 +125,19 @@ namespace ITValet.Controllers
         public async Task<IActionResult> PostAddMessages(PostAddMessage postAddMessage)
         {
             var getLoggedInUser = await userRepo.GetUserById(Convert.ToInt32(postAddMessage.SenderId));
-            var getOneUser = await userRepo.GetUserById(Convert.ToInt32(postAddMessage.ReceiverId));
+            var getReceiver = await userRepo.GetUserById(Convert.ToInt32(postAddMessage.ReceiverId));
             var isWayUserProfile = postAddMessage.Way == "ViewUserProfile";
-            var getChatMessages = new List<Message>();
+            var messageList = new List<Message>();
             var message = new Message();
 
             if (isWayUserProfile)
             {
-                getChatMessages = (List<Message>)await messagesRepo.GetMessageBySenderIdAndRecieverId(
-                    getLoggedInUser.Id,
-                    Convert.ToInt32(getOneUser.Id)
+                messageList = (List<Message>)await messagesRepo.GetMessageBySenderIdAndRecieverId(
+                    getLoggedInUser!.Id,
+                    Convert.ToInt32(getReceiver!.Id)
                 );
 
-                if (getChatMessages?.Count > 0)
+                if (messageList?.Count > 0)
                 {
                     return Ok(new ResponseDto
                     {
@@ -179,28 +179,22 @@ namespace ITValet.Controllers
                 await CreateMessage(postAddMessage, message);
 
                 if (!await messagesRepo.saveChangesFunction())
-                {
                     return Ok("Failed to send/add message.");
-                }
 
                 await AddNotification(message, "Message Received", "You just received a message.", "messages", "");
 
                 if (message.Id != 0)
                 {
-                    var msgTime = GeneralPurpose.regionChanged(Convert.ToDateTime(message.CreatedAt), getLoggedInUser?.Timezone!);
-                    var userName = getLoggedInUser?.UserName;
-                    var fullName = $"{getLoggedInUser?.FirstName} {getLoggedInUser?.LastName}";
-                    var profileImage = $"{projectVariables.BaseUrl}{getLoggedInUser?.ProfilePicture}";
                     var offer = new OfferDetail();
 
-                    var pricePerHour = (getLoggedInUser?.Role == 4 ? getLoggedInUser?.PricePerHour :
-                   (getOneUser?.Role == 4 ? getOneUser?.PricePerHour : 0));
+                    var pricePerHour = (getLoggedInUser?.Role == (int)EnumRoles.Valet ? getLoggedInUser?.PricePerHour :
+                   (getReceiver?.Role == (int)EnumRoles.Valet ? getReceiver?.PricePerHour : 0));
 
 
                     if (!string.IsNullOrEmpty(postAddMessage.OfferTitle))
                         offer = await CreateOffer(postAddMessage, message, getLoggedInUser!, (decimal)pricePerHour!);
                     
-                    var model = await NotifyOffer(offer, message, getLoggedInUser!);
+                    var model = await NotifyOffer(offer, message, getLoggedInUser!, getReceiver!);
                     var data = new
                     {
                         model,
@@ -274,7 +268,7 @@ namespace ITValet.Controllers
                 var getReceiverUser = await userRepo.GetUserById(Convert.ToInt32(message.ReceiverId));
                 var getSenderUser = await userRepo.GetUserById(Convert.ToInt32(message.SenderId));
 
-                var model = await NotifyOffer(offerDetails, message, getSenderUser!);
+                var model = await NotifyOffer(offerDetails, message, getSenderUser!, getReceiverUser!);
 
                 // Prepare and return the response
                 var data = new
@@ -422,8 +416,7 @@ namespace ITValet.Controllers
                 }
 
                 var messages = await messagesRepo.GetMessageBySenderIdAndRecieverId(loggedInUser.Id, targetUser.Id);
-                var messagesList = messages.Select(message => MapMessageToViewModel(message, loggedInUser, targetUser)).ToList();
-
+                
                 var groupedMessages = messages
                     .Select(message => MapMessageToViewModel(message, loggedInUser, targetUser))
                     .GroupBy(m => Convert.ToDateTime(m.MessageTime).Date) // Grouping by date
@@ -512,11 +505,8 @@ namespace ITValet.Controllers
                     viewModelMessage.SenderId = decrypt.ToString();
                     viewModelMessage.ReceiverId = decryptRecieverId.ToString();
 
-                    await _notificationHubSocket.Clients.All.SendAsync("SendOrderMessage",
-                            viewModelMessage,
-                            message.SenderId,
-                            message.ReceiverId
-                        );
+                    viewModelMessage = await SetReceiverTime(viewModelMessage, message, getReciever!, "Order");
+                    viewModelMessage = await SetSenderTime(viewModelMessage, message, getSender!);
 
                     return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "", viewModelMessage));
                 }
@@ -1390,7 +1380,8 @@ namespace ITValet.Controllers
             return null;
         }
 
-        private async Task<ViewModelMessageChatBox> NotifyOffer(OfferDetail offer, Message message, User getLoggedInUser)
+        private async Task<ViewModelMessageChatBox> NotifyOffer(OfferDetail offer, Message message,
+            User getLoggedInUser, User getMessageReceiver)
         {
             var viewModelMessage = new ViewModelMessageChatBox
             {
@@ -1399,9 +1390,9 @@ namespace ITValet.Controllers
                 MessageDescription = message.MessageDescription,
                 IsRead = message.IsRead?.ToString(),
                 FilePath = message.FilePath,
-                MessageTime = GeneralPurpose.regionChanged(Convert.ToDateTime(message.CreatedAt), getLoggedInUser?.Timezone!),
                 SenderId = message.SenderId.ToString(),
             };
+
             //order wprk
             if (offer != null)
             {
@@ -1421,16 +1412,47 @@ namespace ITValet.Controllers
             }
             //end
 
+            viewModelMessage = await SetReceiverTime(viewModelMessage, message, getMessageReceiver, "Message");
+            viewModelMessage = await SetSenderTime(viewModelMessage, message, getLoggedInUser!);
 
-            await _notificationHubSocket.Clients.All.SendAsync("ReceiveOffers",
-                viewModelMessage,
-                message.SenderId,
-                message.ReceiverId
-            );
+            return viewModelMessage;
+        }
+
+        private async Task<ViewModelMessageChatBox> SetSenderTime(ViewModelMessageChatBox viewModelMessage, Message message,
+            User getLoggedInUser)
+        {
+            viewModelMessage.MessageTime = GeneralPurpose.regionChanged(Convert.ToDateTime(message.CreatedAt), getLoggedInUser?.Timezone!);
+            viewModelMessage.MessageDate = Convert.ToDateTime(GeneralPurpose.regionChanged(Convert.ToDateTime(message.CreatedAt), getLoggedInUser?.Timezone!)).ToString("yyyy-MM-dd");
+            viewModelMessage.Time = Convert.ToDateTime(GeneralPurpose.regionChanged(Convert.ToDateTime(message.CreatedAt), getLoggedInUser?.Timezone!)).ToString("t");
+
+            return viewModelMessage;
+        }
+
+        private async Task<ViewModelMessageChatBox> SetReceiverTime(ViewModelMessageChatBox viewModelMessage, Message message,
+            User getMessageReceiver, string order = "")
+        {
+            viewModelMessage.MessageTime = GeneralPurpose.regionChanged(Convert.ToDateTime(message.CreatedAt), getMessageReceiver?.Timezone!);
+            viewModelMessage.MessageDate = Convert.ToDateTime(GeneralPurpose.regionChanged(Convert.ToDateTime(message.CreatedAt), getMessageReceiver?.Timezone!)).ToString("yyyy-MM-dd");
+            viewModelMessage.Time = Convert.ToDateTime(GeneralPurpose.regionChanged(Convert.ToDateTime(message.CreatedAt), getMessageReceiver?.Timezone!)).ToString("t");
+
+            if(order == "Order")
+                await _notificationHubSocket.Clients.All.SendAsync("SendOrderMessage",
+                            viewModelMessage,
+                            message.SenderId,
+                            message.ReceiverId
+                        );
+            else if(order == "Message")
+                await _notificationHubSocket.Clients.All.SendAsync("ReceiveOffers",
+                        viewModelMessage,
+                        message.SenderId,
+                        message.ReceiverId
+                    );
+
+
             return viewModelMessage;
         }
         #endregion
-        
+
         #region GetMessagesForUsers
         private ViewModelMessageChatBox MapMessageToViewModel(Message message, User loggedInUser, User targetUser)
         {
@@ -1444,6 +1466,7 @@ namespace ITValet.Controllers
                 MessageEncId = StringCipher.EncryptId(message.Id),
                 SenderEncId = StringCipher.EncryptId((int)message.SenderId!),
                 MessageTime = GeneralPurpose.regionChanged(Convert.ToDateTime(message.CreatedAt), loggedInUser.Timezone!),
+                MessageDate = Convert.ToDateTime(GeneralPurpose.regionChanged(Convert.ToDateTime(message.CreatedAt), loggedInUser.Timezone!)).ToString("yyyy-MM-dd"),
                 Time = Convert.ToDateTime(GeneralPurpose.regionChanged(Convert.ToDateTime(message.CreatedAt), loggedInUser.Timezone!)).ToString("t"),
 
             };

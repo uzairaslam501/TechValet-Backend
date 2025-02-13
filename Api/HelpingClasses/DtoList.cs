@@ -730,6 +730,7 @@ namespace ITValet.HelpingClasses
         public string? Username { get; set; }
         public string? ProfileImage { get; set; }
         public string? MessageTime { get; set; }
+        public string? MessageDate { get; set; }
         public string? Time { get; set; }
         //order related
         public string? OfferTitleId { get; set; }
