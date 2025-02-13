@@ -63,42 +63,6 @@ namespace ITValet.Controllers
             await _notificationHubSocket.Clients.All.SendAsync("ReceiveMessage", userId, message);
             return Ok(message);
         }
-
-        #region Messages
-        [HttpPut("UpdateOrderStatus")]
-        public async Task<IActionResult> UpdateOrderStatus(PostUpdateMessage postAddMessage)
-        {
-            var offerDetails = await offerDetailsRepo.GetOfferDetailById(Convert.ToInt32(postAddMessage.OfferDetailId));
-            string offerStatus = "";
-            if (postAddMessage.MessageDescription == "Accept")
-            {
-                offerDetails.OfferStatus = 2;
-                offerStatus = "accepted";
-            }
-            if (postAddMessage.MessageDescription == "Reject")
-            {
-                offerDetails.OfferStatus = 3;
-                offerStatus = "rejected";
-            }
-            offerDetails.UpdatedAt = GeneralPurpose.DateTimeNow();
-            if (!await offerDetailsRepo.UpdateOfferDetail(offerDetails))
-            {
-                return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
-            }
-
-            var message = await messagesRepo.GetMessageById((int)offerDetails.MessageId);
-            message.MessageDescription = postAddMessage.MessageDescription;
-            message.UpdatedAt = GeneralPurpose.DateTimeNow();
-
-            if (!await messagesRepo.UpdateMessage(message))
-            {
-                return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
-            }
-            var getReceiverUser = await userRepo.GetUserById(Convert.ToInt32(message.ReceiverId));
-            await _notificationHubSocket.Clients.All.SendAsync("ChangeOfferStatus", offerDetails.Id, offerDetails.OfferTitle, message.SenderId, message.ReceiverId, getReceiverUser.UserName, offerStatus);
-            return Ok(new ResponseDto() { Id = offerDetails.Id.ToString(), Status = true, StatusCode = "200", Message = GlobalMessages.SuccessMessage });
-        }
-        #endregion
         
         #region ForReact
         [HttpGet("GetReceiverStatuses/{userId}")]
@@ -125,7 +89,7 @@ namespace ITValet.Controllers
         public async Task<IActionResult> PostAddMessages(PostAddMessage postAddMessage)
         {
             var getLoggedInUser = await userRepo.GetUserById(Convert.ToInt32(postAddMessage.SenderId));
-            var getReceiver = await userRepo.GetUserById(Convert.ToInt32(postAddMessage.ReceiverId));
+            var receiver = await userRepo.GetUserById(Convert.ToInt32(postAddMessage.ReceiverId));
             var isWayUserProfile = postAddMessage.Way == "ViewUserProfile";
             var messageList = new List<Message>();
             var message = new Message();
@@ -134,7 +98,7 @@ namespace ITValet.Controllers
             {
                 messageList = (List<Message>)await messagesRepo.GetMessageBySenderIdAndRecieverId(
                     getLoggedInUser!.Id,
-                    Convert.ToInt32(getReceiver!.Id)
+                    Convert.ToInt32(receiver!.Id)
                 );
 
                 if (messageList?.Count > 0)
@@ -188,13 +152,13 @@ namespace ITValet.Controllers
                     var offer = new OfferDetail();
 
                     var pricePerHour = (getLoggedInUser?.Role == (int)EnumRoles.Valet ? getLoggedInUser?.PricePerHour :
-                   (getReceiver?.Role == (int)EnumRoles.Valet ? getReceiver?.PricePerHour : 0));
+                   (receiver?.Role == (int)EnumRoles.Valet ? receiver?.PricePerHour : 0));
 
 
                     if (!string.IsNullOrEmpty(postAddMessage.OfferTitle))
                         offer = await CreateOffer(postAddMessage, message, getLoggedInUser!, (decimal)pricePerHour!);
                     
-                    var model = await NotifyOffer(offer, message, getLoggedInUser!, getReceiver!);
+                    var model = await NotifyOffer(offer, message, getLoggedInUser!, receiver!);
                     var data = new
                     {
                         model,
@@ -303,8 +267,8 @@ namespace ITValet.Controllers
                     var getLoggedInUser = await userRepo.GetUserById(decrypt);
 
                     var decryptUserChat = 0;
-                    var Sender = new Models.User();
-                    var Receiver = new Models.User();
+                    var Sender = new User();
+                    var Receiver = new User();
                     if (!string.IsNullOrEmpty(GetUserChatOnTop) && GetUserChatOnTop != "undefined" && GetUserChatOnTop != "null") 
                     {
                         decryptUserChat = StringCipher.DecryptionId(GetUserChatOnTop);
@@ -454,7 +418,7 @@ namespace ITValet.Controllers
                 var loggedInUser = await userRepo.GetUserById(decryptUserId);
                 var order = await orderRepo.GetOrderById(decryptId);
                 var messages = await messagesRepo.GetMessageListByOrdrId(order.Id);
-                var userCache = new Dictionary<int, Models.User>(); // Cache users to reduce redundant calls
+                var userCache = new Dictionary<int, User>(); // Cache users to reduce redundant calls
                 var messagesList = new List<ViewModelMessageChatBox>();
 
                 foreach (var message in messages)
@@ -463,7 +427,12 @@ namespace ITValet.Controllers
                     messagesList.Add(viewModelMessage);
                 }
 
-                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", GlobalMessages.RecordFound, messagesList));
+                var groupedMessages = messagesList
+                    .GroupBy(m => Convert.ToDateTime(m.MessageTime).Date) // Grouping by date
+                    .OrderBy(g => g.Key) // Sorting latest date first
+                    .ToDictionary(g => g.Key.ToString("yyyy-MM-dd"), g => g.ToList());
+
+                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", GlobalMessages.RecordFound, groupedMessages));
             }
             catch (Exception ex)
             {
@@ -480,8 +449,8 @@ namespace ITValet.Controllers
                 var decrypt = StringCipher.DecryptionId(postAddMessage.SenderId!);
                 var decryptRecieverId = StringCipher.DecryptionId(postAddMessage.ReceiverId!);
                 var decryptOrderId = StringCipher.DecryptionId(postAddMessage.OrderId!);
-                var getSender = await userRepo.GetUserById(decrypt);
-                var getReciever = await userRepo.GetUserById(decryptRecieverId);
+                var sender= await userRepo.GetUserById(decrypt);
+                var receiver = await userRepo.GetUserById(decryptRecieverId);
                 var getOrder = await orderRepo.GetOrderById(decryptOrderId);
 
                 postAddMessage.MessageDescription = HttpUtility.UrlDecode(postAddMessage.MessageDescription);
@@ -496,17 +465,17 @@ namespace ITValet.Controllers
 
                 if (message.Id != 0)
                 {
-                    var orderMessage = MapOrderMessage(message, getSender!, postAddMessage.Way);
+                    var orderMessage = MapOrderMessage(message, sender!, postAddMessage.Way);
                     await AddNotification(message, "Message Received", "You just received a message for your order.",
                         $"order-details/{HttpUtility.UrlDecode(postAddMessage.OrderId!)}", postAddMessage.Way!);
                     
-                    var userCache = new Dictionary<int, Models.User>();
-                    var viewModelMessage = await CreateViewModelMessage(message, getSender!, userCache, getOrder);
+                    var userCache = new Dictionary<int, User>();
+                    var viewModelMessage = await CreateViewModelMessage(message, sender!, userCache, getOrder);
                     viewModelMessage.SenderId = decrypt.ToString();
                     viewModelMessage.ReceiverId = decryptRecieverId.ToString();
 
-                    viewModelMessage = await SetReceiverTime(viewModelMessage, message, getReciever!, "Order");
-                    viewModelMessage = await SetSenderTime(viewModelMessage, message, getSender!);
+                    viewModelMessage = await SetReceiverTime(viewModelMessage, message, receiver!, "Order");
+                    viewModelMessage = await SetSenderTime(viewModelMessage, message, sender!);
 
                     return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "", viewModelMessage));
                 }
@@ -528,8 +497,8 @@ namespace ITValet.Controllers
                 var decrypt = StringCipher.DecryptionId(postAddMessage.SenderId!);
                 var decryptRecieverId = StringCipher.DecryptionId(postAddMessage.ReceiverId!);
 
-                var getSender = await userRepo.GetUserById(decrypt);
-                var getReciever = await userRepo.GetUserById(decryptRecieverId);
+                var sender= await userRepo.GetUserById(decrypt);
+                var receiver = await userRepo.GetUserById(decryptRecieverId);
                 var getOrder = await orderRepo.GetOrderById(decryptOrderId);
                 postAddMessage.Way = "deliver";
                 postAddMessage.MessageDescription = HttpUtility.UrlDecode(postAddMessage.MessageDescription);
@@ -543,21 +512,19 @@ namespace ITValet.Controllers
 
                 if (message.Id != 0)
                 {
-                    var orderMessage = MapOrderMessage(message, getSender!, postAddMessage.Way);
+                    var orderMessage = MapOrderMessage(message, sender!, postAddMessage.Way);
                     await AddNotification(message, "Message Received", "Your order has been deleiver, look at it",
                         $"order-details/{HttpUtility.UrlDecode(orderId!)}", postAddMessage.Way!);
 
-                    var userCache = new Dictionary<int, Models.User>();
-                    var viewModelMessage = await CreateViewModelMessage(message, getSender!, userCache, getOrder);
+                    var userCache = new Dictionary<int, User>();
+                    var viewModelMessage = await CreateViewModelMessage(message, sender!, userCache, getOrder);
                     viewModelMessage.SenderId = decrypt.ToString();
                     viewModelMessage.ReceiverId = decryptRecieverId.ToString();
                     viewModelMessage.IsDelivered = getOrder.IsDelivered.ToString();
 
-                    await _notificationHubSocket.Clients.All.SendAsync("SendOrderMessage",
-                            viewModelMessage,
-                            message.SenderId,
-                            message.ReceiverId
-                        );
+                    // Send a notification to connected clients via SignalR
+                    viewModelMessage = await SetReceiverTime(viewModelMessage, message, receiver!, "Order");
+                    viewModelMessage = await SetSenderTime(viewModelMessage, message, sender!);
 
                     return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "", viewModelMessage));
                 }
@@ -627,7 +594,7 @@ namespace ITValet.Controllers
                 getMessage.MessageDescription,
                 $"order-details/{HttpUtility.UrlDecode(orderId)}", "");
 
-            var userCache = new Dictionary<int, Models.User>();
+            var userCache = new Dictionary<int, User>();
             var viewModelMessage = await CreateViewModelMessage(message, sender!, userCache, order!);
             viewModelMessage.SenderId = decryptSenderId.ToString();
             viewModelMessage.ReceiverId = decryptReceiverId.ToString();
@@ -635,12 +602,8 @@ namespace ITValet.Controllers
             viewModelMessage.OrderReasonEncId = StringCipher.EncryptId(decryptOrderReasonId);
 
             // Send a notification to connected clients via SignalR
-            await _notificationHubSocket.Clients.All.SendAsync(
-                "SendOrderMessage",
-                viewModelMessage,
-                message.SenderId,
-                message.ReceiverId
-            );
+            viewModelMessage = await SetReceiverTime(viewModelMessage, message, receiver!, "Order");
+            viewModelMessage = await SetSenderTime(viewModelMessage, message, sender!);
 
             // Return success response
             return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "", viewModelMessage));
@@ -699,16 +662,18 @@ namespace ITValet.Controllers
                 MessageDescription = "Extention Has Not been Approved ",
                 OrderReasonId = decryptOrderReasonId
             };
-           
+            var notificationMessage = "";
             if (obj.OrderStatus == "Accept")
             {
                 getOrderReason!.IsActive = 2; //Accept Case
                 getMessage.MessageDescription = "Extention Date Has been Approved ";
+                notificationMessage = "The date you have requested for extention has been accepted";
                 await PostExtendOrderDate(decryptOrderId, datetimes.ToString());
             }
             else
             {
                 getOrderReason!.IsActive = 3; //Reject Case
+                notificationMessage = "The date you have requested for extention has been rejected";
             }
 
             getOrderReason!.UpdatedAt = GeneralPurpose.DateTimeNow();
@@ -720,13 +685,13 @@ namespace ITValet.Controllers
             await AddNotification(
                 message,
                 "Order Extention Date Accepted",
-                "The date you have requested for extention has been accepted",
+                notificationMessage,
                 $"order-details/{HttpUtility.UrlDecode(orderId)}",
                 ""
             );
 
             // Prepare data for the real-time notification
-            var userCache = new Dictionary<int, Models.User>();
+            var userCache = new Dictionary<int, User>();
             var viewModelMessage = await CreateViewModelMessage(message, sender!, userCache, order!);
             viewModelMessage.SenderId = decryptSenderId.ToString();
             viewModelMessage.ReceiverId = decryptReceiverId.ToString();
@@ -734,12 +699,8 @@ namespace ITValet.Controllers
             viewModelMessage.OrderReasonEncId = StringCipher.EncryptId(decryptOrderReasonId);
 
             // Send a notification to connected clients via SignalR
-            await _notificationHubSocket.Clients.All.SendAsync(
-                "SendOrderMessage",
-                viewModelMessage,
-                message.SenderId,
-                message.ReceiverId
-            );
+            viewModelMessage = await SetReceiverTime(viewModelMessage, message, receiver!, "Order");
+            viewModelMessage = await SetSenderTime(viewModelMessage, message, sender!);
 
             // Return success response
             return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "", viewModelMessage));
@@ -825,8 +786,8 @@ namespace ITValet.Controllers
             var decryptSender = StringCipher.DecryptionId(SenderId);
             var decryptOrder = StringCipher.DecryptionId(OrderId);
 
-            var getSender = await userRepo.GetUserById(decryptSender);
-            var getReceiver = await userRepo.GetUserById(decryptReceiver);
+            var sender= await userRepo.GetUserById(decryptSender);
+            var receiver = await userRepo.GetUserById(decryptReceiver);
             var getOrder = await orderRepo.GetOrderById(decryptOrder);
 
             var getToken = await GetLoginWithAccountId(_zoomVariables.AccountId!, _zoomVariables.ClientId!, _zoomVariables.ClientSecret!);
@@ -861,7 +822,7 @@ namespace ITValet.Controllers
                     
                     var message = MapMessageForZoom(generateURl, decryptSender, decryptReceiver, decryptOrder);
                     var getMessage = await PostAddOrderReasonMessage(message);
-                    var receiveOrderMessageDto = MapOrderMessage(message, getSender!);
+                    var receiveOrderMessageDto = MapOrderMessage(message, sender!);
                     receiveOrderMessageDto.message = "Click the link to Open Zoom Meeting";
                     receiveOrderMessageDto.reasonType = "Zoom";
                     receiveOrderMessageDto.StartUrl = zoomMeetingResponse.start_url;
@@ -873,17 +834,15 @@ namespace ITValet.Controllers
                     await AddNotification(message, "Zoom Meeting Created", "You created new zoom meeting",
                         $"order-details/{HttpUtility.UrlDecode(OrderId)}", "Zoom Meeting Created");
 
-                    var userCache = new Dictionary<int, Models.User>();
-                    var viewModelMessage = await CreateViewModelMessage(message, getSender!, userCache, getOrder!);
+                    var userCache = new Dictionary<int, User>();
+                    var viewModelMessage = await CreateViewModelMessage(message, sender!, userCache, getOrder!);
                     viewModelMessage.SenderId = decryptSender.ToString();
                     viewModelMessage.ReceiverId = decryptReceiver.ToString();
                     viewModelMessage.JoinUrl = receiveOrderMessageDto.JoinUrl;
 
-                    await _notificationHubSocket.Clients.All.SendAsync("SendOrderMessage",
-                            viewModelMessage,
-                            message.SenderId,
-                            message.ReceiverId
-                        );
+                    // Send a notification to connected clients via SignalR
+                    viewModelMessage = await SetReceiverTime(viewModelMessage, message, receiver!, "Order");
+                    viewModelMessage = await SetSenderTime(viewModelMessage, message, sender!);
 
                     return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "", viewModelMessage));
                 }
@@ -1034,27 +993,32 @@ namespace ITValet.Controllers
         {
             var decryptedOrderId = StringCipher.DecryptionId(orderId);
             var order = await orderRepo.GetOrderById(decryptedOrderId);
+
+            if(order == null)
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.RecordNotFound));
+
             UpdateOrderDetails(order!);
 
             if (await orderRepo.UpdateOrder(order!))
             {
                 await ProcessUserRating(order!, orderDeliverDto);
-                var valet = await userRepo.GetUserById(order.ValetId.Value);
+                var valet = await userRepo.GetUserById(order!.ValetId!.Value);
                 if (valet != null)
                 {
-                    var transferSuccess = await userRepo.TransferFunds(valet.StripeId, (decimal)order.OrderPrice);
+                    var transferSuccess = await userRepo.TransferFunds(valet.StripeId!, (decimal)order.OrderPrice!);
                     if (transferSuccess)
                     {
                         await orderRepo.ChangeStripePaymentStatus(decryptedOrderId, StripePaymentStatus.SentToValet);
-                        return Ok(new ResponseDto() { Status = true, StatusCode = "200", Message = "Order Is Accepted Successfully" });
+                        return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Order Is Accepted Successfully"));
                     }
                     else
                     {
                         await orderRepo.ChangeStripePaymentStatus(decryptedOrderId, StripePaymentStatus.PaymentFailedToSend);
+                        return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Order Is Accepted But there is issue in payment. Contact Support to resolve this"));
                     }
                 }
             }
-            return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
+            return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.SystemFailureMessage));
         }
 
         private async Task ProcessUserRating(Order order, OrderDeliverViewModel orderDeliverDto)
@@ -1145,8 +1109,8 @@ namespace ITValet.Controllers
             var decryptRecieverId = StringCipher.DecryptionId(postAddMessage.ReceiverId!);
             var decryptOrderId = StringCipher.DecryptionId(postAddMessage.OrderId!);
 
-            var getSender = await userRepo.GetUserById(decrypt);
-            var getReciever = await userRepo.GetUserById(decryptRecieverId);
+            var sender= await userRepo.GetUserById(decrypt);
+            var receiver = await userRepo.GetUserById(decryptRecieverId);
             var getOrder = await orderRepo.GetOrderById(decryptOrderId);
 
             postAddMessage.MessageDescription = HttpUtility.UrlDecode(postAddMessage.MessageDescription);
@@ -1168,20 +1132,18 @@ namespace ITValet.Controllers
 
             if (message.Id != 0)
             {
-                var orderMessage = MapOrderMessage(message, getSender!, postAddMessage.Way);
+                var orderMessage = MapOrderMessage(message, sender!, postAddMessage.Way);
                 await AddNotification(message, "Message Received", "You have just received a revision for your order.",
                     $"order-details/{HttpUtility.UrlDecode(postAddMessage.OrderId!)}", postAddMessage.Way!);
 
-                var userCache = new Dictionary<int, Models.User>();
-                var viewModelMessage = await CreateViewModelMessage(message, getSender!, userCache, getOrder);
+                var userCache = new Dictionary<int, User>();
+                var viewModelMessage = await CreateViewModelMessage(message, sender!, userCache, getOrder);
                 viewModelMessage.SenderId = decrypt.ToString();
                 viewModelMessage.ReceiverId = decryptRecieverId.ToString();
 
-                await _notificationHubSocket.Clients.All.SendAsync("SendOrderMessage",
-                        viewModelMessage,
-                        message.SenderId,
-                        message.ReceiverId
-                    );
+                // Send a notification to connected clients via SignalR
+                viewModelMessage = await SetReceiverTime(viewModelMessage, message, receiver!, "Order");
+                viewModelMessage = await SetSenderTime(viewModelMessage, message, sender!);
 
                 return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "", viewModelMessage));
             }
@@ -1224,7 +1186,7 @@ namespace ITValet.Controllers
             List<UserRatingListDto> userRatingDtoListuserRatingDtoList = new List<UserRatingListDto>();
             foreach (var userRatingObj in userRating)
             {
-                Models.User CustomerName = await userRepo.GetUserById((int)userRatingObj.CustomerId);
+                User CustomerName = await userRepo.GetUserById((int)userRatingObj.CustomerId);
                 UserRatingListDto obj = new UserRatingListDto()
                 {
                     Stars = userRatingObj.Stars,
@@ -1701,11 +1663,11 @@ namespace ITValet.Controllers
                 var decryptOrderId = StringCipher.DecryptionId(orderId!);
 
                 // Fetch necessary entities
-                var sender = await userRepo.GetUserById(decryptSenderId);
+                var sender= await userRepo.GetUserById(decryptSenderId);
                 var receiver = await userRepo.GetUserById(decryptReceiverId);
                 var order = await orderRepo.GetOrderById(decryptOrderId);
 
-                if (sender == null || receiver == null || order == null)
+                if (sender== null || receiver == null || order == null)
                     return NotFound(GeneralPurpose.GenerateResponseCode(false, "404", "Invalid sender, receiver, or order ID."));
 
                 // Prepare the order reason entity
@@ -1724,20 +1686,17 @@ namespace ITValet.Controllers
                 );
 
                 // Prepare data for the real-time notification
-                var userCache = new Dictionary<int, Models.User>();
+                var userCache = new Dictionary<int, User>();
                 var viewModelMessage = await CreateViewModelMessage(message, sender, userCache, order);
                 viewModelMessage.SenderId = decryptSenderId.ToString();
                 viewModelMessage.ReceiverId = decryptReceiverId.ToString();
                 viewModelMessage.OrderReasonId = orderReason.Id.ToString();
                 viewModelMessage.OrderReasonEncId = StringCipher.EncryptId(orderReason.Id);
 
+
                 // Send a notification to connected clients via SignalR
-                await _notificationHubSocket.Clients.All.SendAsync(
-                    "SendOrderMessage",
-                    viewModelMessage,
-                    message.SenderId,
-                    message.ReceiverId
-                );
+                viewModelMessage = await SetReceiverTime(viewModelMessage, message, receiver!, "Order");
+                viewModelMessage = await SetSenderTime(viewModelMessage, message, sender!);
 
                 // Return success response
                 return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "", viewModelMessage));

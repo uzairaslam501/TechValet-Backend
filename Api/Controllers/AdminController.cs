@@ -242,9 +242,9 @@ namespace ITValet.Controllers
 
             var obj = _mapper.Map<User>(user);
 
-            obj = GeneralPurpose.SetRoles(user.Role, obj);
-            obj.Password = StringCipher.Encrypt(user.Password);
-            obj.IsActive = (int)EnumActiveStatus.Active;
+            obj = GeneralPurpose.SetRoles(user.Role!, obj);
+            obj.Password = StringCipher.Encrypt(user.Password!);
+            obj.IsActive = obj.Role == (int)EnumRoles.Valet ? (int)EnumActiveStatus.AccountCompletion : (int)EnumActiveStatus.Active;
             obj.CreatedAt = GeneralPurpose.DateTimeNow();
 
             // Add user
