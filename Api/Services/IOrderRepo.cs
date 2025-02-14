@@ -696,7 +696,7 @@ namespace ITValet.Services
         {
             try
             {
-                var decrypt = DecryptionId(userId);
+                var decrypt = StringCipher.DecryptionId(userId);
                 var currentDate = DateTime.Now.Date;
                 List<Order> orders = await FetchOrdersBasedOnRole(decrypt, role, filterDate);
                 var emptyList = new List<OrderEventsViewModal>();
@@ -710,8 +710,8 @@ namespace ITValet.Services
             }
             catch (Exception ex)
             {
-                // Log the exception if necessary
-                return null;
+                GeneralPurpose.CreateLogger(projectVariables, ex);
+                return GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.SystemFailureMessage);
             }
         }
 
@@ -778,34 +778,34 @@ namespace ITValet.Services
             return orderEvents;
         }
 
-
         public async Task<ResponseDto> GetOrderSlotsRecord(string userId, string? date = "")
         {
             try
             {
-                var decrypt = DecryptionId(userId);
+                var decrypt = StringCipher.DecryptionId(userId);
                 var currentDate = Convert.ToDateTime(date);
                 var orders = await _context.Order
                     .Where(x => x.IsActive == 1 && x.ValetId == decrypt)
                     .ToListAsync();
 
-                var emptyList = new List<OrderEventsViewModal>();
-                orders = orders.Where(x => Convert.ToDateTime(x.StartDateTime).Date == currentDate).Select(u => new Order
+                var emptyList = new List<DateTimeViewModel>();
+                orders = orders.Where(x => Convert.ToDateTime(x.StartDateTime).Date == currentDate ||
+                Convert.ToDateTime(x.EndDateTime).Date == currentDate).Select(u => new Order
                 {
                     StartDateTime = u.StartDateTime,
                     EndDateTime = u.EndDateTime
                 }).ToList();
                 if (orders == null || !orders.Any())
-                    return GeneralPurpose.GenerateResponseCode(true, "200", GlobalMessages.RecordFound, emptyList);
+                    return GeneralPurpose.GenerateResponseCode(true, "200", GlobalMessages.RecordNotFound, emptyList);
 
-                var orderSlots = new List<OrderEventsViewModal>();
+                var orderSlots = new List<DateTimeViewModel>();
 
                 foreach (var item in orders)
                 {
-                    var abc = new OrderEventsViewModal
+                    var abc = new DateTimeViewModel
                     {
-                        StartDateTime = item.StartDateTime,  // Fix: Use item instead of "order"
-                        EndDateTime = item.EndDateTime
+                        StartDateTime = item.StartDateTime!.Value.ToString("hh:mm tt"),  // Fix: Use item instead of "order"
+                        EndDateTime = item.EndDateTime!.Value.ToString("hh:mm tt")
                     };
 
                     orderSlots.Add(abc);
@@ -815,18 +815,9 @@ namespace ITValet.Services
             }
             catch (Exception ex)
             {
-                // Log the exception if necessary
-                return null;
+                GeneralPurpose.CreateLogger(projectVariables, ex);
+                return GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.SystemFailureMessage);
             }
-        }
-        #endregion
-
-        #region helpers
-        private int DecryptionId(string userId)
-        {
-            userId = GeneralPurpose.ConversionEncryptedId(userId);
-            var decrypt = StringCipher.DecryptId(userId);
-            return decrypt;
         }
         #endregion
     }

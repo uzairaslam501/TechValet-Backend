@@ -1002,16 +1002,15 @@ namespace ITValet.Controllers
 
         #region Orders
         [HttpGet("GetOrderById/{orderId}")]
-        public async Task<IActionResult> GetOrderById(string? orderId = "")
+        public async Task<IActionResult> GetOrderById(string orderId, string userId)
         {
-            UserClaims? getUserFromToken = jwtUtils.ValidateToken(Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last());
+            var decryptUserId = StringCipher.DecryptionId(userId);
             if (string.IsNullOrEmpty(orderId))
-            {
-                return null;
-            }
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.RecordNotFound));
+
             var getOrder = await orderRepo.GetOrderById(StringCipher.DecryptId(orderId));
-            var getCustomer = await userRepo.GetUserById((int)getOrder.CustomerId);
-            var getValet = await userRepo.GetUserById((int)getOrder.ValetId);
+            var getCustomer = await userRepo.GetUserById((int)getOrder?.CustomerId!);
+            var getValet = await userRepo.GetUserById((int)getOrder?.ValetId!);
 
             List<OrderDtoList> udto = new List<OrderDtoList>();
             var order = new OrderDtoList
@@ -1029,21 +1028,18 @@ namespace ITValet.Controllers
                 PackageBuyFrom = getOrder.PackageBuyFrom,
                 CapturedId = getOrder.CapturedId,
                 ValetId = getOrder.ValetId.ToString(),
-                CreatedAt = Convert.ToDateTime(GeneralPurpose.regionChanged(Convert.ToDateTime(getOrder.CreatedAt), getUserFromToken.Timezone)).ToString("MM-dd-yyyy"),
                 Rating = await ratingRepo.GetOrderRatingByOrderId(getOrder.Id),
                 CustomerEncId = StringCipher.EncryptId((int)getOrder.CustomerId),
                 ValetEncId = StringCipher.EncryptId((int)getOrder.ValetId),
             };
             
 
-            if (getValet.Status != null)
-            {
+            if (getValet?.Status != null)
                 order.ValetStatus = getValet.Status.ToString();
-            }
-            if (getValet.Status != null)
-            {
+            
+            if (getCustomer?.Status != null)
                 order.CustomerStatus = getCustomer.Status.ToString();
-            }
+            
             var getOrderReason = await orderReasonRepo.GetOrderReasonByOrderId(getOrder.Id);
             if (getOrderReason != null)
             {
@@ -1052,13 +1048,15 @@ namespace ITValet.Controllers
                 order.OrderReasonType = getOrderReason.ReasonType.ToString();
                 order.OrderReasonIsActive = getOrderReason.IsActive.ToString();
             }
-            if (getOrder.CustomerId != Convert.ToInt32(getUserFromToken.Id))
+            if (getOrder.CustomerId != decryptUserId)
             {
-                order.UserName = getCustomer.FirstName + " " + getCustomer.LastName;
+                order.UserName = getCustomer?.FirstName + " " + getCustomer?.LastName;
+                order.CreatedAt = Convert.ToDateTime(GeneralPurpose.regionChanged(Convert.ToDateTime(getOrder.CreatedAt), getCustomer?.Timezone!)).ToString("MM-dd-yyyy");
             }
             else
             {
-                order.UserName = getValet.FirstName + " " + getValet.LastName;
+                order.UserName = getValet?.FirstName + " " + getValet?.LastName;
+                order.CreatedAt = Convert.ToDateTime(GeneralPurpose.regionChanged(Convert.ToDateTime(getOrder.CreatedAt), getValet?.Timezone!)).ToString("MM-dd-yyyy");
             }
             return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "", order));
         }
@@ -1101,7 +1099,7 @@ namespace ITValet.Controllers
         // Fetch Stripe earnings
         private StripeEarnings GetStripeEarnings(User user)
         {
-            if (user.Role != 4 || string.IsNullOrEmpty(user.StripeId))
+            if (user.Role != (int)EnumRoles.Valet || string.IsNullOrEmpty(user.StripeId))
                 return new StripeEarnings { BalancePending = 0, BalanceAvailable = 0 };
 
             var requestOptions = new RequestOptions { StripeAccount = user.StripeId };
