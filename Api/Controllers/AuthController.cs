@@ -506,7 +506,7 @@ namespace ITValet.Controllers
         #region Helpers
         private async Task<int> HandleValetAccountLogic(User user)
         {
-            var isCompleteValetAccount = await GeneralPurpose.CheckValuesNotEmpty(user, userSkillRepo);
+            var isCompleteValetAccount = await GeneralPurpose.CheckValuesNotEmpty(user, _userSkillRepo);
             return isCompleteValetAccount;
         }
 

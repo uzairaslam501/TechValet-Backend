@@ -70,13 +70,11 @@ namespace ITValet.Controllers
         {
             try
             {
-                var decrypt = StringCipher.DecryptionId(userId);
-                var user = await userRepo.GetUserById(decrypt);
+                var user = await userRepo.GetUserRecordById(userId);
 
                 if (user == null)
-                {
                     return NotFound(new ResponseDto() { Status = false, StatusCode = "404", Message = "No record found." });
-                }
+
                 return Ok(new ResponseDto() { Status = true, StatusCode = "200", Data= user.Status });
             }
             catch (Exception ex)
