@@ -351,28 +351,12 @@ namespace ITValet.Controllers
 
         [CustomAuthorize(new EnumRoles[] { EnumRoles.Admin, EnumRoles.Employee })]
         [HttpGet("GetUserListAsync")]
-        public async Task<IActionResult> GetUserListAsync(int Role, int start, int length, string? pendingRec = "", string? Name = "", 
-            string? Email = "", string? Contact = "", string? Country = "", string? State = "", string? City = "", string? IsActive = "",  
-            string? sortColumn = "", string? sortDirection = "asc", string? searchValue = "")
+        public async Task<IActionResult> GetUserListAsync(int Role, int start, int length, string? sortColumn = "",
+            string? sortDirection = "asc", string? searchValue = "")
         {
             try
             {
-                var ulist = new List<User>();
-
-                if (!string.IsNullOrEmpty(pendingRec))
-                {
-                    ulist = (List<User>)await _userRepo.GetAccountOnHold(Role);
-                }
-                else
-                {
-                    ulist = (List<User>)await _userRepo.GetUserList(Role);
-                }
-
-                if(!string.IsNullOrEmpty(Name) || !string.IsNullOrEmpty(Email) || !string.IsNullOrEmpty(Contact) || !string.IsNullOrEmpty(Country) || 
-                    !string.IsNullOrEmpty(State) || !string.IsNullOrEmpty(City) || !string.IsNullOrEmpty(IsActive))
-                {
-                    ulist = MappingHelper.FilterUsersList(ulist, Name, Email, Contact, Country, State, City , IsActive);
-                }
+                var ulist = (List<User>)await _userRepo.GetUserList(Role);
                             
                 // Initialize BaseService
                 var baseService = new DatatableHelper<User>();

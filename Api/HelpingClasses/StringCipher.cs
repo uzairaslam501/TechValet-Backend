@@ -144,6 +144,55 @@ namespace ITValet.HelpingClasses
             }
         }
 
+
+        #region Password Hashing
+
+        public static string HashString(string plainText)
+        {
+            MD5 md5 = MD5.Create();
+            byte[] bytes = Encoding.Default.GetBytes(plainText);
+            byte[] encoded = md5.ComputeHash(bytes);
+
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < encoded.Length; i++)
+                sb.Append(encoded[i].ToString("x2"));
+            return sb.ToString();
+        }
+
+        public static bool ComparePassword(string password, string oldPassword)
+        {
+            if (!string.IsNullOrEmpty(password) &&
+                    !StringCipher.CompareHash(password, oldPassword))
+            {
+                return false;
+            }
+            return true;
+        }
+
+        private static bool CompareHash(string hashText, string plainText)
+        {
+            byte[] hashBytes = Encoding.ASCII.GetBytes(hashText);
+            byte[] textBytes = Encoding.ASCII.GetBytes(HashString(plainText));
+
+            bool bEqual = false;
+            if (hashBytes.Length == textBytes.Length)
+            {
+                int i = 0;
+                while ((i < hashBytes.Length) && (hashBytes[i] == textBytes[i]))
+                {
+                    i += 1;
+                }
+                if (i == hashBytes.Length)
+                {
+                    bEqual = true;
+                }
+            }
+
+            return bEqual;
+        }
+
+        #endregion
+
         public static int DecryptionId(string userId)
         {
             userId = GeneralPurpose.ConversionEncryptedId(userId);

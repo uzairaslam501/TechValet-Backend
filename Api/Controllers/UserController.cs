@@ -73,99 +73,6 @@ namespace ITValet.Controllers
         }
 
         #region User
-        [HttpPut("PostUpdateUser")]
-        public async Task<IActionResult> PostUpdateUser(PostUpdateUserDto user)
-        {
-            try
-            {
-                if (!string.IsNullOrEmpty(user.UserEncId))
-                {
-                    user.Id = StringCipher.DecryptId(user.UserEncId);
-                }
-
-                User? obj = await userRepo.GetUserById((int)user.Id);
-
-                if (obj == null)
-                {
-                    return Ok(new ResponseDto() { Status = false, StatusCode = "404", Message = "No record found." });
-                }
-
-                obj.FirstName = !string.IsNullOrEmpty(user.FirstName) ? user.FirstName : obj.FirstName;
-                obj.LastName = !string.IsNullOrEmpty(user.LastName) ? user.LastName : obj.LastName;
-                obj.Contact = !string.IsNullOrEmpty(user.Contact) ? user.Contact : obj.Contact;
-                obj.BirthDate = !string.IsNullOrEmpty(user.BirthDate) ? Convert.ToDateTime(user.BirthDate) : obj.BirthDate;
-                obj.Country = !string.IsNullOrEmpty(user.Country) ? user.Country : obj.Country;
-                obj.State = !string.IsNullOrEmpty(user.State) ? user.State : obj.State;
-                obj.City = !string.IsNullOrEmpty(user.City) ? user.City : obj.City;
-                obj.ZipCode = !string.IsNullOrEmpty(user.ZipCode) ? user.ZipCode : obj.ZipCode;
-                obj.Timezone = !string.IsNullOrEmpty(user.Timezone) ? user.Timezone : obj.Timezone;
-                obj.Status = !string.IsNullOrEmpty(user.Status) ? Convert.ToInt32(user.Status) : obj.Status;
-                obj.Gender = !string.IsNullOrEmpty(user.Gender) ? user.Gender : obj.Gender;
-                obj.PricePerHour = !string.IsNullOrEmpty(user.PricePerHour) ? Convert.ToDecimal(user.PricePerHour) : obj.PricePerHour;
-                obj.Language = !string.IsNullOrEmpty(user.Language) ? user.Language : obj.Language;
-                obj.Description = !string.IsNullOrEmpty(user.Description) ? user.Description : obj.Description;
-
-                if (!await userRepo.UpdateUserWithoutSavingInDatabase(obj))
-                {
-                    return Ok(new ResponseDto() { Data = obj, Status = false, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
-                }
-                if (!await userRepo.SaveChanges())
-                {
-                    return Ok(new ResponseDto() { Data = obj, Status = false, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
-                }
-
-                int IsCompleteValetAccount = 1;
-                if (obj.Role == 4)
-                {
-                    IsCompleteValetAccount = await GeneralPurpose.CheckValuesNotEmpty(obj, userSkillRepo);
-                    if(IsCompleteValetAccount == 1)
-                    {
-                        if (await GetUserSlotByUserId((int)user.Id) <= 0)
-                        {
-                            await userAvailableSlotRepo.CreateEntriesForCurrentMonth(user.Id);
-                        }
-                    }
-                }
-
-                UserListDto UserDto = new UserListDto()
-                {
-                    Id = obj.Id,
-                    UserEncId = StringCipher.EncryptId(obj.Id),
-                    FirstName = obj.FirstName,
-                    LastName = obj.LastName,
-                    UserName = obj.UserName,
-                    Contact = obj.Contact,
-                    Email = obj.Email,
-                    Password = StringCipher.Decrypt(obj.Password),
-                    Gender = obj.Gender,
-                    ProfilePicture = obj.ProfilePicture != null ? projectVariables.BaseUrl + obj.ProfilePicture : null,
-                    Country = obj.Country,
-                    State = obj.State,
-                    City = obj.City,
-                    ZipCode = obj.ZipCode,
-                    Timezone = obj.Timezone,
-                    Availability = obj.Availability.ToString(),
-                    Status = obj.Status.ToString(),
-                    BirthDate = user.BirthDate.ToString(),
-                    Role = Enum.GetName(typeof(EnumRoles), obj.Role),
-                    IsActive = Enum.GetName(typeof(EnumActiveStatus), obj.IsActive),
-                    Language = obj.Language,
-                    Description = obj.Description,
-                    StripeId = obj.StripeId,
-                    IsVerify_StripeAccount = obj.IsVerify_StripeAccount,
-                    IsBankAccountAdded = obj.IsBankAccountAdded,
-                    IsCompleteValetAccount = IsCompleteValetAccount.ToString()
-                };
-
-                //obj.IsCompleteValetAccount
-                return Ok(new ResponseDto() { Data = UserDto, Status = true, StatusCode = "200", Message = GlobalMessages.UpdateMessage });
-            }
-            catch (Exception ex)
-            {
-                await MailSender.SendErrorMessage(ex.Message);
-                return Ok(new ResponseDto() { Status = true, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
-            }
-        }
 
         [HttpGet("GetUserListAsync")]
         public async Task<IActionResult> GetUserListAsync()
@@ -253,31 +160,6 @@ namespace ITValet.Controllers
                         UserRatingCount = userRatings?.Count.ToString() ?? "0"
                     });
                 }
-            }
-            else
-            {
-                // Fallback: If no users match skills, fetch general user list
-                var userResponse = await GetUserListAsync();
-
-                if (userResponse is OkObjectResult responseResult && 
-                    responseResult.Value is ResponseDto responseDto &&
-                    responseDto.Status == true)
-                {
-                    return Ok(new ResponseDto
-                    {
-                        Status = true,
-                        StatusCode = "200",
-                        Message = "users found.",
-                        Data = responseDto.Data
-                    });
-                }
-
-                return NotFound(new ResponseDto
-                {
-                    Status = false,
-                    StatusCode = "404",
-                    Message = "No users found."
-                });
             }
 
             return Ok(new ResponseDto {
@@ -1275,34 +1157,6 @@ namespace ITValet.Controllers
             {
                 return Ok(new ResponseDto { Status = true, StatusCode = "200", Data = 0 });
             }
-        }
-
-        #endregion
-        
-        #region CalenderEvent 
-
-        [HttpGet("GetBookedAvailabilitySlot")]
-        public async Task<IActionResult> GetBookedAvailabilitySlot (string Id)
-        {
-            UserClaims? getUsetFromToken = jwtUtils.ValidateToken(Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last());
-            int valetId = StringCipher.DecryptId(Id);
-            var getValet = await userRepo.GetUserById(valetId);
-            var availableSlots = await userRepo.GetValetAvailableSlots(valetId);
-            if (availableSlots != null)
-            {
-                if (getUsetFromToken.Role != "Valet")
-                {
-                    foreach (var item in availableSlots)
-                    {
-                        item.StartDateTime = DateTimeHelper.GetUtcTimeFromZoned(item.StartDateTime, getValet?.Timezone);
-                        item.EndDateTime = DateTimeHelper.GetUtcTimeFromZoned(item.EndDateTime, getValet?.Timezone);
-                        item.StartDateTime =  DateTimeHelper.GetZonedDateTimeFromUtc(item.StartDateTime, getUsetFromToken?.Timezone);
-                        item.EndDateTime = DateTimeHelper.GetZonedDateTimeFromUtc(item.EndDateTime, getUsetFromToken?.Timezone);
-                    }
-                }
-                return Ok(new ResponseDto { Data = availableSlots, Status = true, StatusCode = "200"});
-            }
-            return Ok(new ResponseDto { Status = false, StatusCode = "400", Message = "Valet is not Available" });
         }
 
         #endregion

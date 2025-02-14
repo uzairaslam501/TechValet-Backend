@@ -55,24 +55,10 @@ namespace ITValet.Controllers
         {
             try
             {
-                int Customer = await userRepo.GetUserCount(3, EnumActiveStatus.Active);
-                int Valet = await userRepo.GetUserCount(4, EnumActiveStatus.Active);
-                int CustomersUnderReviewCount = await userRepo.GetUserCount(3, EnumActiveStatus.AccountOnHold);
-                int ValetUnderReviewCount = await userRepo.GetUserCount(4, EnumActiveStatus.AccountOnHold);
-                int CustomersVerificationPending = await userRepo.GetUserCountPendingVerifications(3);
-                int ValetVerificationPending = await userRepo.GetUserCountPendingVerifications(4);
-
-                var response = new
-                {
-                    Customer = Customer.ToString(),
-                    Valet = Valet.ToString(),
-                    ValetUnderReview = ValetUnderReviewCount.ToString(),
-                    CustomersUnderReview = CustomersUnderReviewCount.ToString(),
-                    CustomersVerificationPending = CustomersVerificationPending.ToString(),
-                    ValetVerificationPending = ValetVerificationPending.ToString(),
-                };
-
-                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "", response));
+                var response = await userRepo.GetCountForAllUsers();
+                if(response.Status == false)
+                    return BadRequest(response);
+                return Ok(response);
             }
             catch (Exception ex)
             {
@@ -138,9 +124,8 @@ namespace ITValet.Controllers
         }
 
         [HttpDelete("DeleteUser")]
-        public async Task<IActionResult> DeleteUser(string id)
+        public async Task<IActionResult> DeleteUser(string userId)
         {
-            int userId = StringCipher.DecryptionId(id);
             bool isDeleted = await userRepo.DeleteUser(userId);
 
             if (isDeleted)
@@ -206,16 +191,12 @@ namespace ITValet.Controllers
         {
             try
             {
-                var decrypt = StringCipher.DecryptionId(userId);
-                var user = await userRepo.GetUserById(decrypt);
+                var user = await userRepo.GetUserRecordById(userId);
 
                 if (user == null)
                     return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.RecordNotFound));
 
-                user.IsActive = (int)EnumActiveStatus.AccountOnHold;
-                //user.IsActive = (int)EnumActiveStatus.Active;
-
-                if (await userRepo.SaveChanges())
+                if (await userRepo.UpdateUserForHold(user.Id))
                 {
                     await MailSender.SendAccountBlockedNotification(user.Email!, user.UserName!);
                     await _notificationHubSocket.Clients.All.SendAsync("LogOutWhenAccountOnHold", user.Id);
@@ -250,7 +231,7 @@ namespace ITValet.Controllers
             var obj = _mapper.Map<User>(user);
 
             obj = GeneralPurpose.SetRoles(user.Role!, obj);
-            obj.Password = StringCipher.Encrypt(user.Password!);
+            obj.Password = StringCipher.HashString(user.Password!);
             obj.IsActive = obj.Role == (int)EnumRoles.Valet ? (int)EnumActiveStatus.AccountCompletion : (int)EnumActiveStatus.Active;
             obj.CreatedAt = GeneralPurpose.DateTimeNow();
 
@@ -320,17 +301,6 @@ namespace ITValet.Controllers
             return Ok(GeneralPurpose.GenerateResponseCode(true, "200", GlobalMessages.UpdateMessage, obj));
         }
 
-        [CustomAuthorize(new EnumRoles[] { EnumRoles.Admin })]
-        [HttpGet("GetActiveUsersNameForSearching")]
-        public async Task<IActionResult> GetActiveUsersNameForSearching()
-        {
-            var activeUserName = await userRepo.FetchAllUsersName();
-            if (activeUserName.Count() > 0)
-            {
-                return Ok(new ResponseDto { Status = true, StatusCode = "200", Data = activeUserName });
-            }
-            return Ok(new ResponseDto { Status = false, StatusCode = "400", Message = "Record Not Found" });
-        }
 
         [CustomAuthorize(new EnumRoles[] { EnumRoles.Admin })]
         [HttpGet("GetOrderEventsRecordByOrderStatus")]
