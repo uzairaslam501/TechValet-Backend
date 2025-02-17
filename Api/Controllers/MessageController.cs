@@ -1292,7 +1292,7 @@ namespace ITValet.Controllers
             notificationObj.Description = description;
             notificationObj.UserId = message.ReceiverId;
             notificationObj.IsActive = (int)EnumActiveStatus.Active;
-            notificationObj.Url = $"{projectVariables.ReactUrl}{url}";
+            notificationObj.Url = $"{url}";
             notificationObj.CreatedAt = GeneralPurpose.DateTimeNow();
 
             await _notificationService.AddNotification(notificationObj);
@@ -1301,7 +1301,7 @@ namespace ITValet.Controllers
                 notificationObj.Title,
                 notificationObj.IsRead,
                 notificationObj.IsActive,
-                notificationObj.Url,
+                $"{projectVariables.ReactUrl}{notificationObj.Url}",
                 notificationObj.Description,
                 notificationObj.CreatedAt,
                 notificationObj.NotificationType

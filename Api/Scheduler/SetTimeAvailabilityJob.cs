@@ -47,14 +47,14 @@ namespace ITValet.Scheduler
                             IsRead = 0,
                             IsActive = (int)EnumActiveStatus.Active,
                             CreatedAt = GeneralPurpose.DateTimeNow(),
-                            Url = $"{_projectVariables.ReactUrl}{_returnUrls.AccountUrl}",
+                            Url = $"{_returnUrls.AccountUrl}",
                             Description = "Update your availability time for an upcoming order.",
                             NotificationType = (int)NotificationType.TimeAvailabilityNotification
                         };
 
                         // Insert NotificationRecord against Each User and also send the email
                         bool isNotification = await _notificationService.AddNotification(notificationObj);
-                        bool isEmailSent = await MailSender.SendEmailForSetTimeAvailability(user.UserName!, user.Email!, notificationObj.Url);
+                        bool isEmailSent = await MailSender.SendEmailForSetTimeAvailability(user.UserName!, user.Email!, $"{_projectVariables.ReactUrl}{notificationObj.Url}");
                         bool isCreated = await _userAvailableSlotRepo.CreateEntriesForCurrentMonth(user.Id);
                     }
                 }

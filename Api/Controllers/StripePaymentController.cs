@@ -456,7 +456,7 @@ namespace ITValet.Controllers
             try
             {
                 if (string.IsNullOrEmpty(email))
-                    return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = "Invalid input parameters." });
+                    return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", "Invalid input parameters."));
                 
                 var decrypt = DecryptionId(userId);
                 var user = await _userRepo.GetUserById(decrypt);
@@ -513,13 +513,13 @@ namespace ITValet.Controllers
                     await _userRepo.UpdateUser(getUser);
                     return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Account Verify successfully", getUser));
                 }
-                throw new Exception(GlobalMessages.RecordNotFound);
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.RecordNotFound));
 
             }
             catch (Exception ex)
             {
                 CreateLogger(ex);
-                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "404", ex.Message));
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "500", ex.Message));
             }
         }
 

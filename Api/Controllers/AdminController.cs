@@ -163,7 +163,9 @@ namespace ITValet.Controllers
                 if (user == null)
                     return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.RecordNotFound));
 
-                if (type == "RemoveFromHold")
+                if(user.Role == (int)EnumRoles.Customer )
+                    user.IsActive = (int)EnumActiveStatus.Active;
+                else if (type == "RemoveFromHold")
                     user.IsActive = (int)EnumActiveStatus.Active;
                 else if (type == "AdminVerificationPending")
                     user.IsActive = (int)EnumActiveStatus.AccountCompletion;

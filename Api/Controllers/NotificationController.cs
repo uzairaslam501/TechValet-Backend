@@ -3,6 +3,7 @@ using ITValet.HelpingClasses;
 using ITValet.Models;
 using ITValet.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using static Google.Apis.Requests.BatchRequest;
 
 namespace ITValet.Controllers
@@ -15,11 +16,13 @@ namespace ITValet.Controllers
 
         private readonly INotificationRepo notificationRepo;
         private readonly IUserRepo userRepo;
+        private readonly ProjectVariables _projectVariables;
 
-        public NotificationController(INotificationRepo notificationRepo, IUserRepo userRepo)
+        public NotificationController(INotificationRepo notificationRepo, IUserRepo userRepo, IOptions<ProjectVariables> options)
         {
             this.notificationRepo = notificationRepo;
             this.userRepo = userRepo;
+            _projectVariables = options.Value;
         }
 
         [HttpPost("PostAddNotification")]
@@ -89,7 +92,7 @@ namespace ITValet.Controllers
                     UserId = notification.UserId.ToString(),
                     Title = notification.Title,
                     Description = notification.Description,
-                    Url = notification.Url,
+                    Url = $"{_projectVariables.ReactUrl}{notification.Url}",
                     IsRead = (int)notification.IsRead,
                     NotificationType = notification.NotificationType,
                 };
