@@ -89,8 +89,8 @@ namespace ITValet.Controllers
             }
         }
         
-        [HttpPost("OrderAccepted")]
-        public async Task<IActionResult> OrderAccepted(AcceptOrder orderDetail)
+        [HttpPost("OrderAccepted/{orderId}")]
+        public async Task<IActionResult> OrderAccepted(string orderId, AcceptOrder orderDetail)
         {
             try
             {
@@ -101,7 +101,7 @@ namespace ITValet.Controllers
 
                 if (orderObj == null)
                 {
-                    return Ok(new ResponseDto { Message = "Database Update Failed", Status = false, StatusCode = "404" });
+                    return BadRequest(new ResponseDto { Message = "Database Update Failed", Status = false, StatusCode = "404" });
                 }
 
                 if (orderObj.PackageId != null && orderObj.PackageBuyFrom == "PAYPAL")
@@ -184,7 +184,7 @@ namespace ITValet.Controllers
                 rating.Stars = Convert.ToInt32(order.Stars);
                 rating.Reviews = order.Reviews;
                 rating.CustomerId = Convert.ToInt32(order.CustomerId);
-                rating.OrderId = StringCipher.DecryptId(order.OrderId);
+                rating.OrderId = StringCipher.DecryptionId(order.OrderId!);
                 rating.ValetId = Convert.ToInt32(order.ValetId);
                 rating.IsActive = (int)EnumActiveStatus.Active;
                 rating.CreatedAt = GeneralPurpose.DateTimeNow();

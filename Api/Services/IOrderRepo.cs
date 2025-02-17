@@ -40,6 +40,7 @@ namespace ITValet.Services
         #region refactor
         Task<ResponseDto> GetOrderEventRecord(string id, string? role = "", string? filterDate = "");
         Task<ResponseDto> GetOrderSlotsRecord(string userId, string? date = "");
+        Task<bool> UpdateOrders(Order order);
         #endregion
     }
 
@@ -304,7 +305,7 @@ namespace ITValet.Services
         {
             try
             {
-                int orderId = StringCipher.DecryptId(orderDetail.OrderId);
+                int orderId = StringCipher.DecryptionId(orderDetail.OrderId!);
                 var orderObj = await _context.Order.FirstOrDefaultAsync(x => x.Id == orderId && x.IsActive == 1);
                 if (orderObj != null)
                 {
@@ -625,8 +626,6 @@ namespace ITValet.Services
             }
         }
 
-        
-
         public async Task<List<int>> GetOrdersIdThatHasPendingAmount(int valetId)
         {
             var orders = await _context.Order
@@ -817,6 +816,19 @@ namespace ITValet.Services
             {
                 GeneralPurpose.CreateLogger(projectVariables, ex);
                 return GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.SystemFailureMessage);
+            }
+        }
+
+        public async Task<bool> UpdateOrders(Order Order)
+        {
+            try
+            {
+                _context.Entry(Order).State = EntityState.Modified;
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
             }
         }
         #endregion

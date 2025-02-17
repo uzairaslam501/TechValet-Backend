@@ -54,7 +54,7 @@
         ZoomMeetingCreated = 10,
         OrderDelivered = 11,
         RevisionRequested =12,
-        DelivertAccepted = 13,
+        DeliveryAccepted = 13,
     }
 
     public enum StripePaymentStatus

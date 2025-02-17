@@ -370,6 +370,9 @@ namespace ITValet.HelpingClasses
 
         public static User MapUser(RegisterUserDto user, User obj)
         {
+            if (string.IsNullOrEmpty(user.Timezone))
+                user.Timezone = "Canada/Mountain";
+
             return obj = new User
             {
                 FirstName = user.Firstname,

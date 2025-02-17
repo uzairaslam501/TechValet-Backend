@@ -1021,6 +1021,75 @@ namespace ITValet.Controllers
             return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.SystemFailureMessage));
         }
 
+        [HttpPost("PaypalAcceptOrder/{orderId}")]
+        public async Task<IActionResult> PaypalAcceptOrder(string orderId, OrderDeliverViewModel orderDeliverDto)
+        {
+            try
+            {
+                UserClaims? getUserFromToken = jwtUtils.ValidateToken(Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last());
+                var senderId = StringCipher.DecryptionId(orderDeliverDto.SenderId!);
+                var receiverId = StringCipher.DecryptionId(orderDeliverDto.ReceiverId!);
+                var decryptedOrderId = StringCipher.DecryptionId(orderId);
+
+                var sender = await userRepo.GetUserById(senderId);
+                var receiver = await userRepo.GetUserById(receiverId);
+                var order = await orderRepo.GetOrderById(decryptedOrderId);
+
+                if (order == null)
+                    return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.RecordNotFound));
+
+                UpdateOrderDetails(order!);
+                var valetId = order.ValetId! == receiverId ? orderDeliverDto.ReceiverId : orderDeliverDto.SenderId;
+                var findValet = order.ValetId! == receiverId ? receiver : sender;
+                var valetPayPalEmail = await _payPalGateWayService.GetPayPalAccount(valetId!);
+
+                if (await orderRepo.UpdateOrders(order!))
+                {
+                    await ProcessUserRating(order!, orderDeliverDto);
+
+                    if (order.PackageId != null && order.PackageBuyFrom == "PAYPAL")
+                    {
+                        if (!await OrderFromPackage(order, findValet, valetPayPalEmail?.Data?.PayPalEmail))
+                            return BadRequest(GeneralPurpose.GenerateResponseCode(false, "404", GlobalMessages.SystemFailureMessage));
+                    }
+                    else
+                    {
+                        // Order from checkout
+                        if (!await OrderFromCheckout(order, findValet, valetPayPalEmail?.Data?.PayPalEmail))
+                            return BadRequest(GeneralPurpose.GenerateResponseCode(false, "404", GlobalMessages.SystemFailureMessage));
+                    }
+                    var message = new Message();
+                    await CreateAcceptedOrderMessage(order.Id, senderId, receiverId, message);
+                    await orderRepo.saveChangesFunction();
+                    await AddNotification(message, 
+                        "Delivered Order Accepted",
+                        "Congrats, Your deliver order has been accepted",
+                        $"order-details/${orderId}",
+                        "DeliveryAccepted");
+
+                    // Prepare data for the real-time notification
+                    var userCache = new Dictionary<int, User>();
+                    var viewModelMessage = await CreateViewModelMessage(message, sender, userCache, order);
+                    viewModelMessage.SenderId = senderId.ToString();
+                    viewModelMessage.ReceiverId = receiverId.ToString();
+
+
+                    // Send a notification to connected clients via SignalR
+                    viewModelMessage = await SetReceiverTime(viewModelMessage, message, receiver!, "Order");
+                    viewModelMessage = await SetSenderTime(viewModelMessage, message, sender!);
+
+                    return Ok(new ResponseDto { Message = "Order Completed Successfully", Status = true, StatusCode = "200" });
+                }
+                else
+                    return BadRequest(GeneralPurpose.GenerateResponseCode(false, "404", GlobalMessages.SystemFailureMessage));
+            }
+            catch (Exception ex)
+            {
+                GeneralPurpose.CreateLogger(projectVariables, ex);
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage));
+            }
+        }
+
         private async Task ProcessUserRating(Order order, OrderDeliverViewModel orderDeliverDto)
         {
             var userRating = CreateUserRating(order, orderDeliverDto);
@@ -1058,7 +1127,7 @@ namespace ITValet.Controllers
             if (user != null)
             {
                 UpdateRatingBasedOnStarsAsync(user, stars);
-                await userRepo.UpdateUser(user);
+                //await userRepo.UpdateUser(user);
             }
         }
 
@@ -1100,6 +1169,38 @@ namespace ITValet.Controllers
             }
             return 0;
         }
+
+        #region PayPalScenerio For Order Acception
+        private async Task<bool> OrderFromPackage(Order order, User valet, string paypalEmail)
+        {
+            var orderObject = new OrderAcceptedOfPackage()
+            {
+                PaidByPackage = true,
+                ValetId = valet.Id,
+                CustomerId = (int)order.CustomerId!,
+                OrderId = order.Id,
+                OrderPrice = order.OrderPrice,
+                PayPalAccount = paypalEmail,
+            };
+            return await _payPalGateWayService.OrderCreatedByPayPalPackage(orderObject);
+        }
+
+        private async Task<bool> OrderFromCheckout(Order order, User valet, string paypalEmail)
+        {
+            var checkoutObj = new OrderCheckOutAccepted
+            {
+                OrderId = order.Id,
+                PaymentId = order.PayPalPaymentId,
+                PayPalAccount = paypalEmail, // May be null, which is okay
+            };
+
+            // Calculate HST fee and deduct it from the Order Price 
+            decimal orderPrice = order.OrderPrice ?? 0m;
+            checkoutObj.OrderPrice = orderPrice;
+
+            return await _payPalGateWayService.PayPalOrderCheckoutAccepted(checkoutObj);
+        }
+        #endregion
 
         #region OrderRevision
         [HttpPut("PostSendRevision/{oderId}")]
@@ -1256,6 +1357,9 @@ namespace ITValet.Controllers
         #region PostAddMessages
         private async Task CreateMessage(PostAddMessage postAddMessage, Message message)
         {
+            if (!string.IsNullOrEmpty(postAddMessage.OrderId))
+                message.OrderId = Convert.ToInt32(postAddMessage.OrderId);
+
             message.MessageDescription = postAddMessage.MessageDescription;
             message.SenderId = Convert.ToInt32(postAddMessage.SenderId);
             message.ReceiverId = Convert.ToInt32(postAddMessage.ReceiverId);
@@ -1285,6 +1389,10 @@ namespace ITValet.Controllers
                 else if(orderType == "deliver")
                 {
                     notificationObj.NotificationType = (int)NotificationType.OrderDelivered;
+                }
+                else if (orderType == "DeliveryAccepted")
+                {
+                    notificationObj.NotificationType = (int)NotificationType.DeliveryAccepted;
                 }
             }
             notificationObj.IsRead = 0;
@@ -1492,7 +1600,7 @@ namespace ITValet.Controllers
                 endUrl = ExtractPart(message.MessageDescription, 2);
             }
 
-            var orderReason = message.OrderReasonId.HasValue
+            var orderReason = message.OrderReasonId != null && message.OrderReasonId.HasValue
                 ? await orderReasonRepo.GetOrderReasonByOrderReasonId((int)message.OrderReasonId)
                 : null;
 
@@ -1516,17 +1624,19 @@ namespace ITValet.Controllers
                 OrderEncId = StringCipher.EncryptId(order.Id),
                 MessageDescription = message.MessageDescription,
                 OrderReasonId = message.OrderReasonId?.ToString(),
-                MessageEncId = StringCipher.EncryptId(message.Id),
+                MessageEncId = message.Id != null ? StringCipher.EncryptId(message.Id) : null,
                 ValetEncId = StringCipher.EncryptId((int)order.ValetId!),
                 CustomerEncId = StringCipher.EncryptId((int)order.CustomerId!),
                 OrderReasonEncId = message.OrderReasonId != null ? StringCipher.EncryptId((int)message.OrderReasonId) : null,
                 FilePath = !string.IsNullOrEmpty(message.FilePath) ? $"{projectVariables.BaseUrl}{message.FilePath}" : "",
                 MessageTime = GeneralPurpose.regionChanged(Convert.ToDateTime(message.CreatedAt), loggedInUser.Timezone!),
             };
-
-            SetOrderReasonDetails(viewModel, orderReason);
-            SetOfferDetails(viewModel, message);
-            SetZoomMessageDetails(viewModel, message, loggedInUser, receiver, startUrl, endUrl);
+            if(message.OrderReasonId != null)
+                SetOrderReasonDetails(viewModel, orderReason);
+            if(message.OfferDetails != null)
+                SetOfferDetails(viewModel, message);
+            if(message.IsZoomMessage == 1)
+                SetZoomMessageDetails(viewModel, message, loggedInUser, receiver, startUrl, endUrl);
 
             if (loggedInUser.Id == message.SenderId)
             {
@@ -1752,6 +1862,19 @@ namespace ITValet.Controllers
                 message.MessageDescription += $"<br /> <strong>Extended to: </strong> {Convert.ToDateTime(dateExtension).ToString("yyyy-MM-dd HH:mm tt")}";
 
             return await PostAddOrderReasonMessage(message);
+        }
+
+        private async Task CreateAcceptedOrderMessage(int orderId, int senderId, int receiverId, Message message)
+        {
+            var postMessage = new PostAddMessage
+            {
+                OrderId = orderId.ToString(),
+                SenderId = senderId.ToString(),
+                ReceiverId = receiverId.ToString(),
+                MessageDescription = "Congratulations!, your order delivery has been accepted.",
+            };
+
+            await CreateMessage(postMessage, message);
         }
         #endregion
         #endregion

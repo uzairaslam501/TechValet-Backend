@@ -59,7 +59,7 @@ namespace ITValet.Services
         {
             try
             {
-                var decrypt = DecryptionId(userId);
+                var decrypt = StringCipher.DecryptionId(userId);
                 if (decrypt <= 0)
                     return GeneralPurpose.GenerateResponseCode(false, "404", "Record Not Found");
                 var obj = await _context.PayPalAccount.FirstOrDefaultAsync(x => x.ValetId == decrypt & x.IsActive == 1);
@@ -70,7 +70,6 @@ namespace ITValet.Services
                 CreateLogger(ex);
                 return GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.SystemFailureMessage);
             }
-
         }
 
         public async Task<ResponseDto> DeletePayPalAccount(string userId)

@@ -41,11 +41,6 @@ namespace ITValet.Services
             try
             {
                 _context.UserRating.Add(UserRating);
-                await _context.SaveChangesAsync();
-              /*  if (UserRating.ValetId.HasValue)
-                {
-                    await IsValetHasMoreBadReviews(UserRating.ValetId.Value);
-                }*/
                 return true;
             }
             catch (Exception ex)
