@@ -7,6 +7,7 @@ using ITValet.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Options;
+using MimeKit;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using RestSharp;
@@ -684,7 +685,7 @@ namespace ITValet.Controllers
             // Add a notification for the action
             await AddNotification(
                 message,
-                "Order Extention Date Accepted",
+                "Order Extention Request",
                 notificationMessage,
                 $"order-details/{HttpUtility.UrlDecode(orderId)}",
                 ""
@@ -991,30 +992,60 @@ namespace ITValet.Controllers
         [HttpPost("AcceptOrder/{orderId}")]
         public async Task<IActionResult> AcceptOrder(string orderId, OrderDeliverViewModel orderDeliverDto)
         {
+            var senderId = StringCipher.DecryptionId(orderDeliverDto.SenderId!);
+            var receiverId = StringCipher.DecryptionId(orderDeliverDto.ReceiverId!);
             var decryptedOrderId = StringCipher.DecryptionId(orderId);
+
+            var sender = await userRepo.GetUserById(senderId);
+            var receiver = await userRepo.GetUserById(receiverId);
             var order = await orderRepo.GetOrderById(decryptedOrderId);
 
-            if(order == null)
+            if (order == null)
                 return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.RecordNotFound));
 
             UpdateOrderDetails(order!);
 
             if (await orderRepo.UpdateOrder(order!))
             {
-                await ProcessUserRating(order!, orderDeliverDto);
-                var valet = await userRepo.GetUserById(order!.ValetId!.Value);
-                if (valet != null)
+                await ProcessUserRating(order!, orderDeliverDto); 
+                var valetId = order.ValetId! == receiverId ? orderDeliverDto.ReceiverId : orderDeliverDto.SenderId;
+                var findValet = order.ValetId! == receiverId ? receiver : sender;
+                if (findValet != null)
                 {
-                    var transferSuccess = await userRepo.TransferFunds(valet.StripeId!, (decimal)order.OrderPrice!);
+                    var transferSuccess = await userRepo.TransferFunds(findValet.StripeId!, (decimal)order.OrderPrice!);
                     if (transferSuccess)
                     {
-                        await orderRepo.ChangeStripePaymentStatus(decryptedOrderId, StripePaymentStatus.SentToValet);
-                        return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Order Is Accepted Successfully"));
+                        if(!await orderRepo.ChangeStripePaymentStatus(decryptedOrderId, StripePaymentStatus.SentToValet))
+                            return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", "Something Went Wrong, Please try again later"));
+                    
+                        var message = new Message();
+                        await AddNotification(message,
+                        "Delivered Order Accepted",
+                        "Congrats, Your deliver order has been accepted",
+                        $"order-details/${orderId}",
+                        "DeliveryAccepted");
+
+                        await CreateAcceptedOrderMessage(order.Id, senderId, receiverId, message);
+
+
+                        // Prepare data for the real-time notification
+                        var userCache = new Dictionary<int, User>();
+                        var viewModelMessage = await CreateViewModelMessage(message, sender, userCache, order);
+                        viewModelMessage.SenderId = senderId.ToString();
+                        viewModelMessage.ReceiverId = receiverId.ToString();
+
+
+                        // Send a notification to connected clients via SignalR
+                        viewModelMessage = await SetReceiverTime(viewModelMessage, message, receiver!, "Order");
+                        viewModelMessage = await SetSenderTime(viewModelMessage, message, sender!);
+
+                        return Ok(new ResponseDto { Message = "Order Completed Successfully", Status = true, StatusCode = "200" });
                     }
                     else
                     {
-                        await orderRepo.ChangeStripePaymentStatus(decryptedOrderId, StripePaymentStatus.PaymentFailedToSend);
-                        return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Order Is Accepted But there is issue in payment. Contact Support to resolve this"));
+                        if (!await orderRepo.ChangeStripePaymentStatus(decryptedOrderId, StripePaymentStatus.PaymentFailedToSend);)
+                            return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Order Is Accepted But there is issue in payment. Contact Support to resolve this"));
+
                     }
                 }
             }
