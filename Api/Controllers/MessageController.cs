@@ -1042,7 +1042,7 @@ namespace ITValet.Controllers
 
                         await AddNotification(message,
                         "Delivered Order Accepted",
-                            $"Congrats, Your order ${order.OrderTitle} has been accepted",
+                            $"Congrats, Your order {order.OrderTitle} has been accepted",
                         $"order-details/${orderId}",
                         "DeliveryAccepted");
 
@@ -1129,7 +1129,7 @@ namespace ITValet.Controllers
 
                     await AddNotification(message, 
                         "Delivered Order Accepted",
-                        $"Congrats, Your order ${order.OrderTitle} has been accepted",
+                        $"Congrats, Your order {order.OrderTitle} has been accepted",
                         $"order-details/${orderId}",
                         "DeliveryAccepted");
 

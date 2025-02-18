@@ -455,7 +455,8 @@ namespace ITValet.Services
                 {
                     key = _stripeKeys.StripeApiKey;
                 }
-                else if (!string.IsNullOrEmpty(_configuration["Stripe:StripeApiKey"]){
+                else if (!string.IsNullOrEmpty(_configuration["Stripe:StripeApiKey"]))
+                {
                     key = _configuration["Stripe:StripeApiKey"];
                 }
                 StripeConfiguration.ApiKey = key;
