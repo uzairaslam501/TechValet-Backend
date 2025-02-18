@@ -458,7 +458,7 @@ namespace ITValet.Services
                         obj.OrderStatus = order.OrderStatus;
                         obj.StartDateTime = order.StartDateTime;
                         obj.EndDateTime = order.EndDateTime;
-                        obj.OrderDetailUrl = $"{projectVariables.ReactUrl}order-details/${obj.OrderEncId}";
+                        obj.OrderDetailUrl = $"{projectVariables.ReactUrl}order-details/{obj.OrderEncId}";
                         orderEvents.Add(obj);
                     }
                 }
@@ -496,7 +496,7 @@ namespace ITValet.Services
                         OrderStatus = order.OrderStatus,
                         StartDateTime = order.StartDateTime,
                         EndDateTime = order.EndDateTime,
-                        OrderDetailUrl = $"{projectVariables.ReactUrl}order-details/${StringCipher.EncryptId(order.Id)}"
+                        OrderDetailUrl = $"{projectVariables.ReactUrl}order-details/{StringCipher.EncryptId(order.Id)}"
                     };
 
                     orderEvents.Add(obj);
@@ -747,7 +747,7 @@ namespace ITValet.Services
             {
                 var date = Convert.ToDateTime(currentDate).Date;
                 if (userRole == 4) // Special condition for valet orders
-                    query = query.Where(x => x.StartDateTime.Value.Date >= date && x.OrderStatus == 0);
+                    query = query.Where(x => x.StartDateTime.Value.Date >= date);
             }
 
             return await query.ToListAsync();
@@ -767,7 +767,7 @@ namespace ITValet.Services
                     OrderStatus = order.OrderStatus,
                     StartDateTime = order.StartDateTime,
                     EndDateTime = order.EndDateTime,
-                    OrderDetailUrl = $"{projectVariables.BaseUrl}User/OrderDetail?orderId={StringCipher.EncryptId(order.Id)}"
+                    OrderDetailUrl = $"{projectVariables.BaseUrl}/order-details/{StringCipher.EncryptId(order.Id)}"
                 };
 
                 eventViewModel.OrderStatusDescription = await GetOrderStatus(eventViewModel.OrderStatus);

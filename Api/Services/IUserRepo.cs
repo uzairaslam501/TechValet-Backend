@@ -52,15 +52,17 @@ namespace ITValet.Services
         private readonly AppDbContext _context;
         private readonly ProjectVariables _projectVariables;
         private readonly StripeApiKeys _stripeKeys;
+        private readonly IConfiguration _configuration;
         private readonly IUserSkillRepo _userSkillRepo;
 
         public UserRepo(AppDbContext _appDbContext, IOptions<ProjectVariables> projectVariable, IOptions<StripeApiKeys> stripeKeys,
-            IUserSkillRepo userSkillRepo)
+            IUserSkillRepo userSkillRepo, IConfiguration configuration)
         {
             _context = _appDbContext;
             _projectVariables = projectVariable.Value;
             _stripeKeys = stripeKeys.Value;
             _userSkillRepo = userSkillRepo;
+            _configuration = configuration;
         }
 
         public async Task<List<User?>> GetSkilledUsersByIds(List<int?> userIds)
@@ -448,12 +450,22 @@ namespace ITValet.Services
         {
             try
             {
+                var key = "";
+                if (!string.IsNullOrEmpty(_stripeKeys.StripeApiKey))
+                {
+                    key = _stripeKeys.StripeApiKey;
+                }
+                else if (!string.IsNullOrEmpty(_configuration["Stripe:StripeApiKey"]){
+                    key = _configuration["Stripe:StripeApiKey"];
+                }
+                StripeConfiguration.ApiKey = key;
+
                 var calculatedAmount = (amount);
                 var orderHstFee = GeneralPurpose.CalculateHSTFee(calculatedAmount);
                 decimal earnedAmount = calculatedAmount - orderHstFee;
                 var amountTransferToValet = earnedAmount;
-                StripeConfiguration.ApiKey = _stripeKeys.StripeApiKey;
                 // Perform the transfer to the connected account
+                
                 var TransferAmountToValet = amountTransferToValet * 100;
                 var transferCreateOptions = new TransferCreateOptions
                 {
@@ -470,7 +482,7 @@ namespace ITValet.Services
             }
             catch (Exception ex)
             {
-                await MailSender.SendErrorMessage(ex.Message.ToString());
+                GeneralPurpose.CreateLogger(_projectVariables, ex);
                 return false;
             }
         }

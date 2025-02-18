@@ -514,7 +514,7 @@ namespace ITValet.Controllers
                 if (message.Id != 0)
                 {
                     var orderMessage = MapOrderMessage(message, sender!, postAddMessage.Way);
-                    await AddNotification(message, "Message Received", "Your order has been deleiver, look at it",
+                    await AddNotification(message, "Message Received", "Your order has been deliver, look at it",
                         $"order-details/{HttpUtility.UrlDecode(orderId!)}", postAddMessage.Way!);
 
                     var userCache = new Dictionary<int, User>();
@@ -1035,7 +1035,7 @@ namespace ITValet.Controllers
                         {
                             alertMessages = "Order Is Accepted But there is issue in payment. Contact Support to resolve this";
                             if (!await orderRepo.ChangeStripePaymentStatus(decryptedOrderId, StripePaymentStatus.PaymentFailedToSend))
-                                return Ok(GeneralPurpose.GenerateResponseCode(false, "400", "Something Went Wrong, Please try again later"));
+                                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", "Something Went Wrong, Please try again later"));
                         }
 
                         await CreateMessage(postMessage, message);
@@ -1425,6 +1425,7 @@ namespace ITValet.Controllers
         }
 
         #region Helpers
+        
         #region PostAddMessages
         private async Task CreateMessage(PostAddMessage postAddMessage, Message message)
         {
@@ -1701,6 +1702,8 @@ namespace ITValet.Controllers
                 OrderReasonEncId = message.OrderReasonId != null ? StringCipher.EncryptId((int)message.OrderReasonId) : null,
                 FilePath = !string.IsNullOrEmpty(message.FilePath) ? $"{projectVariables.BaseUrl}{message.FilePath}" : "",
                 MessageTime = GeneralPurpose.regionChanged(Convert.ToDateTime(message.CreatedAt), loggedInUser.Timezone!),
+                IsDelivered = order.IsDelivered?.ToString(),
+                OrderStatus = order.OrderStatus?.ToString(),
             };
             if(message.OrderReasonId != null)
                 SetOrderReasonDetails(viewModel, orderReason);

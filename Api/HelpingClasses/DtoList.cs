@@ -760,6 +760,7 @@ namespace ITValet.HelpingClasses
         public int? IsZoomMeeting { get; set; }
         public string? PricePerHour { get; set; }
         public string? IsDelivered { get; set; }
+        public string? OrderStatus { get; set; }
     }
     #endregion
 

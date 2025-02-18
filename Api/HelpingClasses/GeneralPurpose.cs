@@ -35,32 +35,41 @@ namespace ITValet.HelpingClasses
 
         public static string regionChanged(DateTime dat, string region = "")
         {
-            DateTime dt = Convert.ToDateTime(dat);
-            if (region.Contains("/"))
+            try
             {
-                dt = DateTimeHelper.GetZonedDateTimeFromUtc(dat, region);
-            }
-            else
-            {
-                if (!string.IsNullOrEmpty(region))
+                DateTime dt = Convert.ToDateTime(dat);
+                if (region.Contains("/"))
                 {
-                    if (region.Contains("-"))
+                    dt = DateTimeHelper.GetZonedDateTimeFromUtc(dat, region);
+                }
+                else
+                {
+                    if (!string.IsNullOrEmpty(region))
                     {
-                        string ss = region.Split('-')[1];
-                        ss = ss.Replace(':', '.');
-                        double s = Convert.ToDouble(ss);
-                        dt = dt.AddHours(-s);
-                    }
-                    else
-                    {
-                        string ss = region;
-                        ss = ss.Replace(':', '.');
-                        double s = Convert.ToDouble(ss);
-                        dt = dt.AddHours(+s);
+                        if (region.Contains("-"))
+                        {
+                            string ss = region.Split('-')[1];
+                            ss = ss.Replace(':', '.');
+                            double s = Convert.ToDouble(ss);
+                            dt = dt.AddHours(-s);
+                        }
+                        else
+                        {
+                            string ss = region;
+                            ss = ss.Replace(':', '.');
+                            double s = Convert.ToDouble(ss);
+                            dt = dt.AddHours(+s);
+                        }
                     }
                 }
+                return dt.ToString("G");
             }
-            return dt.ToString("G");
+            catch (Exception ex)
+            {
+                ProjectVariables projectVariables = new ProjectVariables();
+                CreateLogger(projectVariables, ex);
+                return "";
+            }
         }
 
         public static string convertToUtc(DateTime dat, string region = "")

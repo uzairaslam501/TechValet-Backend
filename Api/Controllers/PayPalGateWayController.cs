@@ -150,7 +150,7 @@ namespace ITValet.Controllers
                             Title = "Order Accepted",
                             IsRead = 0,
                             IsActive = (int)EnumActiveStatus.Active,
-                            Url = $"order-details/${StringCipher.EncryptId(checkoutObj.OrderId)}",
+                            Url = $"order-details/{StringCipher.EncryptId(checkoutObj.OrderId)}",
                             CreatedAt = GeneralPurpose.DateTimeNow(),
                             Description = "Customer Accepted Your Delivery",
                             NotificationType = (int)NotificationType.OrderCancellationRequested

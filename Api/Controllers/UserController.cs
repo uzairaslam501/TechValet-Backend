@@ -952,22 +952,6 @@ namespace ITValet.Controllers
         #endregion
 
         #region RequestServices
-        [HttpDelete("DeleteRequestService")]
-        public async Task<IActionResult> DeleteRequestService(string requestServiceId)
-        {
-            if (string.IsNullOrEmpty(requestServiceId))
-            {
-                return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = GlobalMessages.RecordNotFound });
-            }
-
-            if (!await requestServiceRepo.DeleteRequestService(Convert.ToInt32(requestServiceId)))
-            {
-                return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
-            }
-
-            return Ok(new ResponseDto() { Status = true, StatusCode = "200", Message = GlobalMessages.DeletedMessage });
-        }
-
         [HttpGet("GetRequestServiceById")]
         public async Task<IActionResult> GetRequestServiceById(string requestServiceId)
         {
@@ -978,7 +962,7 @@ namespace ITValet.Controllers
             var obj = await requestServiceRepo.GetRequestServiceById(StringCipher.DecryptId(requestServiceId));
             if (obj == null)
             {
-                return Ok(new ResponseDto() { Status = true, StatusCode = "400", Message = GlobalMessages.RecordNotFound });
+                return BadRequest(new ResponseDto() { Status = true, StatusCode = "400", Message = GlobalMessages.RecordNotFound });
             }
             RequestServicesDto service = new RequestServicesDto()
             {
@@ -1011,6 +995,9 @@ namespace ITValet.Controllers
             var getOrder = await orderRepo.GetOrderById(StringCipher.DecryptId(orderId));
             var getCustomer = await userRepo.GetUserById((int)getOrder?.CustomerId!);
             var getValet = await userRepo.GetUserById((int)getOrder?.ValetId!);
+
+            if (getOrder is null || getCustomer is null || getValet is null)
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.RecordNotFound));
 
             List<OrderDtoList> udto = new List<OrderDtoList>();
             var order = new OrderDtoList
