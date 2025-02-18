@@ -992,40 +992,59 @@ namespace ITValet.Controllers
         [HttpPost("AcceptOrder/{orderId}")]
         public async Task<IActionResult> AcceptOrder(string orderId, OrderDeliverViewModel orderDeliverDto)
         {
-            var senderId = StringCipher.DecryptionId(orderDeliverDto.SenderId!);
-            var receiverId = StringCipher.DecryptionId(orderDeliverDto.ReceiverId!);
-            var decryptedOrderId = StringCipher.DecryptionId(orderId);
-
-            var sender = await userRepo.GetUserById(senderId);
-            var receiver = await userRepo.GetUserById(receiverId);
-            var order = await orderRepo.GetOrderById(decryptedOrderId);
-
-            if (order == null)
-                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.RecordNotFound));
-
-            UpdateOrderDetails(order!);
-
-            if (await orderRepo.UpdateOrder(order!))
+            try
             {
-                await ProcessUserRating(order!, orderDeliverDto); 
-                var valetId = order.ValetId! == receiverId ? orderDeliverDto.ReceiverId : orderDeliverDto.SenderId;
-                var findValet = order.ValetId! == receiverId ? receiver : sender;
-                if (findValet != null)
+                var senderId = StringCipher.DecryptionId(orderDeliverDto.SenderId!);
+                var receiverId = StringCipher.DecryptionId(orderDeliverDto.ReceiverId!);
+                var decryptedOrderId = StringCipher.DecryptionId(orderId);
+
+                var sender = await userRepo.GetUserById(senderId);
+                var receiver = await userRepo.GetUserById(receiverId);
+                var order = await orderRepo.GetOrderById(decryptedOrderId);
+                var message = new Message();
+
+                if (order == null)
+                    return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.RecordNotFound));
+
+                var postMessage = new PostAddMessage
                 {
-                    var transferSuccess = await userRepo.TransferFunds(findValet.StripeId!, (decimal)order.OrderPrice!);
-                    if (transferSuccess)
+                    OrderId = order!.Id.ToString(),
+                    SenderId = senderId.ToString(),
+                    ReceiverId = receiverId.ToString(),
+                    MessageDescription = "Order Confirmed",
+                };
+
+                UpdateOrderDetails(order!);
+
+                if (await orderRepo.UpdateOrder(order!))
+                {
+                    await ProcessUserRating(order!, orderDeliverDto);
+                    var valetId = order.ValetId! == receiverId ? orderDeliverDto.ReceiverId : orderDeliverDto.SenderId;
+                    var findValet = order.ValetId! == receiverId ? receiver : sender;
+                    if (findValet != null)
                     {
-                        if(!await orderRepo.ChangeStripePaymentStatus(decryptedOrderId, StripePaymentStatus.SentToValet))
-                            return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", "Something Went Wrong, Please try again later"));
-                    
-                        var message = new Message();
+
+                        var alertMessages = "Order Completed Successfully";
+                        var transferSuccess = await userRepo.TransferFunds(findValet.StripeId!, (decimal)order.OrderPrice!);
+                        if (transferSuccess)
+                        {
+                            if (!await orderRepo.ChangeStripePaymentStatus(decryptedOrderId, StripePaymentStatus.SentToValet))
+                                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", "Something Went Wrong, Please try again later"));
+                        }
+                        else
+                        {
+                            alertMessages = "Order Is Accepted But there is issue in payment. Contact Support to resolve this";
+                            if (!await orderRepo.ChangeStripePaymentStatus(decryptedOrderId, StripePaymentStatus.PaymentFailedToSend))
+                                return Ok(GeneralPurpose.GenerateResponseCode(false, "400", "Something Went Wrong, Please try again later"));
+                        }
+
+                        await CreateMessage(postMessage, message);
+
                         await AddNotification(message,
                         "Delivered Order Accepted",
-                        "Congrats, Your deliver order has been accepted",
+                            $"Congrats, Your order ${order.OrderTitle} has been accepted",
                         $"order-details/${orderId}",
                         "DeliveryAccepted");
-
-                        await CreateAcceptedOrderMessage(order.Id, senderId, receiverId, message);
 
 
                         // Prepare data for the real-time notification
@@ -1039,17 +1058,21 @@ namespace ITValet.Controllers
                         viewModelMessage = await SetReceiverTime(viewModelMessage, message, receiver!, "Order");
                         viewModelMessage = await SetSenderTime(viewModelMessage, message, sender!);
 
-                        return Ok(new ResponseDto { Message = "Order Completed Successfully", Status = true, StatusCode = "200" });
-                    }
-                    else
-                    {
-                        if (!await orderRepo.ChangeStripePaymentStatus(decryptedOrderId, StripePaymentStatus.PaymentFailedToSend);)
-                            return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Order Is Accepted But there is issue in payment. Contact Support to resolve this"));
+                        await _notificationHubSocket.Clients.All.SendAsync("SendOrderMessage",
+                            viewModelMessage,
+                            message.SenderId,
+                            message.ReceiverId);
 
+                        return Ok(GeneralPurpose.GenerateResponseCode(true, "200", alertMessages, viewModelMessage));
                     }
                 }
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.SystemFailureMessage));
             }
-            return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.SystemFailureMessage));
+            catch (Exception ex)
+            {
+                GeneralPurpose.CreateLogger(projectVariables, ex);
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage));
+            }
         }
 
         [HttpPost("PaypalAcceptOrder/{orderId}")]
@@ -1066,8 +1089,18 @@ namespace ITValet.Controllers
                 var receiver = await userRepo.GetUserById(receiverId);
                 var order = await orderRepo.GetOrderById(decryptedOrderId);
 
+                var message = new Message();
+
                 if (order == null)
                     return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.RecordNotFound));
+
+                var postMessage = new PostAddMessage
+                {
+                    OrderId = order?.Id.ToString(),
+                    SenderId = senderId.ToString(),
+                    ReceiverId = receiverId.ToString(),
+                    MessageDescription = "Order Confirmed",
+                };
 
                 UpdateOrderDetails(order!);
                 var valetId = order.ValetId! == receiverId ? orderDeliverDto.ReceiverId : orderDeliverDto.SenderId;
@@ -1089,12 +1122,14 @@ namespace ITValet.Controllers
                         if (!await OrderFromCheckout(order, findValet, valetPayPalEmail?.Data?.PayPalEmail))
                             return BadRequest(GeneralPurpose.GenerateResponseCode(false, "404", GlobalMessages.SystemFailureMessage));
                     }
-                    var message = new Message();
-                    await CreateAcceptedOrderMessage(order.Id, senderId, receiverId, message);
+
+                    await CreateMessage(postMessage, message);
+
                     await orderRepo.saveChangesFunction();
+
                     await AddNotification(message, 
                         "Delivered Order Accepted",
-                        "Congrats, Your deliver order has been accepted",
+                        $"Congrats, Your order ${order.OrderTitle} has been accepted",
                         $"order-details/${orderId}",
                         "DeliveryAccepted");
 
@@ -1109,7 +1144,12 @@ namespace ITValet.Controllers
                     viewModelMessage = await SetReceiverTime(viewModelMessage, message, receiver!, "Order");
                     viewModelMessage = await SetSenderTime(viewModelMessage, message, sender!);
 
-                    return Ok(new ResponseDto { Message = "Order Completed Successfully", Status = true, StatusCode = "200" });
+                    await _notificationHubSocket.Clients.All.SendAsync("SendOrderMessage",
+                            viewModelMessage,
+                            message.SenderId,
+                            message.ReceiverId);
+
+                    return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Order Completed Successfully", viewModelMessage));
                 }
                 else
                     return BadRequest(GeneralPurpose.GenerateResponseCode(false, "404", GlobalMessages.SystemFailureMessage));
@@ -1674,12 +1714,14 @@ namespace ITValet.Controllers
                 viewModel.Username = loggedInUser.UserName;
                 viewModel.ProfileImage = loggedInUser.ProfilePicture;
                 viewModel.Name = $"{loggedInUser.FirstName} {loggedInUser.LastName}";
+                viewModel.Time = Convert.ToDateTime(GeneralPurpose.regionChanged(Convert.ToDateTime(message.CreatedAt), loggedInUser?.Timezone!)).ToString("t");
             }
             else
             {
                 viewModel.Username = receiver.UserName;
                 viewModel.ProfileImage = receiver.ProfilePicture;
                 viewModel.Name = $"{receiver.FirstName} {receiver.LastName}";
+                viewModel.Time = Convert.ToDateTime(GeneralPurpose.regionChanged(Convert.ToDateTime(message.CreatedAt), receiver?.Timezone!)).ToString("t");
             }
 
             return viewModel;

@@ -33,6 +33,7 @@ namespace ITValet.Services
             try
             {
                 _context.Message.Add(Message);
+                await _context.SaveChangesAsync();
                 return true;
             }
             catch (Exception ex)

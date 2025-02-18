@@ -351,35 +351,48 @@ namespace ITValet.Controllers
         [HttpPut("user-activity-status/{userId}")]
         public async Task<IActionResult> UpdateUserAccountActivityStatus(string userId, string activityStatus)
         {
-            var decryptId = StringCipher.DecryptionId(userId);
-            if (activityStatus == "true")
-                activityStatus = "1";
-            else
-                activityStatus = "0";
+            try
+            {
+                var decryptId = StringCipher.DecryptionId(userId);
+                if (activityStatus == "true")
+                    activityStatus = "1";
+                else
+                    activityStatus = "0";
 
-            var obj = await userRepo.UpdateUserAccountActivityStatus(decryptId, Convert.ToInt32(activityStatus));
-            if (!obj)
-                return Ok(new ResponseDto() { Data = activityStatus, Status = false, StatusCode = "406", Message = "Database Updation Failed" });
-            
-            await _notificationHubSocket.Clients.All.SendAsync("UpdateUserStatus", decryptId, activityStatus);
-            return Ok(new ResponseDto() { Data = activityStatus, Status = true, StatusCode = "200", Message = "Record Updated Successfully" });
+                var obj = await userRepo.UpdateUserAccountActivityStatus(decryptId, Convert.ToInt32(activityStatus));
+                if (!obj)
+                    return BadRequest(GeneralPurpose.GenerateResponseCode(false, "406", GlobalMessages.SystemFailureMessage, activityStatus));
+
+                await _notificationHubSocket.Clients.All.SendAsync("UpdateUserStatus", decryptId, activityStatus);
+                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Status Updated Successfully!", activityStatus));
+            }
+            catch (Exception ex)
+            {
+                GeneralPurpose.CreateLogger(projectVariables, ex);
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.SystemFailureMessage));
+            }
         }
 
         [HttpPut("user-availability/{userId}")]
         public async Task<IActionResult> UpdateUserAccountAvailabilityStatus(string userId, string availabilityOption)
         {
-            var decryptId = StringCipher.DecryptionId(userId);
-            if(availabilityOption == "true")
-                availabilityOption = "1";
-            else
-                availabilityOption = "0";
-            
-            var obj = await userRepo.UpdateUserAccountAvailabilityStatus(decryptId, Convert.ToInt32(availabilityOption));
-
-            if (!obj)
-                return Ok(new ResponseDto() { Data = obj, Status = false, StatusCode = "406", Message = "Database Updation Failed" });
-            
-            return Ok(new ResponseDto() { Data = availabilityOption, Status = true, StatusCode = "200", Message = "Record Updated Successfully" });
+            try
+            {
+                var decryptId = StringCipher.DecryptionId(userId);
+                if (availabilityOption == "true")
+                    availabilityOption = "1";
+                else
+                    availabilityOption = "0";
+                var obj = await userRepo.UpdateUserAccountAvailabilityStatus(decryptId, Convert.ToInt32(availabilityOption));
+                if (!obj)
+                    return BadRequest(GeneralPurpose.GenerateResponseCode(false, "406", GlobalMessages.SystemFailureMessage, availabilityOption));
+                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Status Updated Successfully!", availabilityOption));
+            }
+            catch (Exception ex)
+            {
+                GeneralPurpose.CreateLogger(projectVariables, ex);
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.SystemFailureMessage));
+            }
         }
 
         #endregion

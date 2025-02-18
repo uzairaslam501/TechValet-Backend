@@ -228,26 +228,34 @@ namespace ITValet.Controllers
         [HttpPost("CreateStripeCharge")]
         public async Task<IActionResult> CreateStripePayment(DirectOrderDTO stripePayment)
         {
-            var createStripeDto = new CheckOutDTO();
-            createStripeDto.StripeId = stripePayment?.StripeId;
-            createStripeDto.StripeEmail = stripePayment?.StripeEmail;
-            createStripeDto.StripeToken = stripePayment?.StripeToken;
-            createStripeDto.PaymentTitle = stripePayment?.Title;
-            createStripeDto.PaymentDescription = stripePayment?.Description;
-            createStripeDto.ActualOrderPrice = stripePayment?.ActualOrderPrice;
-            createStripeDto.TotalWorkCharges = stripePayment?.TotalWorkCharges;
-            createStripeDto.FromDateTime = stripePayment?.FromDateTime;
-            createStripeDto.ToDateTime = stripePayment?.ToDateTime;
-            createStripeDto.WorkingHours = stripePayment?.WorkingHours;
-            createStripeDto.ValetId = DecryptionId(stripePayment?.ValetId!).ToString();
-            createStripeDto.CustomerId = DecryptionId(stripePayment?.CustomerId!).ToString();
-            createStripeDto.OfferId = !string.IsNullOrEmpty(stripePayment?.OfferId) ? Convert.ToInt32(stripePayment?.OfferId!) : null;
+            try
+            {
+                var createStripeDto = new CheckOutDTO();
+                createStripeDto.StripeId = stripePayment?.StripeId;
+                createStripeDto.StripeEmail = stripePayment?.StripeEmail;
+                createStripeDto.StripeToken = stripePayment?.StripeToken;
+                createStripeDto.PaymentTitle = stripePayment?.Title;
+                createStripeDto.PaymentDescription = stripePayment?.Description;
+                createStripeDto.ActualOrderPrice = stripePayment?.ActualOrderPrice;
+                createStripeDto.TotalWorkCharges = stripePayment?.TotalWorkCharges;
+                createStripeDto.FromDateTime = stripePayment?.FromDateTime;
+                createStripeDto.ToDateTime = stripePayment?.ToDateTime;
+                createStripeDto.WorkingHours = stripePayment?.WorkingHours;
+                createStripeDto.ValetId = DecryptionId(stripePayment?.ValetId!).ToString();
+                createStripeDto.CustomerId = DecryptionId(stripePayment?.CustomerId!).ToString();
+                createStripeDto.OfferId = !string.IsNullOrEmpty(stripePayment?.OfferId) ? Convert.ToInt32(stripePayment?.OfferId!) : null;
 
-            var response = await CreateStripeCharge(createStripeDto);
-            if(response?.StatusCode == "200")
-                return Ok(response);
-            
-            return BadRequest(response);
+                var response = await CreateStripeCharge(createStripeDto);
+                if (response?.StatusCode == "200")
+                    return Ok(response);
+
+                return BadRequest(response);
+            }
+            catch (Exception ex)
+            {
+                GeneralPurpose.CreateLogger(_projectVariables, ex);
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", "Payment cannot be prcocessed at the current moment please try again later"));
+            }
         }
 
         [HttpPost("CreateStripeChargeForPackage")]
