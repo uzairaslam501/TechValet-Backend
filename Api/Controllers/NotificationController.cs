@@ -96,7 +96,7 @@ namespace ITValet.Controllers
                     IsRead = (int)notification.IsRead,
                     NotificationType = notification.NotificationType,
                 };
-                viewNotificationDto.CreatedAt = GeneralPurpose.regionChanged(Convert.ToDateTime(notification.CreatedAt), loggedInUser.Timezone);
+                viewNotificationDto.CreatedAt = Convert.ToDateTime(GeneralPurpose.regionChanged(Convert.ToDateTime(notification.CreatedAt), loggedInUser.Timezone)).ToString("yyyy-MMM-dd hh:mm tt");
 
                 viewNotificationDtoList.Add(viewNotificationDto);
             }
