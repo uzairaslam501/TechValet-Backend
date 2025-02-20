@@ -567,7 +567,7 @@ namespace ITValet.Controllers
                         {
                             GeneralPurpose.CreateLogger(_projectVariables, ex);
                             return BadRequest(GeneralPurpose.GenerateResponseCode(true, "400",
-                                $"{ex.Message} {(ex.InnerException != null ? ex.InnerException.Message : "")}"));
+                                $"{ex.Message}"));
                         }
                     }
                     getUser.IsBankAccountAdded = 1;
@@ -805,7 +805,5 @@ namespace ITValet.Controllers
             }
             return false;
         }
-
-
     }
 }
