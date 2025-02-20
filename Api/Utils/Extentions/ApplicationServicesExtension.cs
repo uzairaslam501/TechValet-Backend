@@ -40,7 +40,7 @@ namespace ITValet.Utils.Extentions
             services.AddScoped<IUserRatingRepo, UserRatingRepo>();
 
             services.AddTransient<IBlogRepo, BlogRepo>();
-            services.AddTransient<IFrequentlyAskedQuestionRepo, FrequentlyAskedQuestionRepo>();
+            //services.AddTransient<IFrequentlyAskedQuestionRepo, FrequentlyAskedQuestionRepo>();
         }
 
         private static void RegisterServices(IServiceCollection services, IConfiguration configuration)

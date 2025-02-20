@@ -280,6 +280,7 @@ namespace ITValet.HelpingClasses
         public bool? IsPaypalAccountComplete { get; set; } = false;
         public bool? IsProfileComplete { get; set; } = false;
         public bool? IsSkillsComplete { get; set; } = false;
+        public bool? IsBankAccountAdded { get; set; } = false;
     }
 
     public class ResponseDto
@@ -982,8 +983,8 @@ namespace ITValet.HelpingClasses
     public class EarningsApiResponse
     {
         public int? UserId { get; set; }
-        public string? BalancePending { get; set; }
-        public string? BalanceAvailable { get; set; }
+        public Decimal? BalancePending { get; set; }
+        public Decimal? BalanceAvailable { get; set; }
         public PayPalEarningInCome? PayPalEarning { get; set; }
     }
 

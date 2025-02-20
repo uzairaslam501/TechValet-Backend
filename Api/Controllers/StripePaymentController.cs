@@ -154,7 +154,7 @@ namespace ITValet.Controllers
             }
             catch (Exception ex)
             {
-                CreateLogger(ex);
+                GeneralPurpose.CreateLogger(_projectVariables, ex);
                 return BadRequest(GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage));
             }
         }
@@ -176,7 +176,7 @@ namespace ITValet.Controllers
             }
             catch (Exception ex)
             {
-                CreateLogger(ex);
+                GeneralPurpose.CreateLogger(_projectVariables, ex);
                 return Ok(GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage));
             }
         }
@@ -220,7 +220,7 @@ namespace ITValet.Controllers
             }
             catch (Exception ex)
             {
-                CreateLogger(ex);
+                GeneralPurpose.CreateLogger(_projectVariables, ex);
                 return Ok(GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage));
             }
         }
@@ -230,6 +230,10 @@ namespace ITValet.Controllers
         {
             try
             {
+
+                if (string.IsNullOrEmpty(stripePayment.ValetId) || string.IsNullOrEmpty(stripePayment?.CustomerId))
+                    return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.RecordNotFound));
+
                 var createStripeDto = new CheckOutDTO();
                 createStripeDto.StripeId = stripePayment?.StripeId;
                 createStripeDto.StripeEmail = stripePayment?.StripeEmail;
@@ -241,12 +245,12 @@ namespace ITValet.Controllers
                 createStripeDto.FromDateTime = stripePayment?.FromDateTime;
                 createStripeDto.ToDateTime = stripePayment?.ToDateTime;
                 createStripeDto.WorkingHours = stripePayment?.WorkingHours;
-                createStripeDto.ValetId = DecryptionId(stripePayment?.ValetId!).ToString();
-                createStripeDto.CustomerId = DecryptionId(stripePayment?.CustomerId!).ToString();
+                createStripeDto.ValetId = StringCipher.DecryptionId(stripePayment?.ValetId!).ToString();
+                createStripeDto.CustomerId = StringCipher.DecryptionId(stripePayment?.CustomerId!).ToString();
                 createStripeDto.OfferId = !string.IsNullOrEmpty(stripePayment?.OfferId) ? Convert.ToInt32(stripePayment?.OfferId!) : null;
 
                 var response = await CreateStripeCharge(createStripeDto);
-                if (response?.StatusCode == "200")
+                if (response?.Status == true)
                     return Ok(response);
 
                 return BadRequest(response);
@@ -270,8 +274,8 @@ namespace ITValet.Controllers
             createStripeDto.PaymentDescription = stripePayment?.Description;
             createStripeDto.TotalWorkCharges = stripePayment?.TotalWorkCharges;
             createStripeDto.ActualOrderPrice = stripePayment?.ActualOrderPrice;
-            createStripeDto.ValetId = DecryptionId(stripePayment?.ValetId!).ToString();
-            createStripeDto.CustomerId = DecryptionId(stripePayment?.CustomerId!).ToString();
+            createStripeDto.ValetId = StringCipher.DecryptionId(stripePayment?.ValetId!).ToString();
+            createStripeDto.CustomerId = StringCipher.DecryptionId(stripePayment?.CustomerId!).ToString();
             createStripeDto.OfferId = !string.IsNullOrEmpty(stripePayment?.OfferId) ? Convert.ToInt32(stripePayment?.OfferId!) : null;
             createStripeDto.PackageId = !string.IsNullOrEmpty(stripePayment?.PackageId) ? Convert.ToInt32(stripePayment?.PackageId) : null;
 
@@ -349,7 +353,7 @@ namespace ITValet.Controllers
             }
             catch (Exception ex)
             {
-                CreateLogger(ex);
+                GeneralPurpose.CreateLogger(_projectVariables, ex);
                 return Ok(GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage));
             }
         }
@@ -382,7 +386,7 @@ namespace ITValet.Controllers
             }
             catch (Exception ex)
             {
-                CreateLogger(ex);
+                GeneralPurpose.CreateLogger(_projectVariables, ex);
                 return Ok(GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage));
             }
         }
@@ -411,33 +415,32 @@ namespace ITValet.Controllers
                 });
         }
 
-        [HttpPost("StripeWithdrawAsync")]
-        public async Task<IActionResult> StripeWithdrawAsync(string amount, int userId)
+        [HttpPost("StripeWithdrawAsync/{userId}")]
+        public async Task<IActionResult> StripeWithdrawAsync(string userId)
         {
             try
             {
-                var user = await _userRepo.GetUserById(userId);
+                var decrypt = StringCipher.DecryptionId(userId);
+                var user = await _userRepo.GetUserById(decrypt);
+                if (user == null)
+                    return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.RecordNotFound));
+
 
                 if (user?.IsBankAccountAdded != 1)
-                    return BadRequest(new ResponseDto() { 
-                        Status = false, StatusCode = "400", Message = "Bank account not linked", Data = null
-                    });
+                    return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", "Bank account not linked"));
 
-                var result = await ProcessWithdrawal(amount, user.StripeId);
+                var response = await StripeHelper.GetStripeEarnings(user!.StripeId!, _projectVariables);
+                var result = await ProcessWithdrawal(response.BalanceAvailable, user!.StripeId!);
 
                 if (result)
-                    return Ok(new ResponseDto() { 
-                        Status = true, StatusCode = "200", Message = "Withdrawal Successful", Data = null 
-                    });
+                    return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Withdrawal Successful", user));
 
-                return BadRequest(new ResponseDto() {
-                    Status = false, StatusCode = "400", Message = "Withdrawal Failed", Data = null 
-                });
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", "Withdrawal Failed"));
             }
             catch (Exception ex)
             {
-                CreateLogger(ex);
-                return Ok(GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage));
+                GeneralPurpose.CreateLogger(_projectVariables, ex);
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "500", "Withdrawal Failed"));
             }
         }
 
@@ -453,7 +456,7 @@ namespace ITValet.Controllers
             }
             catch (Exception ex)
             {
-                CreateLogger(ex);
+                GeneralPurpose.CreateLogger(_projectVariables, ex);
                 return BadRequest(GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage));
             }
         }
@@ -466,16 +469,16 @@ namespace ITValet.Controllers
                 if (string.IsNullOrEmpty(email))
                     return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", "Invalid input parameters."));
                 
-                var decrypt = DecryptionId(userId);
+                var decrypt = StringCipher.DecryptionId(userId);
                 var user = await _userRepo.GetUserById(decrypt);
                 
                 var account = await StripeHelper.CreateStripeAccountUS(email, _projectVariables.ReactUrl); //This Function is For USD Payments will need to change in canadian;
                 var verificationResult = await StripeHelper.VerifyAccount(account.Id, _projectVariables.ReactUrl);
-                
+
                 user!.StripeId = account.Id;
                 user.IsVerify_StripeAccount = 0;
                 await _userRepo.UpdateUser(user);
-                
+
                 var responseList = new List<string>
                 {
                     verificationResult,
@@ -486,24 +489,7 @@ namespace ITValet.Controllers
             }
             catch (Exception ex)
             {
-                CreateLogger(ex);
-                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage));
-            }
-        }
-
-        [HttpGet("get-verified-account/{userId}")]
-        public async Task<IActionResult> GetVerified(string userId, string StripeAccountId)
-        {
-            try
-            {
-                var decrypt = DecryptionId(userId);
-                var getUrl = await StripeHelper.VerifyAccount(StripeAccountId, _projectVariables.ReactUrl);
-
-                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Account Verify successfully", getUrl));
-            }
-            catch (Exception ex)
-            {
-                CreateLogger(ex);
+                GeneralPurpose.CreateLogger(_projectVariables, ex);
                 return BadRequest(GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage));
             }
         }
@@ -513,10 +499,18 @@ namespace ITValet.Controllers
         {
             try
             {
-                var decrypt = DecryptionId(userId);
+                var decrypt = StringCipher.DecryptionId(userId);
                 var getUser = await _userRepo.GetUserById(decrypt);
                 if (getUser!.StripeId == stripeId)
                 {
+                    var response = await StripeHelper.StripeAccountStatus(stripeId);
+                    if (response.Status == false)
+                    {
+                        var verificationResult = await StripeHelper.VerifyAccount(stripeId, _projectVariables.ReactUrl);
+                        return Ok(GeneralPurpose.GenerateResponseCode(true, "400", 
+                            "You have to complete your stripe account information to verify the account", 
+                            verificationResult));
+                    }
                     getUser!.IsVerify_StripeAccount = 1;
                     await _userRepo.UpdateUser(getUser);
                     return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Account Verify successfully", getUser));
@@ -526,7 +520,7 @@ namespace ITValet.Controllers
             }
             catch (Exception ex)
             {
-                CreateLogger(ex);
+                GeneralPurpose.CreateLogger(_projectVariables, ex);
                 return BadRequest(GeneralPurpose.GenerateResponseCode(false, "500", ex.Message));
             }
         }
@@ -537,43 +531,55 @@ namespace ITValet.Controllers
             var response = new ResponseDto();
             try
             {
-                var decrypt = DecryptionId(userId);
+                var decrypt = StringCipher.DecryptionId(userId);
                 var getUser = await _userRepo.GetUserById(decrypt);
-                response = await StripeHelper.StripeAccountStatus(bankDto.stripeAccountId);
-                if (response.Data != "Completed")
+                if (getUser.IsBankAccountAdded != 1)
                 {
-                    if (bankDto.bankAccountNumber.Contains("\t"))
+                    response = await StripeHelper.StripeAccountStatus(bankDto.stripeAccountId);
+                    if (response.Data != "Completed")
                     {
-                        string keyword = "\t";
-                        string result = bankDto.bankAccountNumber.Replace(keyword, string.Empty);
-                        bankDto.bankAccountNumber = result;
-                    }
-
-                    var options = new ExternalAccountCreateOptions
-                    {
-                        ExternalAccount = new AccountBankAccountOptions
+                        if (bankDto.bankAccountNumber.Contains("\t"))
                         {
-                            AccountNumber = bankDto.bankAccountNumber,
-                            AccountHolderName = bankDto.accountHolderName,
-                            AccountHolderType = "individual",
-                            Country = "US",
-                            RoutingNumber = bankDto.routingNo,
-                            Currency = "USD",
+                            string keyword = "\t";
+                            string result = bankDto.bankAccountNumber.Replace(keyword, string.Empty);
+                            bankDto.bankAccountNumber = result;
                         }
-                    };
 
-                    var service = new ExternalAccountService();
-                    service.Create(bankDto.stripeAccountId, options);
+                        var options = new ExternalAccountCreateOptions
+                        {
+                            ExternalAccount = new AccountBankAccountOptions
+                            {
+                                AccountNumber = bankDto.bankAccountNumber,
+                                AccountHolderName = bankDto.accountHolderName,
+                                AccountHolderType = "individual",
+                                Country = "US",
+                                RoutingNumber = bankDto.routingNo,
+                                Currency = "USD",
+                            }
+                        };
+                        var service = new ExternalAccountService();
+
+                        try
+                        {
+                            service.Create(bankDto.stripeAccountId, options);
+                        }
+                        catch (Exception ex)
+                        {
+                            GeneralPurpose.CreateLogger(_projectVariables, ex);
+                            return BadRequest(GeneralPurpose.GenerateResponseCode(true, "400",
+                                $"{ex.Message} {(ex.InnerException != null ? ex.InnerException.Message : "")}"));
+                        }
+                    }
+                    getUser.IsBankAccountAdded = 1;
+                    if (!await _userRepo.UpdateUser(getUser))
+                        return BadRequest(response);
+                    return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Account details added successfully.", getUser));
                 }
-                getUser.IsBankAccountAdded = 1;
-                if (!await _userRepo.UpdateUser(getUser))
-                    return BadRequest(response);
-                
-                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", GlobalMessages.UpdateMessage, getUser));
+                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Bank account detail already attached.", getUser));
             }
             catch(Exception ex)
             {
-                CreateLogger(ex);
+                GeneralPurpose.CreateLogger(_projectVariables, ex);
                 return BadRequest(GeneralPurpose.GenerateResponseCode(true, "400", GlobalMessages.SystemFailureMessage)); ;
             }
         }
@@ -650,17 +656,16 @@ namespace ITValet.Controllers
             }
         }
 
-        private async Task<bool> ProcessWithdrawal(string amount, string stripeId)
+        private async Task<bool> ProcessWithdrawal(decimal amount, string stripeId)
         {
             try
             {
-                decimal decimalAmount = decimal.Parse(amount, CultureInfo.InvariantCulture);
-                int amountInCents = (int)(decimalAmount * 100);
+                int amountInCents = (int)(amount * 100);
 
                 var payout_to_bank = new PayoutCreateOptions
                 {
                     Amount = amountInCents,
-                    Currency = "CAD",
+                    Currency = "USD",
                 };
 
                 var requestOptions = new RequestOptions();
@@ -672,7 +677,7 @@ namespace ITValet.Controllers
             }
             catch (Exception ex)
             {
-                await MailSender.SendErrorMessage(_projectVariables.BaseUrl + " ----------<br>" + ex.Message.ToString() + "---------------" + ex.StackTrace);
+                GeneralPurpose.CreateLogger(_projectVariables, ex);
                 return false;
             }
         }
@@ -699,7 +704,7 @@ namespace ITValet.Controllers
             }
             catch (Exception ex)
             {
-                await MailSender.SendErrorMessage(_projectVariables.BaseUrl + " ----------<br>" + ex.Message.ToString() + "---------------" + ex.StackTrace);
+                GeneralPurpose.CreateLogger(_projectVariables, ex);
                 return false;
             }
         }
@@ -707,41 +712,45 @@ namespace ITValet.Controllers
         private async Task<bool> UpdateOrder(string orderCharges, string actualOrderAmount,
             string paymentCharged, int orderId)
         {
-            // Parse input strings to decimals with error handling
-            if (!decimal.TryParse(orderCharges, out var orderChargesValue) ||
-                !decimal.TryParse(actualOrderAmount, out var actualOrderAmountValue))
+            try
             {
-                throw new ArgumentException("Invalid orderCharges or actualOrderAmount values provided.");
-            }
+                // Parse input strings to decimals with error handling
+                if (!decimal.TryParse(orderCharges, out var orderChargesValue) ||
+                    !decimal.TryParse(actualOrderAmount, out var actualOrderAmountValue))
+                    return false;
+                
+                
 
-            // Retrieve the order by ID
-            var order = await _orderRepo.GetOrderById(orderId);
-            if (order == null)
+                // Retrieve the order by ID
+                var order = await _orderRepo.GetOrderById(orderId);
+                if (order == null)
+                    return false;
+
+                // Update order fields
+                order.IsActive = 1;
+                order.TotalAmountIncludedFee = orderChargesValue;
+                order.OrderPrice = actualOrderAmountValue;
+
+                // Update package-related fields if applicable
+                if (order.PackageId.HasValue)
+                {
+                    order.PackageBuyFrom = "STRIPE";
+                    order.StripeStatus = (int)StripePaymentStatus.SessionUsed;
+                }
+
+                // Update payment-related fields if provided
+                if (!string.IsNullOrEmpty(paymentCharged))
+                    order.StripeChargeId = paymentCharged;
+
+                // Save changes to the database
+                var updateResult = await _orderRepo.UpdateOrder(order);
+                return updateResult;
+            }
+            catch (Exception ex)
             {
-                throw new InvalidOperationException($"Order with ID {orderId} not found.");
+                GeneralPurpose.CreateLogger(_projectVariables, ex);
+                return false;
             }
-
-            // Update order fields
-            order.IsActive = 1;
-            order.TotalAmountIncludedFee = orderChargesValue;
-            order.OrderPrice = actualOrderAmountValue;
-
-            // Update package-related fields if applicable
-            if (order.PackageId.HasValue)
-            {
-                order.PackageBuyFrom = "STRIPE";
-                order.StripeStatus = (int)StripePaymentStatus.SessionUsed;
-            }
-
-            // Update payment-related fields if provided
-            if (!string.IsNullOrEmpty(paymentCharged))
-            {
-                order.StripeChargeId = paymentCharged;
-            }
-
-            // Save changes to the database
-            var updateResult = await _orderRepo.UpdateOrder(order);
-            return updateResult;
         }
 
         private async Task<string> CreateStripeChargeAsync(string email, string token, string description, string amount, string currency = "CAD")
@@ -773,8 +782,8 @@ namespace ITValet.Controllers
             }
             catch (Exception ex)
             {
-                await MailSender.SendErrorMessage(_projectVariables.BaseUrl + " ----------<br>" + ex.Message + "---------------" + ex.StackTrace);
-                return string.Empty;
+                GeneralPurpose.CreateLogger(_projectVariables, ex);
+                return "";
             }
         }
 
@@ -797,55 +806,6 @@ namespace ITValet.Controllers
             return false;
         }
 
-        private async Task<ViewModelMessageChatBox> NotifyOffer(OfferDetail offer, Message message, User getLoggedInUser)
-        {
-            var viewModelMessage = new ViewModelMessageChatBox
-            {
-                Id = message.Id.ToString(),
-                MessageEncId = StringCipher.EncryptId(message.Id),
-                MessageDescription = message.MessageDescription,
-                IsRead = message.IsRead?.ToString(),
-                FilePath = message.FilePath,
-                MessageTime = GeneralPurpose.regionChanged(Convert.ToDateTime(message.CreatedAt), getLoggedInUser?.Timezone!),
-                SenderId = message.SenderId.ToString(),
-            };
-            //order wprk
-            if (offer != null)
-            {
-                viewModelMessage.OfferTitleId = offer.Id.ToString();
-                viewModelMessage.OfferTitle = offer.OfferTitle;
-                viewModelMessage.TransactionFee = offer.TransactionFee;
-                viewModelMessage.OfferDescription = offer.OfferDescription;
-                viewModelMessage.OfferPrice = offer.OfferPrice.ToString();
-                viewModelMessage.StartedDateTime = offer.StartedDateTime.ToString();
-                viewModelMessage.EndedDateTime = offer.EndedDateTime.ToString();
-                viewModelMessage.CustomerId = offer.CustomerId.ToString();
-                viewModelMessage.ValetId = offer.ValetId.ToString();
-                viewModelMessage.OfferStatus = offer.OfferStatus.ToString();
-                viewModelMessage.Name = $"{getLoggedInUser?.FirstName} {getLoggedInUser?.LastName}";
-                viewModelMessage.Username = getLoggedInUser?.UserName;
-                viewModelMessage.ProfileImage = getLoggedInUser?.ProfilePicture;
-            }
-            //end
 
-
-            await _notificationHubSocket.Clients.All.SendAsync("ReceiveOffers",
-                viewModelMessage,
-                message.SenderId,
-                message.ReceiverId
-            );
-            return viewModelMessage;
-        }
-
-        private int DecryptionId(string userId)
-        {
-            var validEncrypted = GeneralPurpose.ConversionEncryptedId(userId);
-            return StringCipher.DecryptId(validEncrypted);
-        }
-
-        private async void CreateLogger(Exception ex)
-        {
-            await MailSender.SendErrorMessage($"Controller: Stripe Controller <br/> URL: {_projectVariables.BaseUrl}<br/> Exception Message:  {ex.Message} <br/> Stack Trace: {ex.StackTrace}");
-        }
     }
 }

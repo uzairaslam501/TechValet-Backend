@@ -40,41 +40,47 @@ namespace ITValet.Utils.Helpers
                 var account = await accountService.GetAsync(accountId);
 
                 if (account?.StripeResponse?.StatusCode != HttpStatusCode.OK)
-                    throw new Exception(GlobalMessages.SystemFailureMessage);
-                
-                var cardPaymentsCapability = account.Capabilities?.CardPayments;
+                    return GeneralPurpose.GenerateResponseCode(false, "400", $"Could not find Stripe Account");
 
-                response.Status = true;
-
-                switch (cardPaymentsCapability)
+                var requiredActions = new List<string>();
+                if (account.Requirements != null)
                 {
-                    case "active":
-                        response.Data = "Completed";
-                        response.Message = "Stripe Account Verified";
-                        break;
+                    // Collect all required fields that are currently due
+                    if (account.Requirements.CurrentlyDue != null && account.Requirements.CurrentlyDue.Count > 0)
+                    {
+                        requiredActions.AddRange(account.Requirements.CurrentlyDue);
+                    }
 
-                    case "inactive":
-                        response.Data = "Restricted";
-                        response.Message = "Stripe Account Not Verified";
-                        break;
-
-                    default:
-                        response.Data = "Unknown";
-                        response.Message = "Card payments capability status is unknown.";
-                        response.Status = false;
-                        break;
+                    // Collect any past due fields
+                    if (account.Requirements.Errors != null && account.Requirements.Errors.Count > 0)
+                    {
+                        foreach (var error in account.Requirements.Errors)
+                        {
+                            requiredActions.Add($"{error.Code}: {error.Reason}");
+                        }
+                    }
                 }
+
+                // Check if the account is restricted or missing required information
+                if (!string.IsNullOrEmpty(account.Requirements?.DisabledReason) || requiredActions.Count() > 0)
+                    return GeneralPurpose.GenerateResponseCode(false, "400", $"Stripe Account is restricted: {account.Requirements.DisabledReason}", "Resctricted");
+
+                // Check payment and payout capabilities
+                var cardPaymentsCapability = account.Capabilities?.CardPayments;
+                var payoutCapability = account.Capabilities?.Transfers;
+
+                if (cardPaymentsCapability == "active" && payoutCapability == "active")
+                    return GeneralPurpose.GenerateResponseCode(true, "200", $"Stripe Account is fully verified and operational.", "Completed");
+                else if (cardPaymentsCapability == "inactive" || payoutCapability == "inactive")
+                    return GeneralPurpose.GenerateResponseCode(false, "400", $"Stripe Account is missing required verifications", "Resctricted");
+                else
+                    return GeneralPurpose.GenerateResponseCode(false, "400", $"Stripe Account could not be determind", "Unknown");
             }
             catch (Exception ex)
             {
-                response.Status = false;
-                response.StatusCode = "500";
-                response.Message = $"An error occurred: {ex.Message}";
+                return GeneralPurpose.GenerateResponseCode(false, "500", $"An error occured: {ex.Message}");
             }
-
-            return response;
         }
-
 
         public static async Task<Account> CreateStripeAccountUS(string email, string reactUrl)
         {
@@ -177,6 +183,39 @@ namespace ITValet.Utils.Helpers
                 Collect = "eventually_due",
             });
             return result.Url;
+        }
+
+        public static async Task<StripeEarnings> GetStripeEarnings(string stripeId, ProjectVariables _projectVariables)
+        {
+            try
+            {
+                var requestOptions = new RequestOptions { StripeAccount = stripeId };
+                var balanceService = new BalanceService();
+                var balance = balanceService.Get(requestOptions);
+
+                if (balance == null || balance.Available == null || balance.Pending == null)
+                    return new StripeEarnings { BalancePending = 0, BalanceAvailable = 0 };
+
+                // Convert cents to dollars using decimal division
+                var balanceAvailable = balance.Available.Sum(b => (decimal)b.Amount) / 100m;
+                var balancePending = balance.Pending.Sum(b => (decimal)b.Amount) / 100m;
+
+                return new StripeEarnings
+                {
+                    BalanceAvailable = balanceAvailable,
+                    BalancePending = balancePending,
+                };
+            }
+            catch (StripeException ex)
+            {
+                GeneralPurpose.CreateLogger(_projectVariables, ex);
+                return new StripeEarnings { BalancePending = 0, BalanceAvailable = 0 };
+            }
+            catch (Exception ex)
+            {
+                GeneralPurpose.CreateLogger(_projectVariables, ex);
+                return new StripeEarnings { BalancePending = 0, BalanceAvailable = 0 };
+            }
         }
     }
 

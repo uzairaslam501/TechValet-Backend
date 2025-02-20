@@ -596,7 +596,8 @@ namespace ITValet.Controllers
 
                 IsStripeAccountComplete = obj.IsVerify_StripeAccount == 1,
                 IsPaypalAccountComplete = obj.IsPayPalAccount == 1,
-                IsProfileComplete = !string.IsNullOrEmpty(obj.Contact) && !string.IsNullOrEmpty(obj.Gender)
+                IsProfileComplete = !string.IsNullOrEmpty(obj.Contact) && !string.IsNullOrEmpty(obj.Gender),
+                IsBankAccountAdded = obj.IsBankAccountAdded == 1,
             };
 
             int? checkIfSkillls = await userSkillRepo.GetUserSkillCountByIdAsync(obj.Id);

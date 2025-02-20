@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.SignalR;
 using System.Net;
 using ITValet.ViewModel;
 using Microsoft.AspNetCore.Authorization;
+using ITValet.Utils.Helpers;
 
 namespace ITValet.Controllers
 {
@@ -1062,14 +1063,14 @@ namespace ITValet.Controllers
                     return NotFound(new ResponseDto { Status = false, StatusCode = "404", Message = "User not found" });
 
                 // Get earnings
-                var stripeEarnings = GetStripeEarnings(user);
+                var stripeEarnings = await StripeHelper.GetStripeEarnings(user.StripeId!, projectVariables);
                 var payPalEarnings = await _payPalGateWayService.GetPayPalEarnings(decrypt);
 
                 // Prepare response
                 var response = new EarningsApiResponse
                 {
-                    BalancePending = stripeEarnings.BalancePending.ToString(),
-                    BalanceAvailable = stripeEarnings.BalanceAvailable.ToString(),
+                    BalancePending = stripeEarnings.BalancePending,
+                    BalanceAvailable = stripeEarnings.BalanceAvailable,
                     UserId = user.Id,
                     PayPalEarning = payPalEarnings,
                 };
@@ -1081,26 +1082,6 @@ namespace ITValet.Controllers
                 await MailSender.SendErrorMessage(ex.Message);
                 return Ok(new ResponseDto { Status = true, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
             }
-        }
-
-        // Fetch Stripe earnings
-        private StripeEarnings GetStripeEarnings(User user)
-        {
-            if (user.Role != (int)EnumRoles.Valet || string.IsNullOrEmpty(user.StripeId))
-                return new StripeEarnings { BalancePending = 0, BalanceAvailable = 0 };
-
-            var requestOptions = new RequestOptions { StripeAccount = user.StripeId };
-            var balanceService = new BalanceService();
-            var balance = balanceService.Get(requestOptions);
-
-            var balanceAvailable = balance.Available.Sum(b => b.Amount) / 100;
-            var balancePending = balance.Pending.Sum(b => b.Amount) / 100;
-
-            return new StripeEarnings
-            {
-                BalanceAvailable = balanceAvailable,
-                BalancePending = balancePending,
-            };
         }
 
         #endregion
