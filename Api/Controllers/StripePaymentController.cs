@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Options;
 using Stripe;
 using Stripe.Checkout;
-using System.Globalization;
 
 namespace ITValet.Controllers
 {
@@ -325,31 +324,17 @@ namespace ITValet.Controllers
             try
             {
                 var package = StripeHelper.InitializePackage(checkOut, out var packagePrice);
-                var userPackageId = await _userPackageService.AddUserPackageAndGetId(package);
-
-                if (userPackageId == -1)
-                    throw new Exception("Package processing failed");
-
                 var chargeResult = await ProcessChargeForPackage(checkOut, packagePrice);
-
-                if (!string.IsNullOrEmpty(chargeResult) && await _userPackageService.UpdateUserPackage(userPackageId, "STRIPE"))
+                
+                if (!string.IsNullOrEmpty(chargeResult))
                 {
-                    return Ok(new ResponseDto()
-                    {
-                        Status = true,
-                        StatusCode = "200",
-                        Message = "Your Package Buy Successfully",
-                        Data = userPackageId,
-                    });
+                    package.PaidBy = "STRIPE";
+                    var userPackageId = await _userPackageService.AddUserPackageAndGetId(package);
+                    return Ok(GeneralPurpose.GenerateResponse(true, "200", $"You have succesfully bought the {package.PackageName} Package", userPackageId));
                 }
 
-                return BadRequest(new ResponseDto()
-                {
-                    Status = false,
-                    StatusCode = "500",
-                    Message = GlobalMessages.SystemFailureMessage,
-                    Data = null,
-                });
+                return BadRequest(GeneralPurpose.GenerateResponse(false, "400",
+                    $"The purchased of {package.PackageName} Package is not successfull. Please try again later"));
             }
             catch (Exception ex)
             {
@@ -501,19 +486,29 @@ namespace ITValet.Controllers
             {
                 var decrypt = StringCipher.DecryptionId(userId);
                 var getUser = await _userRepo.GetUserById(decrypt);
+
+                var toaster = "";
+                var verificationResult = "";
                 if (getUser!.StripeId == stripeId)
                 {
                     var response = await StripeHelper.StripeAccountStatus(stripeId);
                     if (response.Status == false)
                     {
-                        var verificationResult = await StripeHelper.VerifyAccount(stripeId, _projectVariables.ReactUrl);
-                        return Ok(GeneralPurpose.GenerateResponseCode(true, "400", 
-                            "You have to complete your stripe account information to verify the account", 
-                            verificationResult));
+                        verificationResult = await StripeHelper.VerifyAccount(stripeId, _projectVariables.ReactUrl);
+                        toaster = "You have to complete your stripe account information to verify the account";
                     }
-                    getUser!.IsVerify_StripeAccount = 1;
-                    await _userRepo.UpdateUser(getUser);
-                    return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Account Verify successfully", getUser));
+                    else
+                    {
+                        getUser!.IsVerify_StripeAccount = 1;
+                        await _userRepo.UpdateUser(getUser);
+                        toaster = "Account Verified successfully";
+                    }
+                    var newDto = new
+                    {
+                        getUser = getUser,
+                        verificationResult = verificationResult
+                    };
+                    return Ok(GeneralPurpose.GenerateResponseCode(true, "200", toaster, newDto));
                 }
                 return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.RecordNotFound));
 

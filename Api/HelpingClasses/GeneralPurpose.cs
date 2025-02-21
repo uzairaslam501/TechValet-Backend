@@ -384,9 +384,9 @@ namespace ITValet.HelpingClasses
 
             return obj = new User
             {
-                FirstName = user.Firstname,
-                LastName = user.Lastname,
-                UserName = user.Username,
+                FirstName = user.Firstname!.Trim(),
+                LastName = user.Lastname!.Trim(),
+                UserName = user.Username!.Trim(),
                 Email = user.Email,
                 Password = StringCipher.Encrypt(user.Password!),
                 Country = user.Country,

@@ -99,11 +99,11 @@ namespace ITValet.Controllers
             {
                 Id = user.Id,
                 UserEncId = StringCipher.EncryptId(user.Id),
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                UserName = user.UserName,
+                FirstName = user.FirstName!.Trim(),
+                LastName = user.LastName!.Trim(),
+                UserName = user.UserName!.Trim(),
                 Contact = user.Contact,
-                Email = user.Email,
+                Email = user.Email!.Trim(),
                 Password = StringCipher.Decrypt(user?.Password!),
                 Gender = user?.Gender,
                 ProfilePicture = user?.ProfilePicture != null ? projectVariables.BaseUrl + user.ProfilePicture : null,
@@ -290,9 +290,10 @@ namespace ITValet.Controllers
                 return BadRequest(GlobalMessages.DuplicateEmail);
             }
 
-            obj.FirstName = !string.IsNullOrEmpty(user.FirstName) ? user.FirstName : obj.FirstName;
-            obj.LastName = !string.IsNullOrEmpty(user.LastName) ? user.LastName : obj.LastName;
-            obj.Contact = !string.IsNullOrEmpty(user.Contact) ? user.Contact : obj.Contact;
+            obj.FirstName = !string.IsNullOrEmpty(user.FirstName) ? user.FirstName!.Trim() : obj.FirstName;
+            obj.LastName = !string.IsNullOrEmpty(user.LastName) ? user.LastName!.Trim() : obj.LastName;
+            obj.UserName = !string.IsNullOrEmpty(user.UserName) ? user.UserName!.Trim() : obj.UserName;
+            obj.Contact = !string.IsNullOrEmpty(user.Contact) ? user.Contact!.Trim() : obj.Contact;
             obj.BirthDate = !string.IsNullOrEmpty(user.BirthDate) ? Convert.ToDateTime(user.BirthDate) : obj.BirthDate;
             obj.Country = !string.IsNullOrEmpty(user.Country) ? user.Country : obj.Country;
             obj.State = !string.IsNullOrEmpty(user.State) ? user.State : obj.State;

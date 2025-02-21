@@ -1089,22 +1089,18 @@ namespace ITValet.Controllers
         #region SearchValet
 
         [HttpGet("SearchValet")]
-        public async Task<IActionResult> GetSearchedValetRecord (string keyword)
+        public async Task<IActionResult> GetSearchedValetRecord(string keyword)
         {
             try
             {
                 var searchValets = await _searchLogService.SearchValetsAndSkillsByKey(keyword);
-                if (searchValets.Count() > 0)
-                {
-                  return Ok(new ResponseDto() { Data = searchValets, Status = true, StatusCode = "200", Message = "Valets Found Successfully" });
-                }
 
-                return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = "Record Not Found" });
+                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "", searchValets));
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                MailSender.SendErrorMessage(projectVariables.BaseUrl + " ----------<br>" + ex.Message.ToString() + "---------------" + ex.StackTrace);
-                return Ok(new ResponseDto() { Status = false, StatusCode = "404", Message = "Exception Occured" });
+                GeneralPurpose.CreateLogger(projectVariables, ex);
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.SystemFailureMessage));
             }
         }
 

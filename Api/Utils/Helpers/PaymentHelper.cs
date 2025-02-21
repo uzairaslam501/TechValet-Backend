@@ -72,6 +72,42 @@ namespace ITValet.Utils.Helpers
             }
         }
 
+        public static PackageDetails InitializePackage(string selectedPackage)
+        {
+            if (selectedPackage == "IYear")
+            {
+                return new PackageDetails
+                {
+                    Price = 100.00m,
+                    Description = "1 Year (6 Sessions) Package",
+                    StartDate = DateTime.Now,
+                    EndDate = DateTime.Now.AddYears(1),
+                    TotalSessions = 6,
+                    RemainingSessions = 6,
+                    PackageType = 1,
+                    PackageName = "IYear"
+                };
+            }
+            else if (selectedPackage == "2Year")
+            {
+                return new PackageDetails
+                {
+                    Price = 200.00m,
+                    Description = "2 Years (12 Sessions) Package",
+                    StartDate = DateTime.Now,
+                    EndDate = DateTime.Now.AddYears(2),
+                    TotalSessions = 12,
+                    RemainingSessions = 12,
+                    PackageType = 2,
+                    PackageName = "2Year"
+                };
+            }
+            else
+            {
+                return null;
+            }
+        }
+
         public static Payment ExecutePayment(string paymentId, string payerID, IConfiguration configuration)
         {
             var config = new Dictionary<string, string> { { "mode", "sandbox" } };

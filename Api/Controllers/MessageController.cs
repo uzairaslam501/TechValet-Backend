@@ -334,7 +334,9 @@ namespace ITValet.Controllers
 
                     if (!String.IsNullOrWhiteSpace(Name))
                     {
-                        messagesList = messagesList.Where(a => a.Username.ToLower().Contains(Name.ToLower())).ToList();
+                        messagesList = messagesList.Where(a =>
+                        a.Username.ToLower().Contains(Name.ToLower())
+                        ).ToList();
                     }
                     if(string.IsNullOrWhiteSpace(Name) && string.IsNullOrEmpty(GetUserChatOnTop))
                         messagesList = messagesList.OrderByDescending(msg => DateTime.Parse(msg.MessageTime)).ToList();

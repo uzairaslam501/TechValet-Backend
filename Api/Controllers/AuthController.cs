@@ -70,7 +70,13 @@ namespace ITValet.Controllers
                     Message = GlobalMessages.LoginNotFound
                 });
             }
-            if(user.IsActive == 3)
+            if (user.IsActive == (int)EnumActiveStatus.AdminVerificationPending)
+            {
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "205",
+                    "Your account is currently undergoing admin verification. Please be patient—you will receive an email notification once the process is complete.", 
+                    "AdminVerification"));
+            }
+            if (user.IsActive == (int)EnumActiveStatus.EmailVerificationPending)
             {
                 return BadRequest(new ResponseDto
                 {
@@ -80,7 +86,7 @@ namespace ITValet.Controllers
                     Data = "EmailVerfication"
                 });
             }
-            if(user.IsActive == 4)
+            if(user.IsActive == (int)EnumActiveStatus.AccountOnHold)
             {
                 return BadRequest(new ResponseDto
                 {
@@ -94,6 +100,7 @@ namespace ITValet.Controllers
                 ? await HandleValetAccountLogic(user)
                 : 1;
 
+            user = await userRepo.HandleUserOnlineStatus(user, "Online");
             var loggedin = await CreateUserClaims(user);
             loggedin.IsCompleteValetAccount = isCompleteValetAccount.ToString();
 
@@ -538,6 +545,26 @@ namespace ITValet.Controllers
 
         #endregion
 
+        [CustomAuthorize]
+        [HttpPatch("Logout")]
+        public async Task<IActionResult> PostLogout()
+        {
+            try
+            {
+                var loggedInUser = jwtUtils.ValidateToken(Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last());
+                var getUser = await userRepo.GetUserById((int)loggedInUser!.Id!);
+
+                var user = await userRepo.HandleUserOnlineStatus(getUser!, "Offline");
+
+                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Logout Successfully", user));
+            }
+            catch (Exception ex)
+            {
+                GeneralPurpose.CreateLogger(projectVariables, ex);
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", "Logout Not Successfully"));
+            }
+        }
+
         #region Helpers
         private async Task<int> HandleValetAccountLogic(User user)
         {
@@ -547,9 +574,10 @@ namespace ITValet.Controllers
 
         private void UpdateUserProperties(UserViewModel user, User obj)
         {
-            obj.FirstName = !string.IsNullOrEmpty(user.FirstName) ? user.FirstName : obj.FirstName;
-            obj.LastName = !string.IsNullOrEmpty(user.LastName) ? user.LastName : obj.LastName;
-            obj.Contact = !string.IsNullOrEmpty(user.Contact) ? user.Contact : obj.Contact;
+            obj.FirstName = !string.IsNullOrEmpty(user.FirstName) ? user.FirstName.Trim() : obj.FirstName;
+            obj.LastName = !string.IsNullOrEmpty(user.LastName) ? user.LastName.Trim() : obj.LastName;
+            obj.UserName = !string.IsNullOrEmpty(user.UserName) ? user.UserName.Trim() : obj.UserName;
+            obj.Contact = !string.IsNullOrEmpty(user.Contact) ? user.Contact.Trim() : obj.Contact;
             obj.BirthDate = !string.IsNullOrEmpty(user.BirthDate) ? Convert.ToDateTime(user.BirthDate) : obj.BirthDate;
             obj.Country = !string.IsNullOrEmpty(user.Country) ? user.Country : obj.Country;
             obj.State = !string.IsNullOrEmpty(user.State) ? user.State : obj.State;

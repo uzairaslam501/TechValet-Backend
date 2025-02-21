@@ -170,7 +170,10 @@ namespace ITValet.Controllers
         {
             try
             {
-                var decryptId = StringCipher.DecryptionId(id);
+                if (string.IsNullOrEmpty(id))
+                    return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.RecordNotFound));
+
+                var decryptId = Convert.ToInt32(id);
                 var getOrder = await orderRepo.GetOrderById(decryptId);
 
                 if(getOrder == null)

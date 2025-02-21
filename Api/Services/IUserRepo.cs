@@ -32,7 +32,6 @@ namespace ITValet.Services
         Task<bool> TransferFunds(string destinationAccountId, decimal amount);
         Task<List<User>> GetValetRecord();
         Task<List<User?>> GetSkilledUsersByIds(List<int?> userIds);
-        Task<List<User?>> GetUsersByName(string userName);
         Task<bool> CheckValetAvailability(int valetId, string StartDate, string EndDate);
         Task<bool> IsDateRangeAvailable(int valetId, DateTime startDate, DateTime endDate);
         Task<List<ValetAvailableSlots>> GetValetAvailableSlots(int valetId);
@@ -43,6 +42,8 @@ namespace ITValet.Services
 
         #region New
         Task<User> HandleUpdateProfileIsActive(string userId);
+        Task<User> HandleUserOnlineStatus(User user, string? userStatus = "");
+        Task<List<User?>> GetValetUsersBy_CustomerSearch(string userName);
         #endregion
 
     }
@@ -80,45 +81,6 @@ namespace ITValet.Services
                 return null;
             }
         }
-
-        public async Task<List<User?>> GetUsersByName(string userName)
-        {
-            try
-            {
-                List<User?> users;
-                List<string> searchTerms = userName.Split(' ').ToList();
-
-                if (searchTerms.Count == 1)
-                {
-                    users = await _context.User
-                        .Where(u => u.Role == 4 &&
-                                    //u.IsBankAccountAdded == 1 && // Check for the value indicating the bank account is added
-                                    u.IsActive == (int)EnumActiveStatus.Active &&
-                                    (u.UserName == userName || u.FirstName == userName || u.LastName == userName || u.Email == userName))
-                        .ToListAsync<User?>();
-
-                    return users;
-                }
-                else if (searchTerms.Count > 1)
-                {
-                    users = await _context.User
-                        .Where(u => u.Role != 1 &&
-                                    //u.IsBankAccountAdded == 1 && // Check for the value indicating the bank account is added
-                                    u.IsActive == (int)EnumActiveStatus.Active &&
-                                    (u.UserName == searchTerms[1] || u.FirstName == searchTerms[1] || u.LastName == searchTerms[1] || u.Email == searchTerms[1]))
-                        .ToListAsync<User?>();
-
-                    return users;
-                }
-
-                return null;
-            }
-            catch (Exception ex)
-            {
-                return null;
-            }
-        }
-
         public async Task<bool> AddUser(User user)
         {
             try
@@ -698,6 +660,51 @@ namespace ITValet.Services
             userObj.IsActive = 1;
 
             return userObj;
+        }
+
+
+        public async Task<List<User>> GetValetUsersBy_CustomerSearch(string userName)
+        {
+            try
+            {
+                userName = userName.Trim().ToLower();
+                return await _context.User
+                    .Where(u =>
+                                u.IsActive == (int)EnumActiveStatus.Active &&
+                                u.Role.HasValue && u.Role.Value == (int)EnumRoles.Valet &&
+                                u.IsVerify_StripeAccount == 1 &&
+                                u.IsPayPalAccount == 1 &&
+                                ((u.UserName != null && u.UserName.ToLower().Contains(userName)) ||
+                                    (u.FirstName != null && u.FirstName.ToLower().Contains(userName)) ||
+                                    (u.LastName != null && u.LastName.ToLower().Contains(userName)) ||
+                                    ((u.FirstName!.Trim() + " " + u.LastName!.Trim()).ToLower().Contains(userName)) ||
+                                    (u.Email != null && u.Email.ToLower().Contains(userName))))
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                GeneralPurpose.CreateLogger(_projectVariables, ex);
+                return new List<User>();
+            }
+        }
+
+        public async Task<User> HandleUserOnlineStatus(User user, string? userStatus = "")
+        {
+            try
+            {
+                if (userStatus == "Online")
+                    user!.Status = 1;
+                else if (userStatus == "Offline")
+                    user!.Status = 0;
+
+                await SaveChanges();
+                return user;
+            }
+            catch (Exception ex)
+            {
+                GeneralPurpose.CreateLogger(_projectVariables, ex);
+                return null;
+            }
         }
     }
 }

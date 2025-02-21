@@ -63,7 +63,7 @@ namespace ITValet.Services
                 }
                 else
                 {
-                    var searchUserByName = await _userService.GetUsersByName(searchKeyword);
+                    var searchUserByName = await _userService.GetValetUsersBy_CustomerSearch(searchKeyword);
                     searchedUsers = searchUserByName.Select(user => new SearchedUserList
                     {
                         UserProfile = projectVariables.BaseUrl + user.ProfilePicture,

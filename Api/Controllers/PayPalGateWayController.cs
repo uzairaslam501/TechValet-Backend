@@ -352,11 +352,10 @@ namespace ITValet.Controllers
             try
             {
                 // Prepare package data
-                var packageDetails = GetPackageDetails(checkOut.SelectedPackage);
+                var packageDetails = PayPalPaymentHelper.InitializePackage(checkOut.SelectedPackage!);
                 if (packageDetails == null)
-                {
-                    return BadRequest(new ResponseDto { Status = false, StatusCode = "400", Message = "Invalid package selection" });
-                }
+                    return BadRequest(GeneralPurpose.GenerateResponse(false, "400",
+                        $"The purchased of {checkOut.SelectedPackage} Package is not successfull. Please try again later"));
 
                 // Create payment request using PayPalPaymentHelper
                 var paymentRequest = PayPalPaymentHelper.CreatePaymentRequest(
@@ -373,30 +372,26 @@ namespace ITValet.Controllers
                 );
 
                 if (string.IsNullOrEmpty(paymentRequest.PaymentId))
-                {
-                    return StatusCode(500, new ResponseDto { Status = false, StatusCode = "500", Message = "Payment creation failed" });
-                }
+                    return BadRequest(GeneralPurpose.GenerateResponse(false, "400",
+                        $"The purchased of {checkOut.SelectedPackage} Package is not successfull. Please try again later"));
 
                 // Save package and PayPal details
                 packageDetails.PaymentId = paymentRequest.PaymentId;
                 packageDetails.ClientId = checkOut?.ClientId?.ToString();
                 var userPackageId = await _userPackageService.AddUserPackageAndGetId(packageDetails.ToUserPackage());
-                if (userPackageId == -1 || !await _payPalGateWayService.AddPayPalPackage(packageDetails.ToPackageCheckOutViewModel(userPackageId)))
-                {
-                    return StatusCode(500, new ResponseDto { Status = false, StatusCode = "500", Message = "Failed to save package details" });
-                }
 
-                return Ok(new ResponseDto
-                {
-                    Status = true,
-                    StatusCode = "200",
-                    Data = new PayPalCheckOutURL { Url = paymentRequest.ApprovalUrl }
-                });
+                if (userPackageId == -1 || !await _payPalGateWayService.AddPayPalPackage(packageDetails.ToPackageCheckOutViewModel(userPackageId)))
+                    return BadRequest(GeneralPurpose.GenerateResponse(false, "400",
+                        $"The purchased of {packageDetails.PackageName} Package is not successfull. Please try again later"));
+
+
+                return Ok(GeneralPurpose.GenerateResponse(true, "200",
+                    "", new PayPalCheckOutURL { Url = paymentRequest.ApprovalUrl! }));
             }
             catch (Exception ex)
             {
-                await MailSender.SendErrorMessage($"{projectVariables.BaseUrl}<br>{ex.Message}<br>{ex.StackTrace}");
-                return StatusCode(500, new ResponseDto { Status = false, StatusCode = "500", Message = GlobalMessages.SystemFailureMessage });
+                GeneralPurpose.CreateLogger(projectVariables, ex);
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage));
             }
         }
 
