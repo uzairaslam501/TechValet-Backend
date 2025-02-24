@@ -433,7 +433,7 @@ namespace ITValet.Services
                 var transferCreateOptions = new TransferCreateOptions
                 {
                     Amount = (long)TransferAmountToValet, // Convert amount to cents
-                    Currency = "USD",
+                    Currency = _projectVariables.PaymentCurrency,
                     Destination = destinationAccountId,
                 };
 

@@ -162,7 +162,7 @@ namespace ITValet.Controllers
                 PackagePaidBy = getuserPackage.PaidBy
             };
 
-            return Ok(new ResponseDto() { Data = obj, Status = true, StatusCode = "200", Message = "Record Fetch Successfully" });
+            return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "", obj));
         }
 
         [HttpGet("GetPackageByUserId/{userId}")]

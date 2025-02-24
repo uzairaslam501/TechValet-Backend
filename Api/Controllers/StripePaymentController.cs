@@ -77,7 +77,7 @@ namespace ITValet.Controllers
                     var priceOptions = new PriceCreateOptions
                     {
                         UnitAmountDecimal = decimal.Parse(checkoutDTO.ActualOrderPrice) * 100, // Stripe uses cents
-                        Currency = "usd", // Adjust currency if needed
+                        Currency = _projectVariables.PaymentCurrency, // Adjust currency if needed
                         ProductData = new PriceProductDataOptions
                         {
                             Name = $"Title: {checkoutDTO.PaymentTitle}" ?? "Payment",
@@ -168,8 +168,8 @@ namespace ITValet.Controllers
                 var paymentIntent = await paymentIntentService.CreateAsync(new PaymentIntentCreateOptions
                 {
                     Amount = (long)sss, // Amount in cents
-                    Currency = "cad", // Adjust as needed
-                });
+                    Currency = _projectVariables.PaymentCurrency,
+            });
 
                 return Ok(new ResponseDto() { Data = paymentIntent.ClientSecret, Status = true, StatusCode = "200", Message="Cleint Secret" });
             }
@@ -328,7 +328,6 @@ namespace ITValet.Controllers
                 
                 if (!string.IsNullOrEmpty(chargeResult))
                 {
-                    package.PaidBy = "STRIPE";
                     var userPackageId = await _userPackageService.AddUserPackageAndGetId(package);
                     return Ok(GeneralPurpose.GenerateResponse(true, "200", $"You have succesfully bought the {package.PackageName} Package", userPackageId));
                 }
@@ -457,7 +456,7 @@ namespace ITValet.Controllers
                 var decrypt = StringCipher.DecryptionId(userId);
                 var user = await _userRepo.GetUserById(decrypt);
                 
-                var account = await StripeHelper.CreateStripeAccountUS(email, _projectVariables.ReactUrl); //This Function is For USD Payments will need to change in canadian;
+                var account = await StripeHelper.CreateStripeAccount(email, _projectVariables.ReactUrl, _projectVariables.PaymentCurrency);
                 var verificationResult = await StripeHelper.VerifyAccount(account.Id, _projectVariables.ReactUrl);
 
                 user!.StripeId = account.Id;
@@ -547,9 +546,9 @@ namespace ITValet.Controllers
                                 AccountNumber = bankDto.bankAccountNumber,
                                 AccountHolderName = bankDto.accountHolderName,
                                 AccountHolderType = "individual",
-                                Country = "US",
+                                Country = PaymentCountry.Country,
                                 RoutingNumber = bankDto.routingNo,
-                                Currency = "USD",
+                                Currency = _projectVariables.PaymentCurrency,
                             }
                         };
                         var service = new ExternalAccountService();
@@ -620,7 +619,7 @@ namespace ITValet.Controllers
                 var chargeOptions = new ChargeCreateOptions
                 {
                     Amount = amountInCents,
-                    Currency = "USD",
+                    Currency = _projectVariables.PaymentCurrency,
                     Description = checkOutData.PaymentTitle ?? "Payment for Services",
                     Customer = customer.Id,
                 };
@@ -660,7 +659,7 @@ namespace ITValet.Controllers
                 var payout_to_bank = new PayoutCreateOptions
                 {
                     Amount = amountInCents,
-                    Currency = "USD",
+                    Currency = _projectVariables.PaymentCurrency,
                 };
 
                 var requestOptions = new RequestOptions();
@@ -748,7 +747,7 @@ namespace ITValet.Controllers
             }
         }
 
-        private async Task<string> CreateStripeChargeAsync(string email, string token, string description, string amount, string currency = "CAD")
+        private async Task<string> CreateStripeChargeAsync(string email, string token, string description, string amount)
         {
             try
             {
@@ -766,7 +765,7 @@ namespace ITValet.Controllers
                 var chargeOptions = new ChargeCreateOptions
                 {
                     Amount = amountInCents,
-                    Currency = currency,
+                    Currency = _projectVariables.PaymentCurrency,
                     Description = description,
                     Customer = customer.Id,
                 };

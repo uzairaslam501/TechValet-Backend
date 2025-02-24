@@ -30,7 +30,7 @@ namespace ITValet.Controllers
         private readonly IUserRatingRepo _ratingService;
         private readonly IOfferDetailsRepo _offerService;
         private readonly IOrderReasonRepo _orderReasonService;
-        private readonly ProjectVariables projectVariables;
+        private readonly ProjectVariables _projectVariables;
         private readonly IJwtUtils jwtUtils;
         private readonly IHubContext<NotificationHubSocket> _notificationHubSocket;
         private readonly INotificationRepo _notificationService;
@@ -49,7 +49,7 @@ namespace ITValet.Controllers
             _userPackageService = userPackageService;
             _fundTransferService = fundTransferService;
             _offerService = offerService;
-            projectVariables = options.Value;
+            _projectVariables = options.Value;
             _ratingService = ratingService;
             _notificationHubSocket = notificationHubSocket;
             jwtUtils = _jwtUtils;
@@ -84,7 +84,7 @@ namespace ITValet.Controllers
             }
             catch (Exception ex)
             {
-                await MailSender.SendErrorMessage(projectVariables.BaseUrl + " ----------<br>" + ex.Message.ToString() + "---------------" + ex.StackTrace);
+                await MailSender.SendErrorMessage(_projectVariables.BaseUrl + " ----------<br>" + ex.Message.ToString() + "---------------" + ex.StackTrace);
                 return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
             }
         }
@@ -171,7 +171,7 @@ namespace ITValet.Controllers
             }
             catch (Exception ex)
             {
-                await MailSender.SendErrorMessage(projectVariables.BaseUrl + " ----------<br>" + ex.Message.ToString() + "---------------" + ex.StackTrace);
+                await MailSender.SendErrorMessage(_projectVariables.BaseUrl + " ----------<br>" + ex.Message.ToString() + "---------------" + ex.StackTrace);
                 return Ok(new ResponseDto() { Status = false, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
             }
         }
@@ -243,10 +243,11 @@ namespace ITValet.Controllers
                 // Create the payment request
                 var paymentRequest = PayPalPaymentHelper.CreatePaymentRequest(
                     orderDto,
-                    projectVariables.ReactUrl,
+                    _projectVariables.ReactUrl,
                     _configuration["PayPal:ClientId"],
                     _configuration["PayPal:ClientSecret"],
-                    "Order"
+                    "Order",
+                    _projectVariables.PaymentCurrency
                 );
 
                 if (paymentRequest.PaymentId == null)
@@ -285,7 +286,7 @@ namespace ITValet.Controllers
             }
             catch (Exception ex)
             {
-                await MailSender.SendErrorMessage($"{projectVariables.BaseUrl} ----------<br>{ex.Message}<br>{ex.StackTrace}");
+                await MailSender.SendErrorMessage($"{_projectVariables.BaseUrl} ----------<br>{ex.Message}<br>{ex.StackTrace}");
                 return StatusCode(500, new ResponseDto { Status = false, StatusCode = "500", Message = GlobalMessages.SystemFailureMessage });
             }
         }
@@ -310,7 +311,7 @@ namespace ITValet.Controllers
                 }
 
                 // Capture payment
-                var captureResponse = PayPalPaymentHelper.CapturePayment(executedPayment, _configuration);
+                var captureResponse = PayPalPaymentHelper.CapturePayment(executedPayment, _configuration, _projectVariables.PaymentCurrency);
                 if (captureResponse == null || captureResponse.State != "completed")
                 {
                     return StatusCode(204, new ResponseDto { Status = false, StatusCode = "204", Message = "Payment executed but capture failed" });
@@ -341,7 +342,7 @@ namespace ITValet.Controllers
             }
             catch (Exception ex)
             {
-                await MailSender.SendErrorMessage($"{projectVariables.BaseUrl}<br>{ex.Message}<br>{ex.StackTrace}");
+                await MailSender.SendErrorMessage($"{_projectVariables.BaseUrl}<br>{ex.Message}<br>{ex.StackTrace}");
                 return StatusCode(400, new ResponseDto { Status = false, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
             }
         }
@@ -365,10 +366,11 @@ namespace ITValet.Controllers
                         TotalPrice = packageDetails.Price,
                         OrderDescription = packageDetails.Description
                     },
-                    $"{projectVariables.ReactUrl}",
+                    $"{_projectVariables.ReactUrl}",
                     _configuration["PayPal:ClientId"],
                     _configuration["PayPal:ClientSecret"],
-                    "Package"
+                    "Package",
+                    _projectVariables.PaymentCurrency
                 );
 
                 if (string.IsNullOrEmpty(paymentRequest.PaymentId))
@@ -390,7 +392,7 @@ namespace ITValet.Controllers
             }
             catch (Exception ex)
             {
-                GeneralPurpose.CreateLogger(projectVariables, ex);
+                GeneralPurpose.CreateLogger(_projectVariables, ex);
                 return BadRequest(GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage));
             }
         }
@@ -435,7 +437,7 @@ namespace ITValet.Controllers
             }
             catch (Exception ex)
             {
-                await MailSender.SendErrorMessage($"{projectVariables.BaseUrl}<br>{ex.Message}<br>{ex.StackTrace}");
+                await MailSender.SendErrorMessage($"{_projectVariables.BaseUrl}<br>{ex.Message}<br>{ex.StackTrace}");
                 return StatusCode(500, new ResponseDto { Status = false, StatusCode = "500", Message = GlobalMessages.SystemFailureMessage });
             }
         }
@@ -498,7 +500,7 @@ namespace ITValet.Controllers
             }
             catch (Exception ex)
             {
-                await LogError(ex, projectVariables.BaseUrl);
+                await LogError(ex, _projectVariables.BaseUrl);
                 return Ok(PayPalPaymentHelper.CreateErrorResponse(GlobalMessages.SystemFailureMessage));
             }
         }
@@ -543,12 +545,12 @@ namespace ITValet.Controllers
             }
             catch (PayPal.HttpException ex)
             {
-                GeneralPurpose.CreateLogger(projectVariables, ex);
+                GeneralPurpose.CreateLogger(_projectVariables, ex);
                 return BadRequest(GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage));
             }
             catch (Exception ex)
             {
-                GeneralPurpose.CreateLogger(projectVariables, ex);
+                GeneralPurpose.CreateLogger(_projectVariables, ex);
                 return BadRequest(GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage));
             }
         }
@@ -609,12 +611,12 @@ namespace ITValet.Controllers
             }
             catch (HttpException ex)
             {
-                GeneralPurpose.CreateLogger(projectVariables, ex);
+                GeneralPurpose.CreateLogger(_projectVariables, ex);
                 return BadRequest(GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage));
             }
             catch (Exception ex)
             {
-                GeneralPurpose.CreateLogger(projectVariables, ex);
+                GeneralPurpose.CreateLogger(_projectVariables, ex);
                 return BadRequest(GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage));
             }
         }
@@ -627,40 +629,10 @@ namespace ITValet.Controllers
             return await _orderService.UpdateOrder(orderObj);
         }
 
-        private PackageDetails GetPackageDetails(string selectedPackage)
-        {
-            return selectedPackage switch
-            {
-                "IYear" => new PackageDetails
-                {
-                    Price = 100.00m,
-                    Description = "1 Year (6 Sessions) Package",
-                    StartDate = DateTime.Now,
-                    EndDate = DateTime.Now.AddYears(1),
-                    TotalSessions = 6,
-                    RemainingSessions = 6,
-                    PackageType = 1,
-                    PackageName = "IYear"
-                },
-                "2Year" => new PackageDetails
-                {
-                    Price = 200.00m,
-                    Description = "2 Years (12 Sessions) Package",
-                    StartDate = DateTime.Now,
-                    EndDate = DateTime.Now.AddYears(2),
-                    TotalSessions = 12,
-                    RemainingSessions = 12,
-                    PackageType = 2,
-                    PackageName = "2Year"
-                },
-                _ => null
-            };
-        }
-
         private async Task<bool> UpdateOrderDetails(OrderCheckOutViewModel orderObj, CaptureResponse captureResponse, string paymentId)
         {
             orderObj.PayableAmount = captureResponse.TransactionFee;
-            orderObj.Currency = "CAD";
+            orderObj.Currency = _projectVariables.PaymentCurrency;
             orderObj.PayPalTransactionFee = captureResponse.TransactionFee;
             orderObj.PaymentStatus = captureResponse.State;
             orderObj.CaptureId = captureResponse.CaptureId;

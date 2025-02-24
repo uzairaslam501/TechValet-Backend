@@ -1,5 +1,6 @@
 ﻿using ITValet.HelpingClasses;
 using ITValet.Models;
+using PayoutsSdk.Payouts;
 using PayPal.Api;
 
 namespace ITValet.Utils.Helpers
@@ -11,7 +12,8 @@ namespace ITValet.Utils.Helpers
             string reactUrl,
             string clientId,
             string clientSecret,
-            string type)
+            string type,
+            string currency)
         {
             try
             {
@@ -41,14 +43,14 @@ namespace ITValet.Utils.Helpers
                                     name = orderDto.OrderTitle,
                                     sku = "001",
                                     price = orderDto.TotalPrice.ToString("0.00"),
-                                    currency = "CAD",
+                                    currency = currency,
                                     quantity = "1"
                                 }
                             }
                         },
                         amount = new Amount
                         {
-                            currency = "CAD",
+                            currency = currency,
                             total = orderDto.TotalPrice.ToString("0.00")
                         },
                         description = orderDto.OrderDescription
@@ -118,7 +120,7 @@ namespace ITValet.Utils.Helpers
             return Payment.Execute(apiContext, paymentId, paymentExecution);
         }
 
-        public static CaptureResponse CapturePayment(Payment executedPayment, IConfiguration configuration)
+        public static CaptureResponse CapturePayment(Payment executedPayment, IConfiguration configuration, string currency)
         {
             var authorizationId = executedPayment.transactions
                 .FirstOrDefault()?.related_resources
@@ -135,7 +137,7 @@ namespace ITValet.Utils.Helpers
                 is_final_capture = true,
                 amount = new Amount
                 {
-                    currency = "CAD",
+                    currency = currency,
                     total = executedPayment.transactions.FirstOrDefault()?.amount.total
                 }
             };

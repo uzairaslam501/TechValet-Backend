@@ -27,8 +27,11 @@ namespace ITValet.Utils.Helpers
                 PackageName = checkOut.SelectedPackage,
                 TotalSessions = checkOut.SelectedPackage == "IYear" ? 6 : 12,
                 RemainingSessions = checkOut.SelectedPackage == "IYear" ? 6 : 12,
-                CustomerId = checkOut.ClientId
-            };
+                CustomerId = checkOut.ClientId,
+                IsActive = (int) EnumActiveStatus.Active,
+                PaidBy = "STRIPE",
+                CreatedAt = GeneralPurpose.DateTimeNow(),
+        };
         }
 
         public static async Task<ResponseDto> StripeAccountStatus(string accountId)
@@ -82,14 +85,14 @@ namespace ITValet.Utils.Helpers
             }
         }
 
-        public static async Task<Account> CreateStripeAccountUS(string email, string reactUrl)
+        public static async Task<Account> CreateStripeAccount(string email, string reactUrl, string currency)
         {
             var options = new AccountCreateOptions
             {
                 Type = "custom",
-                Country = "US",
+                Country = PaymentCountry.Country,
                 Email = email,
-                DefaultCurrency = "USD",
+                DefaultCurrency = currency,
                 Capabilities = new AccountCapabilitiesOptions
                 {
                     CardPayments = new AccountCapabilitiesCardPaymentsOptions
@@ -125,52 +128,7 @@ namespace ITValet.Utils.Helpers
             var service = new AccountService();
             return await service.CreateAsync(options);
         }
-
-        public static async Task<Account> CreateStripeAccountCA(string email, string reactUrl)
-        {
-            var options = new AccountCreateOptions
-            {
-                Type = "custom",
-                Country = "CA",
-                Email = email,
-                DefaultCurrency = "CAD",
-                Capabilities = new AccountCapabilitiesOptions
-                {
-                    CardPayments = new AccountCapabilitiesCardPaymentsOptions
-                    {
-                        Requested = true,
-                    },
-                    Transfers = new AccountCapabilitiesTransfersOptions
-                    {
-                        Requested = true,
-                    },
-                },
-                Settings = new AccountSettingsOptions
-                {
-                    Payouts = new AccountSettingsPayoutsOptions
-                    {
-                        Schedule = new AccountSettingsPayoutsScheduleOptions
-                        {
-                            Interval = "daily",
-                            DelayDays = 14,
-                        },
-                    },
-                },
-                BusinessType = "individual",
-                BusinessProfile = new AccountBusinessProfileOptions
-                {
-                    Url = reactUrl,
-                },
-                Individual = new AccountIndividualOptions // Include Individual email
-                {
-                    Email = email,
-                }
-            };
-
-            var service = new AccountService();
-            return await service.CreateAsync(options);
-        }
-
+        
         public static async Task<string> VerifyAccount(string stripeAccountId, string reactUrl)
         {
             var accountLinkService = new AccountLinkService();

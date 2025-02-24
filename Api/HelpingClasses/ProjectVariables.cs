@@ -8,6 +8,12 @@
         public string BaseUrl { get; set; } = null!;
         public string FrontEnd { get; set; } = null!;
         public string ReactUrl { get; set; } = null!;
+        public string PaymentCurrency { get; set; } = null!;
+    }
+
+    public static class PaymentCountry
+    {
+        public const string Country = "US"; // e.g US, CA
     }
 
     public class ReturnUrls

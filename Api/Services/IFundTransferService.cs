@@ -1,5 +1,6 @@
 using ITValet.HelpingClasses;
 using ITValet.Models;
+using Microsoft.Extensions.Options;
 using PayoutsSdk.Core;
 using PayoutsSdk.Payouts;
 using PayPal.Api;
@@ -19,12 +20,15 @@ namespace ITValet.Services
         private readonly IConfiguration _configuration;
         private readonly IPayPalGateWayService _payPalGateWayService;
         private readonly IOrderRepo _orderService;
+        private readonly ProjectVariables _projectVariables;
 
-        public FundTransferService(IConfiguration configuration, IPayPalGateWayService payPalGateWayService, IOrderRepo orderService)
+        public FundTransferService(IConfiguration configuration, IPayPalGateWayService payPalGateWayService,
+            IOptions<ProjectVariables> options, IOrderRepo orderService)
         {       
             _configuration = configuration;
             _payPalGateWayService = payPalGateWayService;
             _orderService = orderService;
+            _projectVariables = options.Value;
         }
         public async Task<bool> TransferFundToValetAccount(ValetFundRecord valetObj)
         {
@@ -56,7 +60,7 @@ namespace ITValet.Services
                     Amount = new PayoutsSdk.Payouts.Currency
                     {
                         Value = sentPayment.ToString("0.00"),
-                        CurrencyCode = "USD"
+                        CurrencyCode = _projectVariables.PaymentCurrency,
                     }
                 };
 
