@@ -579,7 +579,7 @@ namespace ITValet.Services
                              x.PaidByPackage == true &&
                              x.PaymentStatus == "USED_SESSION") ||
                             (x.IsActive == (int)EnumActiveStatus.Deleted))
-                .ToListAsync();
+                .OrderByDescending(x => x.Id).ToListAsync();
 
 
                 var orderIds = paypalOrderRecordObj.Select(obj => obj.OrderId).ToList();
@@ -621,7 +621,7 @@ namespace ITValet.Services
                 var payPalTransactionRecord = await _context.PayPalToValetTransactions
                     .Where(x => (x.IsActive == (int)EnumActiveStatus.Active || x.IsActive == (int)EnumActiveStatus.Deleted) &&
                            (x.TransactionStatus == "PENDING" || x.TransactionStatus == "SUCCESS" || x.TransactionStatus == "UNCLAIMED" || x.TransactionStatus == "RETURNED" || x.TransactionStatus== "SESSION_REVERTED"))
-                    .ToListAsync();
+                    .OrderByDescending(x => x.Id).ToListAsync();
 
                 var orderIds = payPalTransactionRecord.Select(obj => obj.OrderId).ToList();
                 var orderDetails = await _orderService.GetOrdersByIds(orderIds);
@@ -668,7 +668,7 @@ namespace ITValet.Services
                 var payPalUnclaimedRecord = await _context.PayPalToValetTransactions
                                     .Where(x => x.IsActive == (int)EnumActiveStatus.Active &&
                                             x.TransactionStatus == "RETURNED" && x.CancelByAdmin == true)
-                                    .ToListAsync();
+                                    .OrderByDescending(x => x.Id).ToListAsync();
                 var orderIds = payPalUnclaimedRecord.Select(obj => obj.OrderId).ToList();
                 var orderDetails = await _orderService.GetOrdersByIds(orderIds);
 

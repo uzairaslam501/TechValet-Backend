@@ -520,7 +520,8 @@ namespace ITValet.Services
                          x.StripeStatus == (int)StripePaymentStatus.SessionUsed && x.OrderStatus == 0 ||
                          x.StripeStatus == (int)StripePaymentStatus.SessionReverted && x.OrderStatus == 4 ||
                          x.StripeStatus == (int)StripePaymentStatus.SentToValet && x.OrderStatus == 1)
-                         && (x.StripeChargeId != null || x.PackageBuyFrom == "STRIPE") && x.IsActive == (int)EnumActiveStatus.Active).ToListAsync();
+                         && (x.StripeChargeId != null || x.PackageBuyFrom == "STRIPE") && x.IsActive == (int)EnumActiveStatus.Active)
+                    .OrderByDescending(x => x.Id).ToListAsync();
 
                 var userIds = stripeOrdersRecord.Select(obj => obj.ValetId).
                               Concat(stripeOrdersRecord.Select(obj => obj.CustomerId)).

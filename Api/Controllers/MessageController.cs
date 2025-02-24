@@ -129,7 +129,9 @@ namespace ITValet.Controllers
                     });
                 }
 
-                await AddNotification(message, "Message Received", "You just received a message.", "messages", "");
+                await AddNotification(message, $"Message from {getLoggedInUser.FirstName} {getLoggedInUser.LastName}",
+                    $"{postAddMessage.MessageDescription}.",
+                    $"messages/{StringCipher.EncryptId(getLoggedInUser.Id)}", "");
 
                 return Ok(new ResponseDto
                 {
@@ -146,7 +148,11 @@ namespace ITValet.Controllers
                 if (!await messagesRepo.saveChangesFunction())
                     return Ok("Failed to send/add message.");
 
-                await AddNotification(message, "Message Received", "You just received a message.", "messages", "");
+                await AddNotification(message,
+                    $"Message from {getLoggedInUser!.FirstName} {getLoggedInUser.LastName}", 
+                    $"Message: {postAddMessage.MessageDescription}.",
+                    $"messages/{StringCipher.EncryptId(getLoggedInUser.Id)}",
+                    "");
 
                 if (message.Id != 0)
                 {

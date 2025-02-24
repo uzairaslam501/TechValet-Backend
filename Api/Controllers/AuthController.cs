@@ -17,33 +17,21 @@ namespace ITValet.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly IUserRepo userRepo;
-        private readonly IJwtUtils jwtUtils;
-        private readonly IConfiguration _config;
+        private readonly IUserRepo _userRepo;
+        private readonly IJwtUtils _jwtUtils;
         private readonly GoogleAuth _googleAuth;
-        private readonly ProjectVariables projectVariables;
-        private readonly IPayPalGateWayService _payPalGateWayService;
-        private readonly IUserExperienceRepo userExperienceRepo;
-        private readonly IUserEducationRepo userEducationRepo;
-        private readonly IUserSkillRepo userSkillRepo;
-        private readonly IUserAvailableSlotRepo userAvailableSlotRepo;
+        private readonly ProjectVariables _projectVariables;
+        private readonly IUserSkillRepo _userSkillRepo;
         private readonly IHubContext<NotificationHubSocket> _notificationHubSocket;
 
-        public AuthController(IUserRepo _userRepo, IUserEducationRepo _userEducationRepo, IUserExperienceRepo _userExperienceRepo,
-            IUserSkillRepo _userSkillRepo, IPayPalGateWayService payPalGateWayService, 
-            IUserAvailableSlotRepo _userAvailableSlotRepo, IJwtUtils _jwtUtils, IOptions<ProjectVariables> options,
-            IHubContext<NotificationHubSocket> notificationHubSocket, IConfiguration config, IOptions<GoogleAuth> googleOptions)
+        public AuthController(IUserRepo userRepo, IUserSkillRepo userSkillRepo, IJwtUtils jwtUtils, IOptions<ProjectVariables> options,
+            IHubContext<NotificationHubSocket> notificationHubSocket, IOptions<GoogleAuth> googleOptions)
         {
-            userRepo = _userRepo;
-            jwtUtils = _jwtUtils;
-            _config = config;
-            projectVariables = options.Value;
+            _userRepo = userRepo;
+            _jwtUtils = jwtUtils;
+            _projectVariables = options.Value;
             _googleAuth = googleOptions.Value;
-            _payPalGateWayService = payPalGateWayService;
-            userExperienceRepo = _userExperienceRepo;
-            userSkillRepo = _userSkillRepo;
-            userEducationRepo = _userEducationRepo;
-            userAvailableSlotRepo = _userAvailableSlotRepo;
+            _userSkillRepo = userSkillRepo;
             _notificationHubSocket = notificationHubSocket;
         }
 
@@ -60,7 +48,7 @@ namespace ITValet.Controllers
                 });
             }
 
-            var user = await userRepo.GetUserByLogin(loginDto.Email, loginDto.Password);
+            var user = await _userRepo.GetUserByLogin(loginDto.Email, loginDto.Password);
             if (user == null)
             {
                 return NotFound(new ResponseDto
@@ -100,7 +88,7 @@ namespace ITValet.Controllers
                 ? await HandleValetAccountLogic(user)
                 : 1;
 
-            user = await userRepo.HandleUserOnlineStatus(user, "Online");
+            user = await _userRepo.HandleUserOnlineStatus(user, "Online");
             var loggedin = await CreateUserClaims(user);
             loggedin.IsCompleteValetAccount = isCompleteValetAccount.ToString();
 
@@ -155,11 +143,11 @@ namespace ITValet.Controllers
         public async Task<ActionResult> Register(RegisterUserDto user)
         {
             // Validate email
-            if (!await userRepo.ValidateEmail(user.Email!))
+            if (!await _userRepo.ValidateEmail(user.Email!))
                 return Conflict(GlobalMessages.DuplicateEmail);
 
             // Validate username
-            if (!await userRepo.ValidateUsername(user.Username!))
+            if (!await _userRepo.ValidateUsername(user.Username!))
                 return Conflict(GlobalMessages.DuplicateUsername);
 
             if (!GeneralPurpose.MatchPassword(user.Password!, user.ConfirmPassword!))
@@ -171,13 +159,13 @@ namespace ITValet.Controllers
             obj = GeneralPurpose.SetRoles(user.Role, obj);
 
             // Add user
-            if (!await userRepo.AddUser(obj))
+            if (!await _userRepo.AddUser(obj))
                 return BadRequest(GlobalMessages.SystemFailureMessage);
 
             // Send verification email
             if (obj.Role == (int)EnumRoles.Customer || obj.Role == (int)EnumRoles.Valet)
                 await MailSender.EmailAccountVerification(StringCipher.EncryptId(obj.Id), obj.UserName!,
-                    obj.Email!, (int)obj.Role, projectVariables.ReactUrl);
+                    obj.Email!, (int)obj.Role, _projectVariables.ReactUrl);
 
             return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Vertification Mail has been sent to your E-Mail.", obj));
         }
@@ -190,18 +178,13 @@ namespace ITValet.Controllers
         public async Task<ActionResult> PostUpdateProfile(string userId, UserViewModel user)
         {
             var decrypted = StringCipher.DecryptionId(userId);
-            var obj = await userRepo.GetUserById(decrypted);
+            var obj = await _userRepo.GetUserById(decrypted);
 
             if (obj == null)
-            {
-                return Ok(new ResponseDto
-                {
-                    Status = false,
-                    StatusCode = "404",
-                    Message = GlobalMessages.RecordNotFound
-                });
-            }
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "404", GlobalMessages.RecordNotFound));
 
+            if (!await _userRepo.ValidateUsername(user.UserName!, obj.Id))
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "404", GlobalMessages.DuplicateUsername));
 
             UpdateUserProperties(user, obj);
             
@@ -212,26 +195,13 @@ namespace ITValet.Controllers
             if (isCompleteValetAccount == 1)
                 obj.IsActive = (int)EnumActiveStatus.Active;
 
-            if (!await userRepo.UpdateUser(obj))
-            {
-                return Ok(new ResponseDto
-                {
-                    Status = false,
-                    StatusCode = "400",
-                    Message = GlobalMessages.SystemFailureMessage
-                });
-            }
+            if (!await _userRepo.UpdateUser(obj))
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.SystemFailureMessage));
 
             var loggedin = await CreateUserClaims(obj);
             loggedin.IsCompleteValetAccount = isCompleteValetAccount.ToString();
 
-            return Ok(new ResponseDto
-            {
-                Data = loggedin,
-                Status = true,
-                StatusCode = "200",
-                Message = GlobalMessages.UpdateMessage
-            });
+            return Ok(GeneralPurpose.GenerateResponseCode(true, "200", GlobalMessages.UpdateMessage, loggedin));
         }
 
         [HttpPut("update-profile-image/{userId}")]
@@ -240,13 +210,13 @@ namespace ITValet.Controllers
             if (!string.IsNullOrEmpty(userId))
             {
                 var decrypt = StringCipher.DecryptionId(userId);
-                var user = await userRepo.GetUserById(decrypt);
+                var user = await _userRepo.GetUserById(decrypt);
                 if (user == null)
                     return BadRequest(new ResponseDto() { Status = false, StatusCode = "404", Message = "User Not Found" });
                 
                 user.ProfilePicture = await UploadFiles(file, "profiles");
 
-                if (!await userRepo.UpdateUser(user))
+                if (!await _userRepo.UpdateUser(user))
                     return BadRequest(new ResponseDto() { Status = false, StatusCode = "406", Message = "Database Update Failed" });
 
                 var loggedIn = await CreateUserClaims(user);
@@ -264,7 +234,7 @@ namespace ITValet.Controllers
         {
             int id = StringCipher.DecryptionId(userId);
 
-            var getLoggedInUser = await userRepo.GetUserById(id);
+            var getLoggedInUser = await _userRepo.GetUserById(id);
             if (getLoggedInUser == null)
                 return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.RecordNotFound));
 
@@ -276,7 +246,7 @@ namespace ITValet.Controllers
 
             getLoggedInUser.Password = StringCipher.Encrypt(passwordDto.NewPassword.Trim());
 
-            if (!await userRepo.UpdateUser(getLoggedInUser))
+            if (!await _userRepo.UpdateUser(getLoggedInUser))
                 return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.SystemFailureMessage));
 
             return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Password Updated Successfully!", getLoggedInUser));
@@ -291,7 +261,7 @@ namespace ITValet.Controllers
             if (dt < t)
             {
                 var userId = StringCipher.DecryptionId(Id);
-                var obj = await userRepo.GetUserById(userId);
+                var obj = await _userRepo.GetUserById(userId);
 
                 if (obj == null)
                     return NotFound(GeneralPurpose.GenerateResponse( false, "400", "No User Found"));
@@ -299,7 +269,7 @@ namespace ITValet.Controllers
                 
                 obj.IsActive = (int)EnumActiveStatus.AdminVerificationPending;
 
-                if (!await userRepo.SaveChanges())
+                if (!await _userRepo.SaveChanges())
                     return BadRequest(GeneralPurpose.GenerateResponse(false, "400", GlobalMessages.SystemFailureMessage));
             }
             return Ok(GeneralPurpose.GenerateResponse(true, "200", "Email has been verified successfully, need admin aprroval", dt));
@@ -309,14 +279,14 @@ namespace ITValet.Controllers
         public async Task<IActionResult> PostForgotPassword(string email)
         {
 
-            User obj = await userRepo.GetUserInfoByNameOrEmail(email);
+            User obj = await _userRepo.GetUserInfoByNameOrEmail(email);
 
             if (obj == null || obj.IsActive == 0)
                 return BadRequest(GeneralPurpose.GenerateResponse(false, "400", GlobalMessages.RecordNotFound)); 
 
             bool chkIfMailSent = await MailSender.EmailForgetPassword(StringCipher.EncryptId(obj.Id),
                 obj.UserName!, obj.Email!, 
-                projectVariables.ReactUrl);
+                _projectVariables.ReactUrl);
             if (!chkIfMailSent)
                 return BadRequest(GeneralPurpose.GenerateResponse(false, "400", "Failed to Send Forget Password Recovery Mail"));
 
@@ -329,7 +299,7 @@ namespace ITValet.Controllers
             var dt = GeneralPurpose.DateTimeNow().Ticks;
             if (dt < passwordDto.Validity)
             {
-                User? obj = await userRepo.GetUserById(StringCipher.DecryptionId(passwordDto.Id));
+                User? obj = await _userRepo.GetUserById(StringCipher.DecryptionId(passwordDto.Id));
 
                 if (obj == null)
                 {
@@ -343,7 +313,7 @@ namespace ITValet.Controllers
 
                 obj.Password = StringCipher.Encrypt(passwordDto.NewPassword);
 
-                if (!await userRepo.SaveChanges())
+                if (!await _userRepo.SaveChanges())
                 {
                     return BadRequest(new ResponseDto() { Status = false, StatusCode = "400", Message = GlobalMessages.SystemFailureMessage });
                 }
@@ -366,7 +336,7 @@ namespace ITValet.Controllers
                 else
                     activityStatus = "0";
 
-                var obj = await userRepo.UpdateUserAccountActivityStatus(decryptId, Convert.ToInt32(activityStatus));
+                var obj = await _userRepo.UpdateUserAccountActivityStatus(decryptId, Convert.ToInt32(activityStatus));
                 if (!obj)
                     return BadRequest(GeneralPurpose.GenerateResponseCode(false, "406", GlobalMessages.SystemFailureMessage, activityStatus));
 
@@ -375,7 +345,7 @@ namespace ITValet.Controllers
             }
             catch (Exception ex)
             {
-                GeneralPurpose.CreateLogger(projectVariables, ex);
+                GeneralPurpose.CreateLogger(_projectVariables, ex);
                 return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.SystemFailureMessage));
             }
         }
@@ -390,14 +360,14 @@ namespace ITValet.Controllers
                     availabilityOption = "1";
                 else
                     availabilityOption = "0";
-                var obj = await userRepo.UpdateUserAccountAvailabilityStatus(decryptId, Convert.ToInt32(availabilityOption));
+                var obj = await _userRepo.UpdateUserAccountAvailabilityStatus(decryptId, Convert.ToInt32(availabilityOption));
                 if (!obj)
                     return BadRequest(GeneralPurpose.GenerateResponseCode(false, "406", GlobalMessages.SystemFailureMessage, availabilityOption));
                 return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Status Updated Successfully!", availabilityOption));
             }
             catch (Exception ex)
             {
-                GeneralPurpose.CreateLogger(projectVariables, ex);
+                GeneralPurpose.CreateLogger(_projectVariables, ex);
                 return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.SystemFailureMessage));
             }
         }
@@ -415,7 +385,7 @@ namespace ITValet.Controllers
 
                 if (!string.IsNullOrEmpty(Authorization))
                 {
-                    getUserFromToken = jwtUtils.ValidateToken(Authorization);
+                    getUserFromToken = _jwtUtils.ValidateToken(Authorization);
                 }
                 else
                 {
@@ -429,7 +399,7 @@ namespace ITValet.Controllers
                             Message = "Authorization header is missing or invalid."
                         });
                     }
-                    getUserFromToken = jwtUtils.ValidateToken(tokenFromHeader);
+                    getUserFromToken = _jwtUtils.ValidateToken(tokenFromHeader);
                 }
 
                 if (getUserFromToken == null || string.IsNullOrEmpty(getUserFromToken.Email))
@@ -458,7 +428,7 @@ namespace ITValet.Controllers
                 var remainingTime = tokenExpireDate - GeneralPurpose.DateTimeNow();
                 if (remainingTime.CompareTo(TimeSpan.FromMinutes(5)) <= 0)
                 {
-                    var user = await userRepo.GetUserByEmail(getUserFromToken.Email);
+                    var user = await _userRepo.GetUserByEmail(getUserFromToken.Email);
                     if (user == null)
                     {
                         return NotFound(new ResponseDto
@@ -514,7 +484,7 @@ namespace ITValet.Controllers
             }
 
             // Try to find user by username or email
-            var getUser = await userRepo.GetUserInfoByNameOrEmail(email);
+            var getUser = await _userRepo.GetUserInfoByNameOrEmail(email);
 
             if (getUser == null)
             {
@@ -532,7 +502,7 @@ namespace ITValet.Controllers
                 getUser.UserName ?? string.Empty,
                 getUser.Email ?? string.Empty,
                 (int)getUser.Role,
-                projectVariables.ReactUrl
+                _projectVariables.ReactUrl
             );
 
             return Ok(new ResponseDto
@@ -551,16 +521,16 @@ namespace ITValet.Controllers
         {
             try
             {
-                var loggedInUser = jwtUtils.ValidateToken(Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last());
-                var getUser = await userRepo.GetUserById((int)loggedInUser!.Id!);
+                var loggedInUser = _jwtUtils.ValidateToken(Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last());
+                var getUser = await _userRepo.GetUserById((int)loggedInUser!.Id!);
 
-                var user = await userRepo.HandleUserOnlineStatus(getUser!, "Offline");
+                var user = await _userRepo.HandleUserOnlineStatus(getUser!, "Offline");
 
                 return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Logout Successfully", user));
             }
             catch (Exception ex)
             {
-                GeneralPurpose.CreateLogger(projectVariables, ex);
+                GeneralPurpose.CreateLogger(_projectVariables, ex);
                 return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", "Logout Not Successfully"));
             }
         }
@@ -568,7 +538,7 @@ namespace ITValet.Controllers
         #region Helpers
         private async Task<int> HandleValetAccountLogic(User user)
         {
-            var isCompleteValetAccount = await GeneralPurpose.CheckValuesNotEmpty(user, userSkillRepo);
+            var isCompleteValetAccount = await GeneralPurpose.CheckValuesNotEmpty(user, _userSkillRepo);
             return isCompleteValetAccount;
         }
 
@@ -594,7 +564,7 @@ namespace ITValet.Controllers
 
         private async Task<UserClaims> CreateUserClaims(User obj)
         {
-            var baseUri = $"{projectVariables.BaseUrl}";
+            var baseUri = $"{_projectVariables.BaseUrl}";
             var claims = new UserClaims
             {
                 Id = obj.Id,
@@ -604,7 +574,7 @@ namespace ITValet.Controllers
                 UserName = obj.UserName,
                 Email = obj.Email,
                 Role = Enum.GetName(typeof(EnumRoles), obj.Role!),
-                Token = jwtUtils.GenerateToken(obj),
+                Token = _jwtUtils.GenerateToken(obj),
                 TokenExpire = GeneralPurpose.DateTimeNow().AddDays(1).ToString(),
                 ProfilePicture = !string.IsNullOrEmpty(obj.ProfilePicture)
                     ? baseUri + obj.ProfilePicture
@@ -628,7 +598,7 @@ namespace ITValet.Controllers
                 IsBankAccountAdded = obj.IsBankAccountAdded == 1,
             };
 
-            int? checkIfSkillls = await userSkillRepo.GetUserSkillCountByIdAsync(obj.Id);
+            int? checkIfSkillls = await _userSkillRepo.GetUserSkillCountByIdAsync(obj.Id);
             if (checkIfSkillls.HasValue && checkIfSkillls > 0)
                 claims.IsSkillsComplete = true;
 

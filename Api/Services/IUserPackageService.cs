@@ -1,7 +1,7 @@
 using ITValet.HelpingClasses;
 using ITValet.Models;
 using Microsoft.EntityFrameworkCore;
-using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
 
 namespace ITValet.Services
 {
@@ -13,7 +13,7 @@ namespace ITValet.Services
         Task<UserPackage?> GetUserPackageById(int id);
         Task<IEnumerable<UserPackage>> GetUserPackageList();
         Task<IEnumerable<UserPackage>> GetUserPackageListByUserId(int? Id);
-        Task<UserPackage?> GetUserPackageByUserId(int? id);
+        Task<ResponseDto?> GetUserPackageByUserId(string userId);
         Task<UserPackage?> GetCurrentUserPackageByUserId(int? id);
         Task<bool> UpdateUserPackageSession(UserPackage package);
         Task<List<UserPackageListDto>> GetUserPackageLists();
@@ -23,10 +23,12 @@ namespace ITValet.Services
     {
         private readonly AppDbContext _context;
         private readonly IUserRepo _userService;
-        public UserPackageService(AppDbContext _appDbContext, IUserRepo userService)
+        private readonly ProjectVariables _projectVariables;
+        public UserPackageService(AppDbContext _appDbContext, IUserRepo userService, IOptions<ProjectVariables> options)
         {
             _context = _appDbContext;
             _userService = userService;
+            _projectVariables = options.Value;
         }
 
         public async Task<int> AddUserPackageAndGetId(UserPackage package)
@@ -153,9 +155,22 @@ namespace ITValet.Services
             return await _context.UserPackage.FindAsync(id);
         }
 
-        public async Task<UserPackage?> GetUserPackageByUserId(int? id)
+        public async Task<ResponseDto?> GetUserPackageByUserId(string userId)
         {
-            return await _context.UserPackage.FirstOrDefaultAsync(x => x.CustomerId == id && x.IsActive == 1 && x.RemainingSessions != 0);
+            try
+            {
+                var decrypt = StringCipher.DecryptionId(userId);
+                var getPackageDetails = await _context.UserPackage.FirstOrDefaultAsync(x => x.IsActive == 1 &&
+                                        x.CustomerId == decrypt &&
+                                        x.RemainingSessions != 0);
+
+                return GeneralPurpose.GenerateResponseCode(true, "200", "", getPackageDetails);
+            }
+            catch (Exception ex)
+            {
+                GeneralPurpose.CreateLogger(_projectVariables, ex);
+                return GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage);
+            }
         }
         public async Task<UserPackage?> GetCurrentUserPackageByUserId(int? id)
         {

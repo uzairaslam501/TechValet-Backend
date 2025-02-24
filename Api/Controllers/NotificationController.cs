@@ -4,7 +4,6 @@ using ITValet.Models;
 using ITValet.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using static Google.Apis.Requests.BatchRequest;
 
 namespace ITValet.Controllers
 {
@@ -55,12 +54,13 @@ namespace ITValet.Controllers
             return Ok(new { Status = true, StatusCode = "200", Data = notificationCount });
         }
 
-        [HttpGet("GetNotifications")]
-        public async Task<IActionResult> GetNotifications(string UserId, int isRead = -1, int NotificationType = -1)
+        [HttpGet("GetNotifications/{userId}")]
+        public async Task<IActionResult> GetNotifications(string userId, int isRead = -1,
+            int NotificationType = -1, int take = -1)
         {
-
-            var notificationList = await notificationRepo.GetNotificationListByUserId(Convert.ToInt32(UserId));
-            var loggedInUser = await userRepo.GetUserById(Convert.ToInt32(UserId));
+            var decrypt = StringCipher.DecryptionId(userId);
+            var notificationList = await notificationRepo.GetNotificationListByUserId(decrypt);
+            var loggedInUser = await userRepo.GetUserById(decrypt);
 
             if (isRead == 1)
             {
@@ -100,7 +100,11 @@ namespace ITValet.Controllers
 
                 viewNotificationDtoList.Add(viewNotificationDto);
             }
-            viewNotificationDtoList = viewNotificationDtoList.Take(20).ToList(); 
+            if(take != -1)
+                viewNotificationDtoList = viewNotificationDtoList.Take(take).ToList();
+            else
+                viewNotificationDtoList = viewNotificationDtoList.ToList();
+
             return Ok(new { Status = true, StatusCode = "200", Data = viewNotificationDtoList });
         }
 

@@ -165,6 +165,15 @@ namespace ITValet.Controllers
             return Ok(new ResponseDto() { Data = obj, Status = true, StatusCode = "200", Message = "Record Fetch Successfully" });
         }
 
+        [HttpGet("GetPackageByUserId/{userId}")]
+        public async Task<ActionResult> GetPackageByUserId(string userId)
+        {
+            var getuserPackage = await _userPackageService.GetUserPackageByUserId(userId);
+            if (getuserPackage!.Status == false)
+                return BadRequest(getuserPackage);
+            return Ok(getuserPackage);
+        }
+
         [HttpGet("GetOrderById/{id}")]
         public async Task<IActionResult> GetOrderById(string id)
         {
