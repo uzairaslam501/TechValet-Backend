@@ -264,25 +264,40 @@ namespace ITValet.Controllers
         [HttpPost("CreateStripeChargeForPackage")]
         public async Task<IActionResult> CreateStripeChargeForPackage(PackageOrderDTO stripePayment)
         {
-            var createStripeDto = new CheckOutDTO();
-            createStripeDto.PaymentTitle = stripePayment?.Title;
-            createStripeDto.ToDateTime = stripePayment?.ToDateTime;
-            createStripeDto.FromDateTime = stripePayment?.FromDateTime;
-            createStripeDto.WorkingHours = stripePayment?.WorkingHours;
-            createStripeDto.PackagePaidBy = stripePayment?.PackagePaidBy;
-            createStripeDto.PaymentDescription = stripePayment?.Description;
-            createStripeDto.TotalWorkCharges = stripePayment?.TotalWorkCharges;
-            createStripeDto.ActualOrderPrice = stripePayment?.ActualOrderPrice;
-            createStripeDto.ValetId = StringCipher.DecryptionId(stripePayment?.ValetId!).ToString();
-            createStripeDto.CustomerId = StringCipher.DecryptionId(stripePayment?.CustomerId!).ToString();
-            createStripeDto.OfferId = !string.IsNullOrEmpty(stripePayment?.OfferId) ? Convert.ToInt32(stripePayment?.OfferId!) : null;
-            createStripeDto.PackageId = !string.IsNullOrEmpty(stripePayment?.PackageId) ? Convert.ToInt32(stripePayment?.PackageId) : null;
 
-            var response = await CreateStripeCharge(createStripeDto);
-            if (response?.StatusCode == "200")
-                return Ok(response);
+            try
+            {
+                if (string.IsNullOrEmpty(stripePayment.ValetId) ||
+                    string.IsNullOrEmpty(stripePayment?.CustomerId) ||
+                    string.IsNullOrEmpty(stripePayment?.PackageId)
+                    )
+                    return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.RecordNotFound));
 
-            return BadRequest(response);
+                var createStripeDto = new CheckOutDTO();
+                createStripeDto.PaymentTitle = stripePayment?.Title;
+                createStripeDto.ToDateTime = stripePayment?.ToDateTime;
+                createStripeDto.FromDateTime = stripePayment?.FromDateTime;
+                createStripeDto.WorkingHours = stripePayment?.WorkingHours;
+                createStripeDto.PackagePaidBy = stripePayment?.PackagePaidBy;
+                createStripeDto.PaymentDescription = stripePayment?.Description;
+                createStripeDto.TotalWorkCharges = stripePayment?.TotalWorkCharges;
+                createStripeDto.ActualOrderPrice = stripePayment?.ActualOrderPrice;
+                createStripeDto.ValetId = StringCipher.DecryptionId(stripePayment?.ValetId!).ToString();
+                createStripeDto.CustomerId = StringCipher.DecryptionId(stripePayment?.CustomerId!).ToString();
+                createStripeDto.OfferId = !string.IsNullOrEmpty(stripePayment?.OfferId) ? Convert.ToInt32(stripePayment?.OfferId!) : null;
+                createStripeDto.PackageId = !string.IsNullOrEmpty(stripePayment?.PackageId) ? Convert.ToInt32(stripePayment?.PackageId) : null;
+
+                var response = await CreateStripeCharge(createStripeDto);
+                if (response?.StatusCode == "200")
+                    return Ok(response);
+
+                return BadRequest(response);
+            }
+            catch (Exception ex)
+            {
+                GeneralPurpose.CreateLogger(_projectVariables, ex);
+                return Ok(GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage));
+            }
         }
 
         private async Task<ResponseDto> CreateStripeCharge(CheckOutDTO checkOutData)
