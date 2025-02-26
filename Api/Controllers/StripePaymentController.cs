@@ -243,10 +243,12 @@ namespace ITValet.Controllers
                 createStripeDto.TotalWorkCharges = stripePayment?.TotalWorkCharges;
                 createStripeDto.FromDateTime = stripePayment?.FromDateTime;
                 createStripeDto.ToDateTime = stripePayment?.ToDateTime;
-                createStripeDto.WorkingHours = stripePayment?.WorkingHours;
                 createStripeDto.ValetId = StringCipher.DecryptionId(stripePayment?.ValetId!).ToString();
                 createStripeDto.CustomerId = StringCipher.DecryptionId(stripePayment?.CustomerId!).ToString();
                 createStripeDto.OfferId = !string.IsNullOrEmpty(stripePayment?.OfferId) ? Convert.ToInt32(stripePayment?.OfferId!) : null;
+
+                var workingHours = FindWorkingHours(stripePayment?.FromDateTime!, stripePayment?.ToDateTime!, stripePayment?.WorkingHours);
+                createStripeDto.WorkingHours = Convert.ToString(workingHours);
 
                 var response = await CreateStripeCharge(createStripeDto);
                 if (response?.Status == true)
@@ -320,10 +322,10 @@ namespace ITValet.Controllers
             {
                 isOrderUpdated = await UpdateOrder(checkOutData?.TotalWorkCharges!, checkOutData?.ActualOrderPrice!,
                     "", orderId);
-                isPackageUpdated = await UpdatePackage(checkOutData!.PackageId, checkOutData?.WorkingHours!);
+                isPackageUpdated = await UpdatePackage(checkOutData!);
             }
 
-            if (!isOrderUpdated)
+            if (!isOrderUpdated || !isPackageUpdated)
                 return GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.SystemFailureMessage, null);
 
             if (checkOutData?.OfferId! != null)
@@ -801,18 +803,30 @@ namespace ITValet.Controllers
             return await CreateStripeChargeAsync(package.StripeEmail, package.StripeToken, package.Description ?? "Package Purchase", packagePrice);
         }
 
-        private async Task<bool> UpdatePackage(int? packageId, string workingHours = "")
+        private async Task<bool> UpdatePackage(CheckOutDTO dTO)
         {
-            var getUserPackage = await _userPackageService.GetUserPackageById(packageId.Value);
-            var sss = Math.Round(Convert.ToDecimal(workingHours));
-            var userConsumingSession = Convert.ToInt32(sss);
-            var remainingSessions = getUserPackage.RemainingSessions - userConsumingSession;
-            getUserPackage.RemainingSessions = remainingSessions;
+            var getUserPackage = await _userPackageService.GetUserPackageById(Convert.ToInt32(dTO.PackageId));
+
+            var workingHours = FindWorkingHours(dTO.FromDateTime!, dTO.ToDateTime!, dTO.WorkingHours);
+            getUserPackage!.RemainingSessions = getUserPackage!.RemainingSessions - workingHours;
+
             if (await _userPackageService.UpdateUserPackageSession(getUserPackage))
-            {
                 return true;
-            }
             return false;
+        }
+
+        private int FindWorkingHours(string startDate, string endDate, string? workingHours = "")
+        {
+            var findWorkingHours = -1;
+            if (string.IsNullOrEmpty(workingHours))
+            {
+                findWorkingHours = (int)GeneralPurpose.CalculateWorkingHours(startDate!, endDate!)!;
+            }
+            else if (!string.IsNullOrEmpty(workingHours))
+            {
+                findWorkingHours = Convert.ToInt32(workingHours);
+            }
+            return findWorkingHours;
         }
     }
 }

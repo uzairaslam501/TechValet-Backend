@@ -1,6 +1,7 @@
 ﻿using ITValet.Models;
 using ITValet.Services;
 using ITValet.ViewModel;
+using System.Globalization;
 using System.Net.NetworkInformation;
 using System.Web;
 
@@ -196,6 +197,44 @@ namespace ITValet.HelpingClasses
             int hours = Math.Abs(difference.Hours);
             int minutes = Math.Abs(difference.Minutes);
             return $"{days} days, {hours} hours, and {minutes} minutes";
+        }
+
+        public static int? CalculateWorkingHours(string startDateStr, string endDateStr)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(startDateStr) || string.IsNullOrWhiteSpace(endDateStr))
+                    throw new ArgumentException("Start date and end date are required.");
+
+                // Define the expected date format
+                string format = "dd/MM/yyyy h:mm:ss tt";
+                CultureInfo culture = CultureInfo.InvariantCulture;
+
+                // Parse the start and end dates
+                if (!DateTime.TryParseExact(startDateStr, format, culture, DateTimeStyles.None, out DateTime startDate) ||
+                    !DateTime.TryParseExact(endDateStr, format, culture, DateTimeStyles.None, out DateTime endDate))
+                {
+                    throw new FormatException("Invalid date format. Expected format: dd/MM/yyyy hh:mm:ss tt");
+                }
+
+                // Validate that endDate is after startDate
+                if (endDate <= startDate)
+                {
+                    throw new ArgumentException("End date must be after start date.");
+                }
+
+                // Calculate the total time difference
+                TimeSpan timeDifference = endDate - startDate;
+                double totalHours = timeDifference.TotalHours;
+
+                // Round up to the next whole hour
+                return (int)Math.Ceiling(totalHours);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                return null; // Return null in case of an error
+            }
         }
 
         #region UserRating
