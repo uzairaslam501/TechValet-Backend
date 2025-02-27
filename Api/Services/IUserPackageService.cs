@@ -5,21 +5,22 @@ using Microsoft.Extensions.Options;
 
 namespace ITValet.Services
 {
-    public interface INotificationService
+    public interface IUserPackageService
     {
         Task<int> AddUserPackageAndGetId(UserPackage package);
         Task<bool> UpdateUserPackage(int id, string paidBy);
-        Task<int?> GetRemainingSessionCount(int customerId);
+        Task<ResponseDto> GetRemainingSessionCount(int customerId);
+        Task<ResponseDto?> GetUserPackageByUserId(string userId);
         Task<UserPackage?> GetUserPackageById(int id);
         Task<IEnumerable<UserPackage>> GetUserPackageList();
         Task<IEnumerable<UserPackage>> GetUserPackageListByUserId(int? Id);
-        Task<ResponseDto?> GetUserPackageByUserId(string userId);
         Task<UserPackage?> GetCurrentUserPackageByUserId(int? id);
         Task<bool> UpdateUserPackageSession(UserPackage package);
         Task<List<UserPackageListDto>> GetUserPackageLists();
+        Task<bool> SaveChangesAsync();
     }
 
-    public class UserPackageService : INotificationService
+    public class UserPackageService : IUserPackageService
     {
         private readonly AppDbContext _context;
         private readonly IUserRepo _userService;
@@ -35,7 +36,7 @@ namespace ITValet.Services
         {
             try
             {
-                package.CreatedAt = DateTime.UtcNow;
+                package.CreatedAt = GeneralPurpose.DateTimeNow();
                 _context.UserPackage.Add(package);
                 await _context.SaveChangesAsync();
                 return package.Id; // Assuming UserPackage has an Id property
@@ -54,7 +55,7 @@ namespace ITValet.Services
                 if (packageObj != null)
                 {
                     packageObj.PaidBy = paidBy;
-                    packageObj.IsActive = 1;
+                    packageObj.IsActive = (int)EnumActiveStatus.Active;
                     await _context.SaveChangesAsync();
                     return true;
                 }
@@ -63,26 +64,6 @@ namespace ITValet.Services
             catch (Exception ex)
             {
                 return false;
-            }
-        }
-        public async Task<int?> GetRemainingSessionCount(int customerId)
-        {
-            try
-            {
-                var latestPackageWithSessions = await _context.UserPackage
-                    .Where(x => x.IsActive == 1 && x.CustomerId == customerId && x.RemainingSessions > 0)
-                    .FirstOrDefaultAsync();
-
-                if (latestPackageWithSessions != null)
-                {
-                    return latestPackageWithSessions.RemainingSessions;
-                }
-
-                return 0;
-            }
-            catch (Exception ex)
-            {
-                return -1;
             }
         }
         
@@ -136,12 +117,13 @@ namespace ITValet.Services
             }
         }
 
-
         public async Task<IEnumerable<UserPackage>> GetUserPackageListByUserId(int? UserId)
         {
             try
             {
-                return await _context.UserPackage.Where(x => x.IsActive == (int)EnumActiveStatus.Active && x.CustomerId== UserId).ToListAsync();
+                return await _context.UserPackage.Where(x => 
+                                                        x.IsActive == (int)EnumActiveStatus.Active && x.CustomerId== UserId)
+                    .OrderByDescending(x => x.Id).ToListAsync();
 
             }
             catch (Exception ex)
@@ -153,6 +135,51 @@ namespace ITValet.Services
         public async Task<UserPackage?> GetUserPackageById(int id)
         {
             return await _context.UserPackage.FindAsync(id);
+        }
+        
+        public async Task<UserPackage?> GetCurrentUserPackageByUserId(int? id)
+        {
+            try
+            {
+                var getCustomerRecentPackage = await _context.UserPackage.OrderByDescending(x => x.Id).FirstOrDefaultAsync(x => x.CustomerId == id && x.IsActive == 1);
+                return getCustomerRecentPackage;
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+
+        }
+        
+        public async Task<bool> UpdateUserPackageSession(UserPackage package)
+        {
+            try
+            {
+                _context.Entry(package).State = EntityState.Modified;
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+
+        public async Task<ResponseDto> GetRemainingSessionCount(int customerId)
+        {
+            try
+            {
+                var latestPackageWithSessions = await _context.UserPackage
+                    .Where(x => x.IsActive == 1 && x.CustomerId == customerId && x.RemainingSessions > 0)
+                    .FirstOrDefaultAsync();
+
+                return GeneralPurpose.GenerateResponseCode(true, "200", "", latestPackageWithSessions);
+            }
+            catch (Exception ex)
+            {
+                GeneralPurpose.CreateLogger(_projectVariables, ex);
+                return GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage);
+            }
         }
 
         public async Task<ResponseDto?> GetUserPackageByUserId(string userId)
@@ -172,29 +199,17 @@ namespace ITValet.Services
                 return GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage);
             }
         }
-        public async Task<UserPackage?> GetCurrentUserPackageByUserId(int? id)
-        {
-            try
-            {
-                var getCustomerRecentPackage = await _context.UserPackage.OrderByDescending(x => x.Id).FirstOrDefaultAsync(x => x.CustomerId == id && x.IsActive == 1);
-                return getCustomerRecentPackage;
-            }
-            catch (Exception ex)
-            {
-                return null;
-            }
 
-        }
-        public async Task<bool> UpdateUserPackageSession(UserPackage package)
+        public async Task<bool> SaveChangesAsync()
         {
             try
             {
-                _context.Entry(package).State = EntityState.Modified;
                 await _context.SaveChangesAsync();
-                return true;
+                return true;            
             }
             catch (Exception ex)
             {
+                GeneralPurpose.CreateLogger(_projectVariables, ex);
                 return false;
             }
         }

@@ -47,7 +47,7 @@ namespace ITValet.Services
                 var offerObj = await _context.OfferDetail.FirstOrDefaultAsync(x => x.Id == Id);
                 offerObj.OfferStatus = 2;
                 offerObj.OrderId = orderId;
-                offerObj.UpdatedAt = DateTime.Now;
+                offerObj.UpdatedAt = GeneralPurpose.DateTimeNow();
                 await _context.SaveChangesAsync();
                 return true;
             }

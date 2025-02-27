@@ -22,12 +22,12 @@ namespace ITValet.Controllers
         private readonly IMessagesRepo _messageService;
         private readonly ProjectVariables _projectVariables;
         private readonly IOfferDetailsRepo _offerDetailService;
-        private readonly INotificationService _userPackageService;
+        private readonly IUserPackageService _userPackageService;
         private readonly IPayPalGateWayService _paypalGatewayService;
         private readonly IHubContext<NotificationHubSocket> _notificationHubSocket;
 
         public StripePaymentController(IUserRepo userRepo, IOptions<ProjectVariables> options, IConfiguration configuration,
-            IOrderRepo orderRepo, IPayPalGateWayService paypalGateWayService, INotificationService userPackageService, 
+            IOrderRepo orderRepo, IPayPalGateWayService paypalGateWayService, IUserPackageService userPackageService, 
             IOfferDetailsRepo offerDetailService, IHubContext<NotificationHubSocket> notificationHubSocket,
             IMessagesRepo messageService)
         {
@@ -332,7 +332,7 @@ namespace ITValet.Controllers
                 await _offerDetailService.UpdateOfferStatus(orderId, checkOutData.OfferId);
 
 
-            return GeneralPurpose.GenerateResponseCode(true, "200", GlobalMessages.SuccessMessage, orderId);
+            return GeneralPurpose.GenerateResponseCode(true, "200", GlobalMessages.SuccessMessage, StringCipher.EncryptId(orderId));
         }
 
         [HttpPost("StripeCheckOutForPackages")]

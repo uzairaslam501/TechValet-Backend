@@ -9,6 +9,14 @@
         AccountOnHold = 4, //If Profile got bad reviews
         AccountCompletion = 5 //If valet profile is not completed
     }
+
+    public enum EnumPackageActiveStatus
+    {
+        Deleted = 0, // records are currenly in the system but not active
+        Active = 1, // records are currently in the system and active
+        NotPaid = 2, // Url triggered by user but payment process is not completed
+    }
+
     public enum EnumRoles
     {
         Admin = 1,

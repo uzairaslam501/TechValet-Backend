@@ -53,7 +53,7 @@ namespace ITValet.Utils.Extentions
 
             services.AddScoped<IJwtUtils, JwtUtils>();
             services.AddScoped<ISearchLogService, SearchLogService>();
-            services.AddScoped<INotificationService, UserPackageService>();
+            services.AddScoped<IUserPackageService, UserPackageService>();
 
             services.AddTransient<NotificationHubSocket>();
             services.AddTransient<LogApiRequestResponseFilter>();

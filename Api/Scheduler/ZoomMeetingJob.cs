@@ -17,12 +17,12 @@ namespace ITValet.Scheduler
         private readonly IOrderReasonRepo _orderReasonRepo;
         private readonly IFundTransferService _fundTransferService;
         private readonly IPayPalGateWayService _payPalGateWayService;
-        private readonly INotificationService userPackageService;
+        private readonly IUserPackageService userPackageService;
         public ZoomMeetingJob(ILogger<ZoomMeetingJob> logger, IOrderReasonRepo orderReasonRepo,
             IOrderRepo orderRepo, IMessagesRepo _messagesRepo,
             IUserRepo userService, INotificationRepo notificationService,
             IFundTransferService _fundTransferService, IPayPalGateWayService _payPalGateWayService,
-            INotificationService userPackageService
+            IUserPackageService userPackageService
             )
         {
             _logger = logger;

@@ -16,22 +16,22 @@ namespace ITValet.Controllers
     [CustomAuthorize]
     public class CustomerController : ControllerBase
     {
-        private readonly IUserRepo userRepo;
-        private readonly IRequestServiceRepo requestServiceRepo;
-        private readonly IJwtUtils jwtUtils;
-        private readonly ProjectVariables projectVariables;
-        private readonly INotificationService _userPackageService;
-        private readonly IOrderRepo orderRepo;
+        private readonly IJwtUtils _jwtUtils;
+        private readonly IOrderRepo _orderRepo;
+        private readonly ProjectVariables _projectVariables;
+        private readonly IPayPalGateWayService _paypalService;
+        private readonly IRequestServiceRepo _requestServiceRepo;
+        private readonly IUserPackageService _userPackageService;
 
-        public CustomerController(IUserRepo _userRepo, IJwtUtils _jwtUtils, IOptions<ProjectVariables> options,
-            IRequestServiceRepo _requestServiceRepo, INotificationService userPackageService, IOrderRepo _orderRepo)
+        public CustomerController(IJwtUtils jwtUtils, IOrderRepo orderRepo, IOptions<ProjectVariables> options,
+            IPayPalGateWayService paypalService, IRequestServiceRepo requestServiceRepo, IUserPackageService userPackageService)
         {
-            userRepo = _userRepo;
-            jwtUtils = _jwtUtils;
-            projectVariables = options.Value;
-            requestServiceRepo = _requestServiceRepo;
+            _jwtUtils = jwtUtils;
+            _orderRepo = orderRepo;
+            _paypalService = paypalService;
+            _projectVariables = options.Value;
+            _requestServiceRepo = requestServiceRepo;
             _userPackageService = userPackageService;
-            orderRepo = _orderRepo;
         }
 
         [HttpPost("PostAddRequestService")]
@@ -50,7 +50,7 @@ namespace ITValet.Controllers
             }
             catch (Exception ex)
             {
-                GeneralPurpose.CreateLogger(projectVariables, ex);
+                GeneralPurpose.CreateLogger(_projectVariables, ex);
                 return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.SystemFailureMessage));
             }
         }
@@ -65,19 +65,61 @@ namespace ITValet.Controllers
                     return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.RecordNotFound));
 
                 var decryptId = StringCipher.DecryptionId(serviceId);
-                if (!await requestServiceRepo.DeleteRequestService(decryptId))
+                if (!await _requestServiceRepo.DeleteRequestService(decryptId))
                     return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.SystemFailureMessage));
 
                 return Ok(GeneralPurpose.GenerateResponseCode(true, "200", GlobalMessages.DeletedMessage));
             }
             catch (Exception ex)
             {
-                GeneralPurpose.CreateLogger(projectVariables, ex);
+                GeneralPurpose.CreateLogger(_projectVariables, ex);
                 return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.SystemFailureMessage));
             }
-        }        
+        }
 
         #region CustomerPackage
+
+        [HttpGet("GetUserSessionStatus/{userId}")]
+        public async Task<IActionResult> GetUserSessionStatus(string userId)
+        {
+            try
+            {
+                var decryptId = StringCipher.DecryptionId(userId);
+                var remainingSessionsResult = await _userPackageService.GetRemainingSessionCount(decryptId);
+
+                if (remainingSessionsResult?.Data == null || remainingSessionsResult?.Status != true)
+                    return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "No active session found.", null));
+
+                var userPackage = remainingSessionsResult!.Data as UserPackage;
+                if (userPackage == null)
+                    return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", "Invalid package data."));
+                if(userPackage.PaidBy == "STRIPE")
+                    return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Active sessions found.", userPackage.RemainingSessions));
+
+                var packageRecordsResult = await _paypalService.GetPackageByUserId(decryptId);
+                if (packageRecordsResult?.Status != true)
+                    return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.RecordNotFound));
+
+                var package = packageRecordsResult.Data as PayPalPackagesCheckOut;
+                if (package == null || package.PaymentStatus != "completed")
+                {
+                    userPackage.IsActive = 0;
+                    userPackage.DeletedAt = GeneralPurpose.DateTimeNow();
+
+                    if (!await _userPackageService.SaveChangesAsync())
+                        return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.SystemFailureMessage));
+
+                    return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Payment incomplete. Session deactivated.", 0));
+                }
+
+                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Active sessions found.", userPackage));
+            }
+            catch (Exception ex)
+            {
+                GeneralPurpose.CreateLogger(_projectVariables, ex);
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage));
+            }
+        }
 
         [HttpGet("GetUserPackageByUserId")]
         public async Task<IActionResult> GetUserPackageByUserId(int start, int length, string? sortColumnName = "", string? sortDirection = "",
@@ -134,7 +176,7 @@ namespace ITValet.Controllers
             }
             catch (Exception ex)
             {
-                GeneralPurpose.CreateLogger(projectVariables, ex);
+                GeneralPurpose.CreateLogger(_projectVariables, ex);
                 return BadRequest(GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage));
             }
         }
@@ -168,10 +210,18 @@ namespace ITValet.Controllers
         [HttpGet("GetPackageByUserId/{userId}")]
         public async Task<ActionResult> GetPackageByUserId(string userId)
         {
-            var getuserPackage = await _userPackageService.GetUserPackageByUserId(userId);
-            if (getuserPackage!.Status == false)
-                return BadRequest(getuserPackage);
-            return Ok(getuserPackage);
+            try
+            {
+                var getuserPackage = await _userPackageService.GetUserPackageByUserId(userId);
+                if (getuserPackage!.Status == false)
+                    return BadRequest(getuserPackage);
+                return Ok(getuserPackage);
+            }
+            catch (Exception ex)
+            {
+                GeneralPurpose.CreateLogger(_projectVariables, ex);
+                return BadRequest(GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage));
+            }
         }
 
         [HttpGet("GetOrderById/{id}")]
@@ -182,8 +232,8 @@ namespace ITValet.Controllers
                 if (string.IsNullOrEmpty(id))
                     return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.RecordNotFound));
 
-                var decryptId = Convert.ToInt32(id);
-                var getOrder = await orderRepo.GetOrderById(decryptId);
+                var decryptId = StringCipher.DecryptionId(id);
+                var getOrder = await _orderRepo.GetOrderById(decryptId);
 
                 if(getOrder == null)
                     return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.RecordNotFound));
@@ -205,7 +255,7 @@ namespace ITValet.Controllers
             }
             catch (Exception ex)
             {
-                GeneralPurpose.CreateLogger(projectVariables, ex);
+                GeneralPurpose.CreateLogger(_projectVariables, ex);
                 return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.SystemFailureMessage));
             }
         }
@@ -231,7 +281,7 @@ namespace ITValet.Controllers
                 postAddRequestService.IsActive = 1;
                 postAddRequestService.CreatedAt = GeneralPurpose.DateTimeNow();
 
-                var getResult = await requestServiceRepo.AddRequestServiceReturnId(postAddRequestService);
+                var getResult = await _requestServiceRepo.AddRequestServiceReturnId(postAddRequestService);
                 if (getResult != -1)
                 {
                     return getResult;
@@ -240,7 +290,7 @@ namespace ITValet.Controllers
             }
             catch (Exception ex)
             {
-                GeneralPurpose.CreateLogger(projectVariables, ex);
+                GeneralPurpose.CreateLogger(_projectVariables, ex);
                 return -1;
             }
         }

@@ -24,7 +24,7 @@ namespace ITValet.Controllers
         private readonly IOrderRepo _orderService;
         private readonly IUserSkillRepo userSkillRepo;
         private readonly ProjectVariables projectVariables;
-        private readonly INotificationService userPackageRepo;
+        private readonly IUserPackageService userPackageRepo;
         private readonly IUserEducationRepo userEducationRepo;
         private readonly IUserExperienceRepo userExperienceRepo;
         private readonly IUserAvailableSlotRepo userAvailableSlotRepo;
@@ -34,7 +34,7 @@ namespace ITValet.Controllers
         public AdminController(IMapper mapper, IUserEducationRepo _userEducationRepo, IUserExperienceRepo _userExperienceRepo, 
             IUserSkillRepo _userSkillRepo, IUserRepo _userRepo, IOrderRepo orderService, IPayPalGateWayService payPalGateWayService, 
             IJwtUtils _jwtUtils, IOptions<ProjectVariables> options, IUserAvailableSlotRepo _userAvailableSlotRepo, 
-            INotificationService _userPackageRepo, IHubContext<NotificationHubSocket> notificationHubSocket)
+            IUserPackageService _userPackageRepo, IHubContext<NotificationHubSocket> notificationHubSocket)
         {
             _mapper = mapper;
             jwtUtils = _jwtUtils;

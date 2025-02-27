@@ -31,7 +31,7 @@ namespace ITValet.Controllers
         private readonly ProjectVariables projectVariables;
         private readonly IOfferDetailsRepo offerDetailsRepo;
         private readonly INotificationRepo _notificationService;
-        private readonly INotificationService userPackageService;
+        private readonly IUserPackageService userPackageService;
         private readonly IFundTransferService _fundTransferService;
         private readonly IPayPalGateWayService _payPalGateWayService;
         private readonly IHubContext<NotificationHubSocket> _notificationHubSocket;
@@ -39,7 +39,7 @@ namespace ITValet.Controllers
         public MessageController(IHubContext<NotificationHubSocket> notificationHubSocket, IUserRepo _userRepo, 
             IMessagesRepo _messagesRepo, IOfferDetailsRepo _offerDetailsRepo, IOptions<ProjectVariables> options, IJwtUtils _jwtUtils, 
             IOrderRepo _orderRepo, IOrderReasonRepo _orderReasonRepo, IFundTransferService fundTransferService, IUserRatingRepo _userRatingRepo,
-            IPayPalGateWayService payPalGateWayService, INotificationService _userPackageService, INotificationRepo notificationService,
+            IPayPalGateWayService payPalGateWayService, IUserPackageService _userPackageService, INotificationRepo notificationService,
             IOptions<Zoom> zoomVariables)
         {
             jwtUtils = _jwtUtils;

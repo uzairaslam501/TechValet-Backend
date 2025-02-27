@@ -158,13 +158,6 @@ namespace ITValet.Utils.Helpers
             return sessions * pricePerHour;
         }
 
-        public static int CalculateSessions(DateTime startDate, DateTime endDate, int sessionDurationInMinutes = 60)
-        {
-            TimeSpan duration = endDate - startDate;
-            int totalMinutes = (int)duration.TotalMinutes;
-            return (int)Math.Ceiling(totalMinutes / (double)sessionDurationInMinutes);
-        }
-
         public static ResponseDto CreateErrorResponse(string message, string statusCode = "400")
         {
             return new ResponseDto { Status = false, StatusCode = statusCode, Message = message };
@@ -183,7 +176,10 @@ namespace ITValet.Utils.Helpers
                 TotalSessions = packageDetails.TotalSessions,
                 RemainingSessions = packageDetails.RemainingSessions,
                 PackageType = packageDetails.PackageType,
-                PaidBy = "PAYPAL"
+                CustomerId = Convert.ToInt32(packageDetails.ClientId),
+                PaidBy = "PAYPAL",
+                IsActive = (int)EnumPackageActiveStatus.NotPaid,
+                CreatedAt = GeneralPurpose.DateTimeNow()
             };
         }
 
@@ -197,7 +193,8 @@ namespace ITValet.Utils.Helpers
                 StartDate = packageDetails.StartDate,
                 EndDate = packageDetails.EndDate,
                 PackageType = packageDetails.PackageName,
-                ClientId = Convert.ToInt32(packageDetails.ClientId)
+                ClientId = Convert.ToInt32(packageDetails.ClientId),
+                IsActive = (int)EnumPackageActiveStatus.NotPaid,
             };
         }
     }

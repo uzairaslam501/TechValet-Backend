@@ -12,6 +12,7 @@ namespace ITValet.Services
         Task<bool> DeleteCheckOutOrderOfPackages(int orderId);
         Task<bool> UpdateOrderCheckOut(PayPalOrderCheckOut checkout);
         Task<PackageCheckOutViewModel> GetPackageByPaymentId(string paymentId);
+        
         Task<bool> UpdatePackageRecord(PackageCheckOutViewModel package);
         Task<bool> AddPayPalOrder(OrderCheckOutViewModel order);
         Task<bool> CancelOrderAndRevertSessionAsync(int orderId, string? way = "");
@@ -34,6 +35,7 @@ namespace ITValet.Services
         Task<bool> AddPayPalOrderForPackage(PayPalOrderCheckOutViewModel order);
         Task<bool> OrderCreatedByPayPalPackage(OrderAcceptedOfPackage packageOrder);
         Task<PayPalEarningInCome> GetPayPalEarnings(int valetId);
+        Task<ResponseDto> GetPackageByUserId(int userId);
     }
 
     public class PayPalGateWayService : IPayPalGateWayService
@@ -41,11 +43,11 @@ namespace ITValet.Services
         private readonly AppDbContext _context;
         private readonly IUserRepo _userService;
         private readonly IOrderRepo _orderService;
-        private readonly INotificationService _userPackageService;
+        private readonly IUserPackageService _userPackageService;
 
         private readonly ProjectVariables _projectVariables;
         public PayPalGateWayService(AppDbContext context, IUserRepo userService, IOrderRepo orderService,
-            INotificationService userPackageService, IOptions<ProjectVariables> options)
+            IUserPackageService userPackageService, IOptions<ProjectVariables> options)
         {
             _context = context;
             _userService = userService;
@@ -141,6 +143,20 @@ namespace ITValet.Services
                 return GeneralPurpose.GenerateResponseCode(false, "400", "An error occurred while adding/updating account information.");
             }
         }
+
+        public async Task<ResponseDto> GetPackageByUserId(int userId)
+        {
+            try
+            {
+                var obj = await _context.PayPalPackagesCheckOut.FirstOrDefaultAsync(x => x.ClientId == userId & x.IsActive == 1);
+                return GeneralPurpose.GenerateResponseCode(true, "200", "Record Found", obj);
+            }
+            catch (Exception ex)
+            {
+                CreateLogger(ex);
+                return GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.SystemFailureMessage);
+            }
+        }
         #endregion
 
 
@@ -156,7 +172,8 @@ namespace ITValet.Services
                 obj.StartDate = package.StartDate;
                 obj.UserPackageId = package.UserPackageId;
                 obj.EndDate = package.EndDate;
-                obj.CreatedAt = DateTime.Now;
+                obj.IsActive = package.IsActive;
+                obj.CreatedAt = GeneralPurpose.DateTimeNow();
                 _context.PayPalPackagesCheckOut.Add(obj);
                 await _context.SaveChangesAsync();
                 return true;
@@ -195,6 +212,7 @@ namespace ITValet.Services
                         PackagePrice = paymentPackage.PackagePrice,
                         UserPackageId = paymentPackage.UserPackageId,
                         ClientId = paymentPackage.ClientId,
+                        IsActive = (int)paymentPackage.IsActive
                     };
 
                     return packageViewModel;
@@ -221,7 +239,7 @@ namespace ITValet.Services
                     obj.UserPackageId = package.UserPackageId;
                     obj.Currency = package.Currency;
                     obj.IsActive = package.IsActive;
-                    obj.UpdatedAt = DateTime.Now;
+                    obj.UpdatedAt = GeneralPurpose.DateTimeNow();
 
                     await _context.SaveChangesAsync();
 
@@ -271,8 +289,8 @@ namespace ITValet.Services
                 obj.OrderId = order.OrderId;
                 obj.IsRefund = false;
                 obj.PaymentStatus = "USED_SESSION";
-                obj.CreatedAt = DateTime.Now;
-                obj.IsActive = 1;
+                obj.CreatedAt = GeneralPurpose.DateTimeNow();
+                obj.IsActive = (int)EnumActiveStatus.Active;
                 _context.PayPalOrderCheckOut.Add(obj);
                 await _context.SaveChangesAsync();
                 return true;
@@ -1126,10 +1144,10 @@ namespace ITValet.Services
         private readonly AppDbContext _context;
         private readonly IUserRepo _userService;
         private readonly IOrderRepo _orderService;
-        private readonly INotificationService _userPackageService;
+        private readonly IUserPackageService _userPackageService;
         private readonly ProjectVariables _projectVariables;
         public IPaypalServices(AppDbContext context, IUserRepo userService,
-            IOrderRepo orderService, INotificationService userPackageService,
+            IOrderRepo orderService, IUserPackageService userPackageService,
             IOptions<ProjectVariables> options)
         {
             _context = context;

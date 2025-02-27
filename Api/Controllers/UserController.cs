@@ -36,8 +36,8 @@ namespace ITValet.Controllers
         private readonly IOrderRepo orderRepo;
         private readonly IOrderReasonRepo orderReasonRepo;
         private readonly IJwtUtils jwtUtils;
-        private readonly ProjectVariables projectVariables;
-        private readonly INotificationService _packageService;
+        private readonly ProjectVariables _projectVariables;
+        private readonly IUserPackageService _packageService;
         private readonly IUserRatingRepo ratingRepo;
         private readonly IMessagesRepo MessageRepo;
         private readonly ISearchLogService _searchLogService;
@@ -49,13 +49,13 @@ namespace ITValet.Controllers
             IUserExperienceRepo _userExperienceRepo, IPayPalGateWayService payPalGateWayService, IUserSkillRepo _userSkillRepo, IUserTagRepo _userTagRepo,
             IUserAvailableSlotRepo _userAvailableSlotRepo, ISearchLogRepo _searchLogRepo,
             IRequestServiceRepo _requestServiceRepo, IOrderRepo _orderRepo, IOrderReasonRepo _orderReasonRepo,
-            INotificationService userPackageService, ILogger<UserController> logger, IMessagesRepo messageRepo, IUserRatingRepo _ratingRepo, ISearchLogService searchLogService)
+            IUserPackageService userPackageService, ILogger<UserController> logger, IMessagesRepo messageRepo, IUserRatingRepo _ratingRepo, ISearchLogService searchLogService)
         {
             _notificationHubSocket = notificationHubSocket;
             userRepo = _userRepo;
             jwtUtils = _jwtUtils;
             ratingRepo = _ratingRepo;
-            projectVariables = options.Value;
+            _projectVariables = options.Value;
             userEducationRepo = _userEducationRepo;
             userSocialProfileRepo = _userSocialProfileRepo;
             userExperienceRepo = _userExperienceRepo;
@@ -139,7 +139,7 @@ namespace ITValet.Controllers
                     Email = obj.Email,
                     Password = StringCipher.Decrypt(obj.Password),
                     Gender = obj.Gender,
-                    ProfilePicture = obj.ProfilePicture != null ? projectVariables.BaseUrl + obj.ProfilePicture : null,
+                    ProfilePicture = obj.ProfilePicture != null ? _projectVariables.BaseUrl + obj.ProfilePicture : null,
                     Country = obj.Country,
                     State = obj.State,
                     City = obj.City,
@@ -194,7 +194,7 @@ namespace ITValet.Controllers
                         UserEncId = StringCipher.EncryptId(user.Id),
                         UserName = user.UserName,
                         Email = user.Email,
-                        ProfilePicture = user.ProfilePicture != null ? projectVariables.BaseUrl + user.ProfilePicture : null,
+                        ProfilePicture = user.ProfilePicture != null ? _projectVariables.BaseUrl + user.ProfilePicture : null,
                         Status = user.Status.ToString(),
                         Description = user.Description,
                         Country = user.Country,
@@ -249,7 +249,7 @@ namespace ITValet.Controllers
                         ZipCode = user.ZipCode,
                         Description = user.Description,
                         PricePerHour = user.PricePerHour.ToString(),
-                        ProfilePicture = $"{projectVariables.BaseUrl}{user.ProfilePicture}",
+                        ProfilePicture = $"{_projectVariables.BaseUrl}{user.ProfilePicture}",
                         UserRating = averageRating.ToString("F2"), // Format rating to 2 decimal places
                         UserRatingCount = userRatings?.Count.ToString() ?? "0"
                     });
@@ -376,7 +376,7 @@ namespace ITValet.Controllers
             }
             catch (Exception ex)
             {
-                GeneralPurpose.CreateLogger(projectVariables, ex);
+                GeneralPurpose.CreateLogger(_projectVariables, ex);
                 return BadRequest(GeneralPurpose.GenerateResponseCode(false, "500", GlobalMessages.SystemFailureMessage));
             }
         }
@@ -1063,7 +1063,7 @@ namespace ITValet.Controllers
                     return NotFound(new ResponseDto { Status = false, StatusCode = "404", Message = "User not found" });
 
                 // Get earnings
-                var stripeEarnings = await StripeHelper.GetStripeEarnings(user.StripeId!, projectVariables);
+                var stripeEarnings = await StripeHelper.GetStripeEarnings(user.StripeId!, _projectVariables);
                 var payPalEarnings = await _payPalGateWayService.GetPayPalEarnings(decrypt);
 
                 // Prepare response
@@ -1099,7 +1099,7 @@ namespace ITValet.Controllers
             }
             catch (Exception ex)
             {
-                GeneralPurpose.CreateLogger(projectVariables, ex);
+                GeneralPurpose.CreateLogger(_projectVariables, ex);
                 return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.SystemFailureMessage));
             }
         }
@@ -1118,7 +1118,7 @@ namespace ITValet.Controllers
             }
             catch (Exception ex)
             {
-                MailSender.SendErrorMessage(projectVariables.BaseUrl + " ----------<br>" + ex.Message.ToString() + "---------------" + ex.StackTrace);
+                MailSender.SendErrorMessage(_projectVariables.BaseUrl + " ----------<br>" + ex.Message.ToString() + "---------------" + ex.StackTrace);
                 return Ok(new ResponseDto() { Status = false, StatusCode = "404", Message = "Exception Occured" });
             }
         }
@@ -1147,7 +1147,7 @@ namespace ITValet.Controllers
             }
             catch (Exception ex)
             {
-                await MailSender.SendErrorMessage("Environment: " + projectVariables.BaseUrl +
+                await MailSender.SendErrorMessage("Environment: " + _projectVariables.BaseUrl +
                     "<br/> Message: " + ex.Message.ToString() + "<br/> Path: " + ex.StackTrace);
                 return false;
             }
@@ -1171,7 +1171,7 @@ namespace ITValet.Controllers
             }
             catch (Exception ex)
             {
-                await MailSender.SendErrorMessage("Environment: " + projectVariables.BaseUrl +
+                await MailSender.SendErrorMessage("Environment: " + _projectVariables.BaseUrl +
                 "<br/> Message: " + ex.Message.ToString() + "<br/> Path: " + ex.StackTrace);
                 return BadRequest(ex.Message);
             }
@@ -1215,7 +1215,7 @@ namespace ITValet.Controllers
             catch (Exception ex)
             {
                 response.Message = ex.Message;
-                await MailSender.SendErrorMessage("Environment: " + projectVariables.BaseUrl +
+                await MailSender.SendErrorMessage("Environment: " + _projectVariables.BaseUrl +
                 "<br/> Message: " + ex.Message.ToString() + "<br/> Path: " + ex.StackTrace);
                 return response;
             }
@@ -1225,21 +1225,7 @@ namespace ITValet.Controllers
 
         #region UserPackages 
 
-        [HttpGet("GetUserSessionStatus")]
-        public async Task<IActionResult> GetUserSessionStatus(string customerId)
-        {
-            int customerIdInt = int.Parse(customerId);
-            int? remainingSessions = await _packageService.GetRemainingSessionCount(customerIdInt);
-
-            if (remainingSessions > 0)
-            {
-                return Ok(new ResponseDto { Status = true, StatusCode = "200", Data = remainingSessions });
-            }
-            else
-            {
-                return Ok(new ResponseDto { Status = true, StatusCode = "200", Data = 0 });
-            }
-        }
+        
 
         #endregion
         
@@ -1458,7 +1444,7 @@ namespace ITValet.Controllers
                 Role = Enum.GetName(typeof(EnumRoles), user.Role!),
                 BirthDate = user.BirthDate?.ToString("yyyy-MM-dd"),
                 IsActive = Enum.GetName(typeof(EnumActiveStatus), user.IsActive!),
-                ProfilePicture = user.ProfilePicture != null ? projectVariables.BaseUrl + user.ProfilePicture : null,
+                ProfilePicture = user.ProfilePicture != null ? _projectVariables.BaseUrl + user.ProfilePicture : null,
                 CurrentTime = GeneralPurpose.regionChanged(Convert.ToDateTime(GeneralPurpose.DateTimeNow()), user.Timezone!)
             };
         }

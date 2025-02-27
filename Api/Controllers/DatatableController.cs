@@ -20,7 +20,7 @@ namespace ITValet.Controllers
         private readonly IRequestServiceRepo requestServiceRepo;
         private readonly IOrderRepo orderRepo;
         private readonly IJwtUtils jwtUtils;
-		private readonly INotificationService _userPackageService;
+		private readonly IUserPackageService _userPackageService;
 		private readonly IUserRepo _userRepo;
         private readonly IContactUsRepo _contactUsRepo;
         private readonly IPayPalGateWayService _payPalGateWayService;
@@ -31,7 +31,7 @@ namespace ITValet.Controllers
         private readonly IUserTagRepo _userTagRepo;
         private readonly ProjectVariables _projectVariables;
         public DatatableController(IJwtUtils _jwtUtils, IRequestServiceRepo _requestServiceRepo,
-            IOrderRepo _orderRepo, INotificationService userPackageService, IUserRepo userRepo,
+            IOrderRepo _orderRepo, IUserPackageService userPackageService, IUserRepo userRepo,
             IContactUsRepo contactUsRepo, IPayPalGateWayService payPalGateWayService,
             IUserEducationRepo userEducationRepo, IUserExperienceRepo userExperienceRepo,
             IUserSocialProfileRepo userSocialProfileRepo, IUserSkillRepo userSkillRepo, 
