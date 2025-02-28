@@ -575,7 +575,7 @@ namespace ITValet.Controllers
                 Email = obj.Email,
                 Role = Enum.GetName(typeof(EnumRoles), obj.Role!),
                 Token = _jwtUtils.GenerateToken(obj),
-                TokenExpire = GeneralPurpose.DateTimeNow().AddDays(1).ToString(),
+                TokenExpire = GeneralPurpose.DateTimeNow().AddDays(3).ToString(),
                 ProfilePicture = !string.IsNullOrEmpty(obj.ProfilePicture)
                     ? baseUri + obj.ProfilePicture
                     : "",
