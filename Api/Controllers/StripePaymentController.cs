@@ -310,22 +310,26 @@ namespace ITValet.Controllers
             if (orderId == -1)
                 return GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.SystemFailureMessage, null);
 
-            bool isOrderUpdated, isPackageUpdated = false;
+            bool isOrderUpdated = false;
+            bool isPackageUpdated = false;
 
             if (checkOutData.PackageId == null)
             {
                 var chargePayment = await ProcessCharge(checkOutData, orderId, false);
-                isOrderUpdated = await UpdateOrder(checkOutData?.TotalWorkCharges!, checkOutData?.ActualOrderPrice!,
-                    chargePayment, orderId);
+                if (!string.IsNullOrEmpty(chargePayment))
+                    isOrderUpdated = true;
             }
             else
             {
                 isOrderUpdated = await UpdateOrder(checkOutData?.TotalWorkCharges!, checkOutData?.ActualOrderPrice!,
                     "", orderId);
+
                 isPackageUpdated = await UpdatePackage(checkOutData!);
+                if(!isPackageUpdated)
+                    return GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.SystemFailureMessage, null);
             }
 
-            if (!isOrderUpdated || !isPackageUpdated)
+            if (!isOrderUpdated)
                 return GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.SystemFailureMessage, null);
 
             if (checkOutData?.OfferId! != null)
