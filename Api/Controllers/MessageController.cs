@@ -394,7 +394,7 @@ namespace ITValet.Controllers
                     .Select(message => MapMessageToViewModel(message, loggedInUser, targetUser))
                     .GroupBy(m => Convert.ToDateTime(m.MessageTime).Date) // Grouping by date
                     .OrderBy(g => g.Key) // Sorting latest date first
-                    .ToDictionary(g => g.Key.ToString("yyyy-MM-dd"), g => g.ToList()); // Convert to dictionary for frontend
+                    .ToDictionary(g => g.Key.ToString("MM-dd-yyyy"), g => g.ToList()); // Convert to dictionary for frontend
 
                 return Ok(new ResponseDto()
                 {
@@ -439,7 +439,7 @@ namespace ITValet.Controllers
                 var groupedMessages = messagesList
                     .GroupBy(m => Convert.ToDateTime(m.MessageTime).Date) // Grouping by date
                     .OrderBy(g => g.Key) // Sorting latest date first
-                    .ToDictionary(g => g.Key.ToString("yyyy-MM-dd"), g => g.ToList());
+                    .ToDictionary(g => g.Key.ToString("MM-dd-yyyy"), g => g.ToList());
 
                 return Ok(GeneralPurpose.GenerateResponseCode(true, "200", GlobalMessages.RecordFound, groupedMessages));
             }
@@ -1658,8 +1658,8 @@ namespace ITValet.Controllers
             viewModel.TransactionFee = offerDetails.TransactionFee;
             viewModel.OfferDescription = offerDetails.OfferDescription;
             viewModel.OfferPrice = offerDetails.OfferPrice.ToString();
-            viewModel.StartedDateTime = offerDetails.StartedDateTime.ToString();
-            viewModel.EndedDateTime = offerDetails.EndedDateTime.ToString();
+            viewModel.StartedDateTime = offerDetails.StartedDateTime != null ? offerDetails.StartedDateTime.Value.ToString("MM/dd/yyyy HH:mm:ss tt") : "";
+            viewModel.EndedDateTime = offerDetails.EndedDateTime != null ? offerDetails.EndedDateTime.Value.ToString("MM/dd/yyyy HH:mm:ss tt") : "";
             viewModel.CustomerId = offerDetails.CustomerId.ToString();
             viewModel.ValetId = offerDetails.ValetId.ToString();
             viewModel.OfferStatus = offerDetails.OfferStatus.ToString();

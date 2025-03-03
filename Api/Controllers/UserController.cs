@@ -1502,8 +1502,8 @@ namespace ITValet.Controllers
                 EducationId = StringCipher.EncryptId(obj.Id),
                 DegreeName = obj.DegreeName,
                 InstituteName = obj.InstituteName,
-                StartDate = obj.StartDate != null ? obj.StartDate.Value.ToString("yyyy-MM-dd") : "",
-                EndDate = obj.EndDate != null ? obj.EndDate.Value.ToString("yyyy-MM-dd") : "",
+                StartDate = obj.StartDate != null ? obj.StartDate.Value.ToString("MM-dd-yyyy") : "",
+                EndDate = obj.EndDate != null ? obj.EndDate.Value.ToString("MM-dd-yyyy") : "",
                 UserId = obj.UserId.ToString()
             };
         }

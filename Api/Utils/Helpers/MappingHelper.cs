@@ -82,8 +82,8 @@ namespace ITValet.Utils.Helpers
                 PackageType = packageObj.PackageType.ToString(),
                 TotalSessions = packageObj.TotalSessions.ToString(),
                 RemainingSessions = packageObj.RemainingSessions.ToString(),
-                StartDateTime = packageObj.StartDateTime!.Value.ToString("yyyy-MMM-dd HH:mm"),
-                EndDateTime = packageObj.EndDateTime!.Value.ToString("yyyy-MMM-dd HH:mm"),
+                StartDateTime = packageObj.StartDateTime!.Value.ToString("MM-dd-yyyy HH:mm tt"),
+                EndDateTime = packageObj.EndDateTime!.Value.ToString("MM-dd-yyyy HH:mm tt"),
                 CustomerId = packageObj.CustomerId.ToString(),
             };
         }
@@ -98,8 +98,8 @@ namespace ITValet.Utils.Helpers
                     Id = order.Id.ToString(),
                     EncId = StringCipher.EncryptId(order.Id),
                     OrderTitle = order.OrderTitle,
-                    StartDateTime = order.StartDateTime?.ToString() ?? "",
-                    EndDateTime = order.EndDateTime?.ToString() ?? "",
+                    StartDateTime = order.StartDateTime?.ToString("MM-dd-yyyy HH:mm tt") ?? "",
+                    EndDateTime = order.EndDateTime?.ToString("MM-dd-yyyy HH:mm tt") ?? "",
                     OrderPrice = order.OrderPrice.ToString(),
                     IsDelivered = order.IsDelivered.ToString(),
                 };
@@ -304,7 +304,7 @@ namespace ITValet.Utils.Helpers
                     OrderPaidBy = GeneralPurpose.OrderPaidBy(order.PayPalPaymentId, order.CapturedId, order.StripeChargeId, order.PackageBuyFrom),
                     EarnedFromOrder = "$"+ GeneralPurpose.EarnedAmountFromOrder((decimal)order.OrderPrice!),
                     OrderTitle = order.OrderTitle,
-                    CompletedAt = order.EndDateTime!.Value.ToString("yyyy-MMM-dd HH:mm"),
+                    CompletedAt = order.EndDateTime!.Value.ToString("MM/dd/yyyy HH:mm tt"),
                 };
                 completedOrdersDto.Add(obj);
             }
