@@ -1541,6 +1541,7 @@ namespace ITValet.Controllers
                 IsRead = message.IsRead?.ToString(),
                 FilePath = message.FilePath,
                 SenderId = message.SenderId.ToString(),
+                SenderEncId = StringCipher.EncryptId((int)message.SenderId!),
             };
 
             //order wprk
@@ -1554,7 +1555,9 @@ namespace ITValet.Controllers
                 viewModelMessage.StartedDateTime = offer.StartedDateTime.ToString();
                 viewModelMessage.EndedDateTime = offer.EndedDateTime.ToString();
                 viewModelMessage.CustomerId = offer.CustomerId.ToString();
+                viewModelMessage.CustomerEncId = StringCipher.EncryptId((int)offer.CustomerId!);
                 viewModelMessage.ValetId = offer.ValetId.ToString();
+                viewModelMessage.ValetEncId = StringCipher.EncryptId((int)offer.ValetId!);
                 viewModelMessage.OfferStatus = offer.OfferStatus.ToString();
                 viewModelMessage.Name = $"{getLoggedInUser?.FirstName} {getLoggedInUser?.LastName}";
                 viewModelMessage.Username = getLoggedInUser?.UserName;
