@@ -1545,7 +1545,7 @@ namespace ITValet.Controllers
             };
 
             //order wprk
-            if (offer != null)
+            if (offer.OfferTitle != null)
             {
                 viewModelMessage.OfferTitleId = offer.Id.ToString();
                 viewModelMessage.OfferTitle = offer.OfferTitle;
