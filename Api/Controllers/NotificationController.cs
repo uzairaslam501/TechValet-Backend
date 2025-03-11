@@ -89,14 +89,14 @@ namespace ITValet.Controllers
                 ViewNotificationDto viewNotificationDto = new ViewNotificationDto()
                 {
                     NotificationId = notification.Id.ToString(),
-                    UserId = notification.UserId.ToString(),
-                    Title = notification.Title,
-                    Description = notification.Description,
-                    Url = $"{_projectVariables.ReactUrl}{notification.Url}",
-                    IsRead = (int)notification.IsRead,
+                    UserId = notification?.UserId.ToString(),
+                    Title = notification?.Title,
+                    Description = notification?.Description,
+                    Url = $"{_projectVariables.ReactUrl}{notification?.Url}",
+                    IsRead = (int)notification?.IsRead,
                     NotificationType = notification.NotificationType,
                 };
-                viewNotificationDto.CreatedAt = Convert.ToDateTime(GeneralPurpose.regionChanged(Convert.ToDateTime(notification.CreatedAt), loggedInUser.Timezone)).ToString("yyyy-MMM-dd hh:mm tt");
+                viewNotificationDto.CreatedAt = Convert.ToDateTime(GeneralPurpose.regionChanged(Convert.ToDateTime(notification.CreatedAt), loggedInUser?.Timezone!)).ToString("MM-dd-yyyy hh:mm tt");
 
                 viewNotificationDtoList.Add(viewNotificationDto);
             }

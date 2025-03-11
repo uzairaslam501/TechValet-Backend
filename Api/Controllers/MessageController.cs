@@ -7,7 +7,6 @@ using ITValet.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Options;
-using MimeKit;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using RestSharp;
@@ -581,11 +580,15 @@ namespace ITValet.Controllers
             };
 
             if(obj.OrderStatus == "Cancel")
+            {
                 getOrderReason!.IsActive = 3; //Reject Case
+            }
             else
             {
                 getOrderReason!.IsActive = 2; //Accept Case
                 await ProcessCancellationAsync(order!);
+                order!.OrderStatus = 4;
+                order.IsDelivered = 4;
             }
 
             getOrderReason!.UpdatedAt = GeneralPurpose.DateTimeNow();
