@@ -820,6 +820,7 @@ namespace ITValet.HelpingClasses
         public string? ReceiverId { get; set; }
         public string? SenderId { get; set; }
         public string? DateExtension { get; set; }
+        public string? Explanation { get; set; }
     }
     #endregion
 

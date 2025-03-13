@@ -547,29 +547,70 @@ namespace ITValet.Controllers
         [HttpPut("RequestExtendDate/{orderId}")]
         public async Task<IActionResult> PostOrderAccept(string orderId, OrderStatusDto obj)
         {
-            return await HandleOrderStatusChange(orderId, obj, "Extend Date", "Order Date Extension Requested.", "extension", reasonType: 1);
+            var response = await HandleOrderStatusChange(orderId, obj, "Extend Date", "Order Date Extension Requested.", "extension", reasonType: 1);
+            if (response.Status == true)
+                return Ok(response);
+            else
+                return BadRequest(response);
         }
 
         [HttpPut("CancelOrder/{orderId}")]
         public async Task<IActionResult> PostOrderCancel(string orderId, OrderStatusDto obj)
         {
-            return await HandleOrderStatusChange(orderId, obj, "Cancel Order", "Order cancellation Requested.", "cancel", reasonType: 3);
+            var getUsetFromToken = jwtUtils.ValidateToken(Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last());
+            if(getUsetFromToken != null)
+            {
+                if(getUsetFromToken.Role == Enum.GetName(typeof(EnumRoles), EnumRoles.Customer!) && 
+                    getUsetFromToken.UserEncId == GeneralPurpose.ConversionEncryptedId(obj.SenderId!))
+                {
+
+                    var objs = new OrderExtentionDto();
+                    objs.SenderId = GeneralPurpose.ConversionEncryptedId(obj.SenderId!);
+                    objs.Explanation = obj.Explanation;
+                    objs.ReceiverId = GeneralPurpose.ConversionEncryptedId(obj.ReceiverId!);
+                    return await HandleCancelOrderRequest(orderId, objs);
+                }
+            }
+            var response = await HandleOrderStatusChange(orderId, obj, "Cancel Order", "Order cancellation Requested.", "cancel", reasonType: 3);
+            if (response.Status == true)
+                return Ok(response);
+            else
+                return BadRequest(response);
         }
 
         [HttpPut("HandleCancelOrderRequest/{orderId}")]
         public async Task<IActionResult> HandleCancelOrderRequest(string orderId, OrderExtentionDto obj)
         {
+            var publiclyCall = false;
+            if (string.IsNullOrWhiteSpace(obj.OrderReasonId))
+                publiclyCall = true;
+
+            var decryptOrderReasonId = -1;
+            var getOrderReason = new OrderReason();
+            
             // Decrypt input IDs
             var decryptSenderId = StringCipher.DecryptionId(obj.SenderId!);
             var decryptReceiverId = StringCipher.DecryptionId(obj.ReceiverId!);
             var decryptOrderId = StringCipher.DecryptionId(orderId!);
-            var decryptOrderReasonId = StringCipher.DecryptionId(obj.OrderReasonId!);
+
+            if (!string.IsNullOrWhiteSpace(obj.OrderReasonId))
+                decryptOrderReasonId  = StringCipher.DecryptionId(obj.OrderReasonId!);
 
             // Fetch necessary entities
             var order = await orderRepo.GetOrderById(decryptOrderId);
             var sender = await userRepo.GetUserById(decryptSenderId);
             var receiver = await userRepo.GetUserById(decryptReceiverId);
-            var getOrderReason = await orderReasonRepo.GetOrderReasonById(decryptOrderReasonId);
+            if (!string.IsNullOrWhiteSpace(obj.OrderReasonId))
+                getOrderReason = await orderReasonRepo.GetOrderReasonById(decryptOrderReasonId);
+            else
+            {
+                var objs = new OrderStatusDto();
+                objs.SenderId = obj.SenderId;
+                objs.ReceiverId = obj.ReceiverId;
+                objs.Explanation = obj.Explanation;
+                var orderReason = await CreateOrderReason(order!, objs, 3);
+                decryptOrderReasonId = orderReason.Id;
+            }
 
             var getMessage = new Message()
             {
@@ -595,10 +636,11 @@ namespace ITValet.Controllers
             var orderReasons = await orderReasonRepo.UpdateOrderReason(getOrderReason);
             var chkOrderUpdated = await orderRepo.UpdateOrder(order!);
 
-            var title = getOrderReason.IsActive == 3 ? "Cancellation Rejected" : "Order Cancelled";
-            getMessage.MessageDescription = getOrderReason.IsActive == 3
+            var title = !publiclyCall ? getOrderReason.IsActive == 3 ? "Cancellation Rejected" : "Order Cancelled" : "Customer Has Cancelled the Order";
+            getMessage.MessageDescription = !publiclyCall ? 
+                getOrderReason.IsActive == 3
                 ? "Your Request to cancel this order has been declined"
-                : "Your Request to cancel this order has been accepted";
+                : "Your Request to cancel this order has been accepted" : "Customer Has Cancelled the Order";
 
             var message = await PostAddOrderReasonMessage(getMessage);
 
@@ -839,11 +881,12 @@ namespace ITValet.Controllers
                     receiveOrderMessageDto.reasonType = "Zoom";
                     receiveOrderMessageDto.StartUrl = zoomMeetingResponse.start_url;
                     receiveOrderMessageDto.JoinUrl = zoomMeetingResponse.join_url;
-                    //For Sender
-                    await AddNotification(message, "Zoom Meeting", "You created new zoom meeting",
-                        $"order-details/{HttpUtility.UrlDecode(OrderId)}", "Zoom Meeting Created");
+                    ////For Sender
+                    //await AddNotification(message, "Zoom Meeting", "You created new zoom meeting",
+                    //    $"order-details/{HttpUtility.UrlDecode(OrderId)}", "Zoom Meeting Created");
+
                     //For Receiver
-                    await AddNotification(message, "Zoom Meeting Created", "You created new zoom meeting",
+                    await AddNotification(message, "Zoom Meeting Invitation", "You have recieved a zoom meeting invitation for your order",
                         $"order-details/{HttpUtility.UrlDecode(OrderId)}", "Zoom Meeting Created");
 
                     var userCache = new Dictionary<int, User>();
@@ -1852,7 +1895,7 @@ namespace ITValet.Controllers
         #endregion
 
         #region CancelAcceptOrders
-        private async Task<IActionResult> HandleOrderStatusChange(string orderId, OrderStatusDto obj, string notificationTitle,
+        private async Task<ResponseDto> HandleOrderStatusChange(string orderId, OrderStatusDto obj, string notificationTitle,
             string notificationMessage, string notificationType, int reasonType)
         {
             try
@@ -1868,7 +1911,7 @@ namespace ITValet.Controllers
                 var order = await orderRepo.GetOrderById(decryptOrderId);
 
                 if (sender== null || receiver == null || order == null)
-                    return NotFound(GeneralPurpose.GenerateResponseCode(false, "404", "Invalid sender, receiver, or order ID."));
+                    return GeneralPurpose.GenerateResponseCode(false, "404", "Invalid sender, receiver, or order ID.");
 
                 // Prepare the order reason entity
                 var orderReason = await CreateOrderReason(order, obj, reasonType);
@@ -1899,13 +1942,13 @@ namespace ITValet.Controllers
                 viewModelMessage = await SetSenderTime(viewModelMessage, message, sender!);
 
                 // Return success response
-                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "", viewModelMessage));
+                return GeneralPurpose.GenerateResponseCode(true, "200", "", viewModelMessage);
             }
             catch (Exception ex)
             {
                 // Log the exception for debugging
                 Console.WriteLine($"Error: {ex.Message}");
-                return StatusCode(500, GeneralPurpose.GenerateResponseCode(false, "500", "An error occurred while processing the request."));
+                return GeneralPurpose.GenerateResponseCode(false, "500", "An error occurred while processing the request.");
             }
         }
 

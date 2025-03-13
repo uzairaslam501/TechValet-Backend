@@ -20,7 +20,8 @@ namespace ITValet.Utils.Helpers
                     StartDateTime = order.StartDateTime?.ToString() ?? "",
                     EndDateTime = order.EndDateTime?.ToString() ?? "",
                     OrderPrice = order.OrderPrice.ToString(),
-                    IsDelivered = order.IsDelivered.ToString()
+                    IsDelivered = order.IsDelivered.ToString(),
+                    OrderStatus = order.OrderStatus.ToString(),
                 };
 
                 if (order.OrderReason != null && order.OrderReason.Any())
