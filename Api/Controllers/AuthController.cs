@@ -170,6 +170,65 @@ namespace ITValet.Controllers
             return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Vertification Mail has been sent to your E-Mail.", obj));
         }
 
+        [HttpGet("suggest-username/{username}")]
+        public async Task<IActionResult> SuggestUsername(string username)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(username))
+                    return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", "username are required"));
+
+                var suggestions = new List<string>
+                {
+                    username,  // Original username
+                    $"{username}{new Random().Next(100, 999)}",  // Append a random number
+                    $"{username}_{new Random().Next(10, 99)}",  // Append a number with an underscore
+                    $"{username}_x",  // Add "_x"
+                    $"{username}_pro",  // Add "_pro"
+                    $"{username}_{new Random().Next(1, 100)}", // Username with an underscore and random number
+                    $"{username.Substring(0, Math.Min(username.Length, 3))}_{new Random().Next(10, 99)}" // First 3 chars + underscore + number
+                };
+
+
+                var availableUsernames = new List<string>();
+
+                foreach (var suggestedUsername in suggestions)
+                {
+                    var isExisting = await _userRepo.ValidateUsername(suggestedUsername);
+                    if (isExisting)
+                    {
+                        availableUsernames.Add(suggestedUsername);
+                    }
+                    else
+                    {
+                        // Generate a new username if it already exists
+                        string newUsername;
+                        int counter = 1;
+                        do
+                        {
+                            newUsername = $"{suggestedUsername}{counter}";
+                            counter++;
+                            // If the counter exceeds max attempts, break the loop
+                            if (counter > 1)
+                                break;
+                        }
+                        while (await _userRepo.ValidateUsername(newUsername));
+
+                        availableUsernames.Add(newUsername);
+                    }
+                }
+
+                return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "", availableUsernames));
+            }
+            catch (Exception ex)
+            {
+                await MailSender.SendErrorMessage(ex.Message);
+                return Ok(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.SystemFailureMessage));
+            }
+        }
+
+
+
         #endregion
 
         #region Manage Profile
