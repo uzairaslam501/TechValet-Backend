@@ -10,6 +10,7 @@ using ITValet.Utils.Helpers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Options;
+using System.Threading.Tasks;
 
 namespace ITValet.Controllers
 {
@@ -104,7 +105,7 @@ namespace ITValet.Controllers
                 UserName = user.UserName!.Trim(),
                 Contact = user.Contact,
                 Email = user.Email!.Trim(),
-                Password = StringCipher.Decrypt(user?.Password!),
+                Password = StringCipher.HashString(user?.Password!),
                 Gender = user?.Gender,
                 ProfilePicture = user?.ProfilePicture != null ? projectVariables.BaseUrl + user.ProfilePicture : null,
                 Country = user?.Country,
@@ -252,13 +253,15 @@ namespace ITValet.Controllers
             var obj = _mapper.Map<User>(user);
 
             obj = GeneralPurpose.SetRoles(user.Role!, obj);
-            obj.Password = StringCipher.Encrypt(user.Password!);
+            obj.Password = StringCipher.HashString(user.Password!);
             obj.IsActive = obj.Role == (int)EnumRoles.Valet ? (int)EnumActiveStatus.AccountCompletion : (int)EnumActiveStatus.Active;
             obj.CreatedAt = GeneralPurpose.DateTimeNow();
 
             // Add user
             if (!await userRepo.AddUser(obj))
                 return BadRequest(GlobalMessages.SystemFailureMessage);
+
+            obj.Password = user.Password;
 
             // Send verification email
             if (obj.Role == (int)EnumRoles.Customer || obj.Role == (int)EnumRoles.Valet || obj.Role == (int)EnumRoles.Seo)
@@ -526,6 +529,19 @@ namespace ITValet.Controllers
         {
             var getKeyPairValues = DateTimeHelper.TimeZoneFriendlyNames;
             return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Found", getKeyPairValues));
+        }
+
+        [HttpGet]
+        [Route("ChangePasswords")]
+        public async Task<IActionResult> ChangePasswords()
+        {
+            var getUsersList = await userRepo.GetUserLists();
+            foreach (var user in getUsersList) { 
+                var Password = StringCipher.Decrypt(user.Password!);
+                user.Password = StringCipher.HashString(Password);
+                await userRepo.UpdateUser(user);    
+            }
+            return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Check Database"));
         }
     }
 }

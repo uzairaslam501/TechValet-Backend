@@ -297,13 +297,13 @@ namespace ITValet.Controllers
             if (getLoggedInUser == null)
                 return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.RecordNotFound));
 
-            if (StringCipher.Decrypt(getLoggedInUser.Password!) != passwordDto.OldPassword)
+            if (!StringCipher.ComparePassword(getLoggedInUser.Password!, passwordDto.OldPassword))
                 return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.OldPassword));
 
             if (!GeneralPurpose.MatchPassword(passwordDto.NewPassword!, passwordDto.ConfirmPassword!))
                 return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", "Password and Confirm Password must be same."));
 
-            getLoggedInUser.Password = StringCipher.Encrypt(passwordDto.NewPassword.Trim());
+            getLoggedInUser.Password = StringCipher.HashString(passwordDto.NewPassword.Trim());
 
             if (!await _userRepo.UpdateUser(getLoggedInUser))
                 return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", GlobalMessages.SystemFailureMessage));
@@ -358,19 +358,15 @@ namespace ITValet.Controllers
             var dt = GeneralPurpose.DateTimeNow().Ticks;
             if (dt < passwordDto.Validity)
             {
-                User? obj = await _userRepo.GetUserById(StringCipher.DecryptionId(passwordDto.Id));
+                var obj = await _userRepo.GetUserRecordById(passwordDto.Id);
 
                 if (obj == null)
-                {
                     return BadRequest(new ResponseDto() { Status = false, StatusCode = "400", Message = GlobalMessages.RecordNotFound });
-                }
 
                 if (passwordDto.NewPassword != passwordDto.ConfirmPassword)
-                {
                     return BadRequest(new ResponseDto() { Status = false, StatusCode = "404", Message = GlobalMessages.PasswordNotMatched });
-                }
 
-                obj.Password = StringCipher.Encrypt(passwordDto.NewPassword);
+                obj.Password = StringCipher.HashString(passwordDto.NewPassword);
 
                 if (!await _userRepo.SaveChanges())
                 {

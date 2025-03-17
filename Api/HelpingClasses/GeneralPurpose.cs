@@ -427,14 +427,14 @@ namespace ITValet.HelpingClasses
                 LastName = user.Lastname!.Trim(),
                 UserName = user.Username!.Trim(),
                 Email = user.Email,
-                Password = StringCipher.Encrypt(user.Password!),
+                Password = StringCipher.HashString(user.Password!),
                 Country = user.Country,
                 State = user.State,
                 City = user.City,
                 ZipCode = user.PostalCode,
                 Timezone = user.Timezone,
                 IsActive = 3,
-                CreatedAt = GeneralPurpose.DateTimeNow()
+                CreatedAt = DateTimeNow()
             };
         }
 

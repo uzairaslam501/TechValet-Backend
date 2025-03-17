@@ -292,7 +292,7 @@ namespace ITValet.HelpingClasses
                 string description = "We are pleased to inform you that an account has been created for you by the administrator. " +
                     "<br> As a " + role + ", you can now sign in and start using the platform. Below are your login credentials: " +
                     "<br><br><b>Username:</b> " + obj.UserName +
-                    "<br><b>Password:</b> " + StringCipher.Decrypt(obj.Password) +
+                    "<br><b>Password:</b> " + obj.Password +
                     "<br><br>For security purposes, we strongly recommend changing your password immediately after signing in.";
 
                 string url = baseUrl + "Login";

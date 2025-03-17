@@ -8,11 +8,13 @@ namespace ITValet.Services
 {
     public interface IUserRepo
     {
+        Task<User?> GetUserByLogin(string email, string password);
+        Task<User?> GetUserRecordById(string userId);
         Task<User?> GetUserById(int id);
         Task<int> GetUserCount(int Role, EnumActiveStatus statuses);
         Task<int> GetUserCountPendingVerifications(int Role);
-        Task<User> GetUserByLogin(string email, string password);
         Task<IEnumerable<User>> GetUserList(int Role);
+        Task<IEnumerable<User>> GetUserLists();
         Task<IEnumerable<User>> GetOnlyActiveUserList(int Role);
         Task<IEnumerable<User>> GetAccountOnHold(int Role);
         Task<List<ActiveUsersNameDto>> FetchAllUsersName();
@@ -121,6 +123,20 @@ namespace ITValet.Services
             }
         }
 
+        public async Task<User?> GetUserRecordById(string userId)
+        {
+            try
+            {
+                var decryptUserId = StringCipher.DecryptionId(userId);
+                return await _context.User.FindAsync(decryptUserId);
+            }
+            catch (Exception ex)
+            {
+                GeneralPurpose.CreateLogger(_projectVariables, ex);
+                return null;
+            }
+        }
+
         public async Task<bool> UpdateUserAccountStatus(int id, EnumActiveStatus Status)
         {
             try
@@ -207,21 +223,30 @@ namespace ITValet.Services
         {
             return await _context.User.FindAsync(id);
         }
-        
-        public async Task<User> GetUserByLogin(string email, string password)
+
+        public async Task<User?> GetUserByLogin(string email, string password)
         {
-            var getUser = await _context.User.FirstOrDefaultAsync(x => (x.Email!.ToLower() == email.Trim().ToLower() ||
-            x.UserName!.ToLower() == email.Trim().ToLower()) && x.IsActive != (int)EnumActiveStatus.Deleted);
-            var DecryptedPassword = "";
-            if (getUser != null)
+            try
             {
-                DecryptedPassword = StringCipher.Decrypt(getUser.Password!);
-                if(DecryptedPassword == password)
-                {
-                    return getUser;
-                }
+                var userObj = await _context.User.FirstOrDefaultAsync(x =>
+                                (x.Email!.ToLower() == email.Trim().ToLower() ||
+                                x.UserName!.ToLower() == email.Trim().ToLower()) &&
+                                x.IsActive != (int)EnumActiveStatus.Deleted);
+
+                if (userObj == null)
+                    return null;
+
+                if (!StringCipher.ComparePassword(password, userObj.Password!))
+                    return null;
+                else
+                    return userObj;
+
             }
-            return null;
+            catch (Exception ex)
+            {
+                GeneralPurpose.CreateLogger(_projectVariables, ex);
+                return null;
+            }
         }
 
         public async Task<User> GetUserInfoByNameOrEmail(string username)
@@ -272,6 +297,18 @@ namespace ITValet.Services
                                                        x.Role == Role).OrderByDescending(x=>x.Id).ToListAsync();
             }
             catch(Exception ex)
+            {
+                return null;
+            }
+        }
+
+        public async Task<IEnumerable<User>> GetUserLists()
+        {
+            try
+            {
+                return await _context.User.ToListAsync();
+            }
+            catch (Exception ex)
             {
                 return null;
             }

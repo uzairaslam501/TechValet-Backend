@@ -137,7 +137,7 @@ namespace ITValet.Controllers
                     UserName = obj.UserName,
                     Contact = obj.Contact,
                     Email = obj.Email,
-                    Password = StringCipher.Decrypt(obj.Password),
+                    Password = obj.Password,
                     Gender = obj.Gender,
                     ProfilePicture = obj.ProfilePicture != null ? _projectVariables.BaseUrl + obj.ProfilePicture : null,
                     Country = obj.Country,
