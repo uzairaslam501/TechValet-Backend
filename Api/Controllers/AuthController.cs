@@ -377,6 +377,27 @@ namespace ITValet.Controllers
             return BadRequest(new ResponseDto() { Status = false, StatusCode = "400", Message = "Reset link has expired or is invalid, please request forgot link again!" });
         }
 
+        [HttpGet("Validity/{validity}")]
+        public async Task<IActionResult> Validity(long validity)
+        {
+            try
+            {
+                var dt = GeneralPurpose.DateTimeNow().Ticks;
+                if(dt < validity)
+                    return Ok(GeneralPurpose.GenerateResponse(true, "200", "Valid", true));
+                return BadRequest(GeneralPurpose.GenerateResponse(false, "400", "The link you are trying to access has been expired", false));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ResponseDto
+                {
+                    Status = false,
+                    StatusCode = "500",
+                    Message = "The link you are trying to access has been expired"
+                });
+            }
+        }
+
         #endregion
 
         #region UserActivityStatus
