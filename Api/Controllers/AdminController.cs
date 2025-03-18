@@ -535,11 +535,13 @@ namespace ITValet.Controllers
         [Route("ChangePasswords")]
         public async Task<IActionResult> ChangePasswords()
         {
+            var usersError = new List<string>();
             var getUsersList = await userRepo.GetUserLists();
             foreach (var user in getUsersList) { 
                 var Password = StringCipher.Decrypt(user.Password!);
                 user.Password = StringCipher.HashString(Password);
-                await userRepo.UpdateUser(user);    
+                if (!await userRepo.UpdateUser(user))
+                    usersError.Add(user.Id.ToString());
             }
             return Ok(GeneralPurpose.GenerateResponseCode(true, "200", "Check Database"));
         }

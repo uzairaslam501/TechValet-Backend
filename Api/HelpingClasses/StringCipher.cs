@@ -161,10 +161,11 @@ namespace ITValet.HelpingClasses
 
         public static bool ComparePassword(string password, string oldPassword)
         {
-            if (!string.IsNullOrEmpty(password) &&
-                    !StringCipher.CompareHash(password, oldPassword))
+            if (!string.IsNullOrEmpty(password) &&!string.IsNullOrEmpty(oldPassword))
             {
-                return false;
+                if(!StringCipher.CompareHash(oldPassword, password))
+                    return false;
+                
             }
             return true;
         }
