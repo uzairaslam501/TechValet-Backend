@@ -603,22 +603,7 @@ namespace ITValet.Services
             {
                 List<CompletedOrderRecord> records = new List<CompletedOrderRecord>();
                 var completedOrder = await _context.Order.Where(x => x.ValetId == valetId
-                                   && (x.OrderStatus == 1 || x.OrderStatus == 2)).ToListAsync();
-                //if (completedOrder.Any())
-                //{
-                //    foreach (var item in completedOrder)
-                //    {
-                //        CompletedOrderRecord record = new CompletedOrderRecord();
-                //        record.EncOrderId = StringCipher.EncryptId(item.Id);
-                //        record.OrderTitle = item.OrderTitle;
-                //        record.OrderPrice = item.OrderPrice.ToString();
-                //        record.EarnedFromOrder = await EarnedAmountFromOrder(item.OrderPrice.Value);
-                //        record.OrderPaidBy = await OrderPaidBy(item.PayPalPaymentId, item.CapturedId, item.StripeChargeId, item.PackageBuyFrom);
-                //        record.CompletedAt = item.EndDateTime.ToString();
-
-                //        records.Add(record);
-                //    }
-                //}
+                                   && (x.OrderStatus == 1 || x.OrderStatus == 2)).OrderByDescending(x => x.Id).ToListAsync();
                 return completedOrder;
             }
             catch (Exception ex)
