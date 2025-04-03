@@ -410,7 +410,7 @@ namespace ITValet.Controllers
 
                 // Execute payment using PayPalPaymentHelper
                 var executedPayment = PayPalPaymentHelper.ExecutePayment(paymentId, payerID, _configuration);
-                if (executedPayment.state.ToLower() != "approved")
+                if (executedPayment?.state?.ToLower() != "approved")
                     return BadRequest(GeneralPurpose.GenerateResponseCode(false, "400", 
                         "Payment not proceeded please try again or contact the payment support for further assistance"));
 

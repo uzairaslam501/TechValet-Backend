@@ -1342,4 +1342,34 @@
   "EndTime": "2025-03-13T11:56:10.0410744Z",
   "Status": "True",
   "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetSkills (ITValet)",
+  "StartTime": "2025-04-03T12:28:30.8203055Z",
+  "EndTime": "2025-04-03T12:28:32.4903881Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetSkills (ITValet)",
+  "StartTime": "2025-04-03T12:28:35.2429908Z",
+  "EndTime": "2025-04-03T12:28:35.3667496Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2025-04-03T12:28:32.3680943Z",
+  "EndTime": "2025-04-03T12:28:35.6348096Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2025-04-03T12:28:35.6426384Z",
+  "EndTime": "2025-04-03T12:28:35.7649858Z",
+  "Status": "True",
+  "StatusCode": "200"
+},{
+  "ActionName": "ITValet.Controllers.UserController.GetUserEducationByUserId (ITValet)",
+  "StartTime": "2025-04-03T12:28:35.7702671Z",
+  "EndTime": "2025-04-03T12:28:35.8998329Z",
+  "Status": "True",
+  "StatusCode": "200"
 }]
